@@ -11,9 +11,9 @@
 
 | 门户 | 域名 | 用途 | 设计语言 |
 |:---|:---|:---|:---|
-| **Admin Portal** | `admin.geahr.com` | 内部运营管理 | Ant Design |
-| **Client Portal** | `app.geahr.com` | 客户自助服务 | Apple Liquid Glass |
-| **Worker Portal** | `worker.geahr.com` | 员工/合同工自助服务 | Material Design 3 |
+| **Admin Portal** | `admin.extendglobal.ai` | 内部运营管理 | Ant Design |
+| **Client Portal** | `app.extendglobal.ai` | 客户自助服务 | Apple Liquid Glass |
+| **Worker Portal** | `worker.extendglobal.ai` | 员工/合同工自助服务 | Material Design 3 |
 
 ### 1.1 Client Portal (客户门户)
 

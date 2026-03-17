@@ -1,5 +1,5 @@
 /**
- * GEA Admin — Profit & Loss Report
+ * EG Admin — Profit & Loss Report
  * Monthly breakdown of revenue (from invoices) vs expenses (from vendor bills)
  * with interactive charts and detailed breakdowns
  */
@@ -120,7 +120,7 @@ export default function ProfitLossReport() {
 
   if (error) {
     return (
-      <Layout breadcrumb={["GEA", "Reports", "Profit & Loss"]}>
+      <Layout breadcrumb={["EG", "Reports", "Profit & Loss"]}>
         <div className="p-6"><div className="text-red-500">Error: {error.message}</div></div>
       </Layout>
     );
@@ -128,7 +128,7 @@ export default function ProfitLossReport() {
 
   if (isLoading) {
     return (
-      <Layout breadcrumb={["GEA", "Reports", "Profit & Loss"]}>
+      <Layout breadcrumb={["EG", "Reports", "Profit & Loss"]}>
         <div className="p-6 space-y-6">
           <Skeleton className="h-8 w-64" />
           <div className="grid grid-cols-4 gap-4">
@@ -150,7 +150,7 @@ export default function ProfitLossReport() {
   const isProfit = summary.netProfit >= 0;
 
   return (
-    <Layout breadcrumb={["GEA", "Reports", "Profit & Loss"]}>
+    <Layout breadcrumb={["EG", "Reports", "Profit & Loss"]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center justify-between">

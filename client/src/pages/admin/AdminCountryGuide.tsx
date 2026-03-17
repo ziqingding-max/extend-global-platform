@@ -290,7 +290,7 @@ export default function AdminCountryGuide() {
   const partLabels = locale === "zh" ? partLabelsZh : partLabelsEn;
 
   return (
-    <Layout title={t("nav.countryGuide")} breadcrumb={["GEA", "Sales", t("nav.countryGuide")]}>
+    <Layout title={t("nav.countryGuide")} breadcrumb={["EG", "Sales", t("nav.countryGuide")]}>
       <div className="h-[calc(100vh-3.5rem)] flex flex-col">
         {/* ── Hero Header ─────────────────────────────────────────── */}
         <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b px-6 py-5 flex-shrink-0">

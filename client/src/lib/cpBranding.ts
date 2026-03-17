@@ -5,8 +5,8 @@
  * branding context for white-label rendering.
  *
  * Domain patterns:
- *   - {subdomain}.extendglobal.com → CP branded portal
- *   - app.extendglobal.com → EG direct (no CP branding)
+ *   - {subdomain}.extendglobal.ai → CP branded portal
+ *   - app.extendglobal.ai → EG direct (no CP branding)
  *   - localhost / *.manus.space → dev mode, use path-based CP detection
  */
 
@@ -22,7 +22,7 @@ const RESERVED_SUBDOMAINS = new Set([
 ]);
 
 /** Production domain suffix */
-const PROD_DOMAIN = "extendglobal.com";
+const PROD_DOMAIN = "extendglobal.ai";
 
 /**
  * Extract CP subdomain from the current hostname.
@@ -33,7 +33,7 @@ export function getCpSubdomain(): string | null {
 
   const hostname = window.location.hostname;
 
-  // Production: {subdomain}.extendglobal.com
+  // Production: {subdomain}.extendglobal.ai
   if (hostname.endsWith(`.${PROD_DOMAIN}`)) {
     const sub = hostname.replace(`.${PROD_DOMAIN}`, "");
     if (!sub.includes(".") && !RESERVED_SUBDOMAINS.has(sub)) {

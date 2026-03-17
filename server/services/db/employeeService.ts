@@ -1,5 +1,5 @@
 
-import { eq, like, count, desc, and, or, gte, lte, ne, inArray } from "drizzle-orm";
+import { eq, like, count, desc, and, or, gte, lte, ne, inArray, isNull } from "drizzle-orm";
 import { 
   employees, InsertEmployee,
   employeeDocuments, InsertEmployeeDocument,
@@ -33,10 +33,11 @@ export interface ListEmployeesParams {
   status?: string;
   country?: string;
   serviceType?: string;
+  channelPartnerId?: number | null; // null = EG-direct, undefined = all
 }
 
 export async function listEmployees(params: ListEmployeesParams = {}) {
-  const { page = 1, pageSize = 50, search, customerId, status, country, serviceType } = params;
+  const { page = 1, pageSize = 50, search, customerId, status, country, serviceType, channelPartnerId } = params;
   const db = await getDb();
   if (!db) return { data: [], total: 0 };
   const offset = (page - 1) * pageSize;
@@ -53,6 +54,13 @@ export async function listEmployees(params: ListEmployeesParams = {}) {
   if (status) conditions.push(eq(employees.status, status as any));
   if (country) conditions.push(eq(employees.country, country));
   if (serviceType) conditions.push(eq(employees.serviceType, serviceType as any));
+  if (channelPartnerId !== undefined) {
+    if (channelPartnerId === null) {
+      conditions.push(isNull(employees.channelPartnerId));
+    } else {
+      conditions.push(eq(employees.channelPartnerId, channelPartnerId));
+    }
+  }
   
   const where = conditions.length > 0 ? and(...conditions) : undefined;
   

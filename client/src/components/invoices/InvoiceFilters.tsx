@@ -16,6 +16,12 @@ interface InvoiceFiltersProps {
   monthFilter?: string;
   setMonthFilter?: (val: string) => void;
   showStatusFilter?: boolean;
+  // CP & Layer filters
+  cpFilter?: string;
+  setCpFilter?: (val: string) => void;
+  cpList?: any[];
+  layerFilter?: string;
+  setLayerFilter?: (val: string) => void;
 }
 
 export function InvoiceFilters({
@@ -23,7 +29,9 @@ export function InvoiceFilters({
   statusFilter, setStatusFilter,
   typeFilter, setTypeFilter,
   monthFilter, setMonthFilter,
-  showStatusFilter = true
+  showStatusFilter = true,
+  cpFilter, setCpFilter, cpList,
+  layerFilter, setLayerFilter,
 }: InvoiceFiltersProps) {
   const { t } = useI18n();
 
@@ -83,6 +91,30 @@ export function InvoiceFilters({
             </Button>
           )}
         </div>
+      )}
+
+      {cpFilter !== undefined && setCpFilter && (
+        <Select value={cpFilter} onValueChange={setCpFilter}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Channel Partner" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Partners</SelectItem>
+            <SelectItem value="direct">EG Direct</SelectItem>
+            {cpList?.map((cp: any) => (
+              <SelectItem key={cp.id} value={String(cp.id)}>{cp.companyName}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {layerFilter !== undefined && setLayerFilter && (
+        <Select value={layerFilter} onValueChange={setLayerFilter}>
+          <SelectTrigger className="w-36"><SelectValue placeholder="Layer" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Layers</SelectItem>
+            <SelectItem value="layer1">Layer 1 (EG→CP)</SelectItem>
+            <SelectItem value="layer2">Layer 2 (CP→Client)</SelectItem>
+          </SelectContent>
+        </Select>
       )}
     </div>
   );

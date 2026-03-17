@@ -149,7 +149,7 @@ export default function PortalSalaryBenchmark() {
                 
                 <div className="space-y-2 text-sm text-muted-foreground">
                     <p>
-                        Data Source: <span className="font-medium text-foreground">{benchmark.source || "GEA Global Database"}</span>
+                        Data Source: <span className="font-medium text-foreground">{benchmark.source || "EG Global Database"}</span>
                     </p>
                     <p>
                         Last Updated: <span className="font-medium text-foreground">{new Date(benchmark.updatedAt).toLocaleDateString()}</span>

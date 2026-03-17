@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { workerTrpc } from "@/lib/workerTrpc";
 import { workerPath } from "@/lib/workerBasePath";
+import { useCpBranding } from "@/hooks/useCpBranding";
 import {
   LayoutDashboard,
   FileText,
@@ -49,6 +50,7 @@ type NavItem = {
 export default function WorkerLayout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { branding, isCp } = useCpBranding();
 
   // Check auth
   const { data: user, isLoading } = workerTrpc.auth.me.useQuery(undefined, {
@@ -158,11 +160,11 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
       <aside className="hidden md:flex w-64 bg-background border-r flex-col fixed h-full z-30">
         <div className="px-4 border-b h-16 flex items-center gap-2">
           <img
-            src="/brand/gea-logo-icon-green.png"
-            alt="GEA"
+            src={isCp && branding?.logoUrl ? branding.logoUrl : "/brand/gea-logo-icon-green.png"}
+            alt={isCp && branding?.companyName ? branding.companyName : "EG"}
             className="w-8 h-8 flex-shrink-0 object-contain"
           />
-          <span className="font-bold text-lg">Worker Portal</span>
+          <span className="font-bold text-lg">{isCp && branding?.companyName ? `${branding.companyName}` : "Worker Portal"}</span>
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
@@ -217,11 +219,11 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
       <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-background border-b flex items-center justify-between px-4 z-30">
         <div className="flex items-center gap-2">
           <img
-            src="/brand/gea-logo-icon-green.png"
-            alt="GEA"
+            src={isCp && branding?.logoUrl ? branding.logoUrl : "/brand/gea-logo-icon-green.png"}
+            alt={isCp && branding?.companyName ? branding.companyName : "EG"}
             className="w-7 h-7 flex-shrink-0 object-contain"
           />
-          <span className="font-bold text-lg">Worker Portal</span>
+          <span className="font-bold text-lg">{isCp && branding?.companyName ? branding.companyName : "Worker Portal"}</span>
         </div>
         <div className="flex items-center gap-2">
           <DropdownMenu>

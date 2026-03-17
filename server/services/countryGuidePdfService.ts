@@ -6,10 +6,10 @@ import { storageGet } from "../storage";
 
 /**
  * Fetch the default (or first active) billing entity and convert it to BrandingInfo.
- * Falls back to GEA defaults if no billing entity is configured.
+ * Falls back to EG defaults if no billing entity is configured.
  */
 async function getDefaultBranding(db: ReturnType<typeof getDb>): Promise<BrandingInfo> {
-  if (!db) return { shortName: "GEA", fullName: "Global Employment Advisors", contactEmail: "support@bestgea.com" };
+  if (!db) return { shortName: "EG", fullName: "Extend Global", contactEmail: "support@extendglobal.ai" };
 
   // Try isDefault=true first, then fall back to first active entity
   let entity = await db.query.billingEntities.findFirst({
@@ -21,7 +21,7 @@ async function getDefaultBranding(db: ReturnType<typeof getDb>): Promise<Brandin
     });
   }
   if (!entity) {
-    return { shortName: "GEA", fullName: "Global Employment Advisors", contactEmail: "support@bestgea.com" };
+    return { shortName: "EG", fullName: "Extend Global", contactEmail: "support@extendglobal.ai" };
   }
 
   // Build a one-line address

@@ -224,6 +224,8 @@ export default function Invoices() {
     filtered,
     filteredHistory,
     customerMap,
+    cpMap,
+    cpList,
     filters,
     pagination,
     selection,
@@ -284,7 +286,7 @@ export default function Invoices() {
   );
 
   return (
-    <Layout breadcrumb={["GEA", "Invoices"]}>
+    <Layout breadcrumb={["EG", "Invoices"]}>
       <div className="p-6 space-y-6 page-enter">
         <div className="flex items-center justify-between">
           <div>
@@ -344,6 +346,8 @@ export default function Invoices() {
               statusFilter={filters.status} setStatusFilter={filters.setStatus}
               typeFilter={filters.type} setTypeFilter={filters.setType}
               monthFilter={filters.month} setMonthFilter={filters.setMonth}
+              cpFilter={filters.cp} setCpFilter={filters.setCp} cpList={cpList}
+              layerFilter={filters.layer} setLayerFilter={filters.setLayer}
             />
 
             {selection.selectedIds.size > 0 && (
@@ -415,6 +419,8 @@ export default function Invoices() {
             <InvoiceFilters 
               search={filters.search} setSearch={filters.setSearch}
               typeFilter={filters.type} setTypeFilter={filters.setType}
+              cpFilter={filters.cp} setCpFilter={filters.setCp} cpList={cpList}
+              layerFilter={filters.layer} setLayerFilter={filters.setLayer}
               showStatusFilter={false}
             />
             <Card>

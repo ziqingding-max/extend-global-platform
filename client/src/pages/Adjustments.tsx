@@ -1,6 +1,6 @@
 
 /*
- * GEA Admin — Adjustments (异动薪酬)
+ * EG Admin — Adjustments (异动薪酬)
  * Manage bonuses, allowances, reimbursements, and deductions
  * Supports both Employees (EOR) and Contractors (AOR)
  */
@@ -560,7 +560,7 @@ export default function Adjustments() {
   const isLoading = isLoadingEmployees || isLoadingContractors;
 
   return (
-    <Layout breadcrumb={["GEA", t("nav.operations"), t("nav.adjustments")]}>
+    <Layout breadcrumb={["EG", t("nav.operations"), t("nav.adjustments")]}>
       <div className="p-6 space-y-6 page-enter">
         <div className="flex items-center justify-between">
           <div>
@@ -773,7 +773,7 @@ export default function Adjustments() {
             <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
               <span className="text-sm text-emerald-800">
                 <CheckCircle2 className="w-4 h-4 inline mr-1" />
-                {pendingApproval.length} adjustment(s) pending GEA approval
+                {pendingApproval.length} adjustment(s) pending EG approval
               </span>
               <Button
                 size="sm"

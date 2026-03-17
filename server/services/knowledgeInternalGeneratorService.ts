@@ -9,7 +9,7 @@
  * - Country Config (countries_config table)
  *
  * This replaces the external URL-based ingestion approach with a reliable
- * internal data pipeline that leverages GEA's own structured datasets.
+ * internal data pipeline that leverages EG's own structured datasets.
  */
 
 import * as fs from "fs";

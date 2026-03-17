@@ -321,7 +321,7 @@ export function ContractorInvoicesContent() {
 
 export default function ContractorInvoices() {
   return (
-    <Layout breadcrumb={["GEA", "Contractor Invoices"]}>
+    <Layout breadcrumb={["EG", "Contractor Invoices"]}>
       <ContractorInvoicesContent />
     </Layout>
   );

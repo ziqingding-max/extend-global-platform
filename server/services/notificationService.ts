@@ -241,18 +241,18 @@ export const notificationService = {
   },
 
   /**
-   * Process custom GEA email tags into actual HTML.
+   * Process custom EG email tags into actual HTML.
    * Supported tags:
-   *   <GEA_INFO_CARD> ... <GEA_ROW label="..." value="..." /> ... </GEA_INFO_CARD>
-   *   <GEA_BUTTON text="..." href="..." [color="..."] />
-   *   <GEA_BANNER type="warning|danger|success|info" text="..." />
+   *   <EG_INFO_CARD> ... <EG_ROW label="..." value="..." /> ... </EG_INFO_CARD>
+   *   <EG_BUTTON text="..." href="..." [color="..."] />
+   *   <EG_BANNER type="warning|danger|success|info" text="..." />
    *   <GEA_AMOUNT currency="..." amount="..." />
    */
   processCustomTags(html: string): string {
-    // 1. Process <GEA_INFO_CARD>...</GEA_INFO_CARD>
-    html = html.replace(/<GEA_INFO_CARD>([\s\S]*?)<\/GEA_INFO_CARD>/g, (_match: string, inner: string) => {
+    // 1. Process <EG_INFO_CARD>...</EG_INFO_CARD>
+    html = html.replace(/<EG_INFO_CARD>([\s\S]*?)<\/EG_INFO_CARD>/g, (_match: string, inner: string) => {
       const rows: Array<{ label: string; value: string }> = [];
-      const rowRegex = /<GEA_ROW\s+label="([^"]*?)"\s+value="([^"]*?)"\s*\/>/g;
+      const rowRegex = /<EG_ROW\s+label="([^"]*?)"\s+value="([^"]*?)"\s*\/>/g;
       let m;
       while ((m = rowRegex.exec(inner)) !== null) {
         rows.push({ label: m[1], value: m[2] });
@@ -260,13 +260,13 @@ export const notificationService = {
       return emailInfoCard(rows);
     });
 
-    // 2. Process <GEA_BUTTON text="..." href="..." [color="..."] />
-    html = html.replace(/<GEA_BUTTON\s+text="([^"]*?)"\s+href="([^"]*?)"(?:\s+color="([^"]*?)")?\s*\/>/g, (_match: string, text: string, href: string, color: string) => {
+    // 2. Process <EG_BUTTON text="..." href="..." [color="..."] />
+    html = html.replace(/<EG_BUTTON\s+text="([^"]*?)"\s+href="([^"]*?)"(?:\s+color="([^"]*?)")?\s*\/>/g, (_match: string, text: string, href: string, color: string) => {
       return emailButton(text, href, color || undefined);
     });
 
-    // 3. Process <GEA_BANNER type="..." text="..." />
-    html = html.replace(/<GEA_BANNER\s+type="([^"]*?)"\s+text="([^"]*?)"\s*\/>/g, (_match: string, type: string, text: string) => {
+    // 3. Process <EG_BANNER type="..." text="..." />
+    html = html.replace(/<EG_BANNER\s+type="([^"]*?)"\s+text="([^"]*?)"\s*\/>/g, (_match: string, type: string, text: string) => {
       return emailBanner(text, type as any);
     });
 
@@ -300,7 +300,7 @@ export const notificationService = {
     });
 
     await transporter.sendMail({
-      from: `GEA Notification <${ENV.emailFrom}>`,
+      from: `EG Notification <${ENV.emailFrom}>`,
       to: payload.to,
       subject: payload.subject,
       html: payload.html,

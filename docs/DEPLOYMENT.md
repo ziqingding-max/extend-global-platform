@@ -1,11 +1,11 @@
-# GEA EOR SaaS Admin 部署文档
+# Extend Global (EG) Admin 部署文档
 
 > **版本**: 2.0
 > **更新日期**: 2026-03-04
 
 ## 1. 概述
 
-本文档详细说明了 **GEA EOR SaaS Admin** 系统如何通过 **Docker Compose + Nginx + Certbot SSL (self-hosted)** 部署在 **Alibaba Cloud Malaysia (ap-southeast-3)** 节点。系统利用独立的容器化技术和自我托管的基础设施，实现了高效、安全、可扩展的部署架构。
+本文档详细说明了 **Extend Global (EG) Admin** 系统如何通过 **Docker Compose + Nginx + Certbot SSL (self-hosted)** 部署在 **Alibaba Cloud Malaysia (ap-southeast-3)** 节点。系统利用独立的容器化技术和自我托管的基础设施，实现了高效、安全、可扩展的部署架构。
 
 ## 2. 部署架构
 
@@ -78,9 +78,9 @@ graph TD
 | `ADMIN_BOOTSTRAP_EMAIL` | `.env` (Secrets) | 用于首次启动时创建初始管理员账号的邮箱。 |
 | `ADMIN_BOOTSTRAP_PASSWORD`| `.env` (Secrets) | 初始管理员的密码。 |
 | `ADMIN_BOOTSTRAP_NAME`| `.env` | 初始管理员的姓名。 |
-| `ADMIN_APP_URL` | `.env` | 管理后台的公开访问 URL (admin.geahr.com)。 |
-| `PORTAL_APP_URL` | `.env` | 客户门户的公开访问 URL (app.geahr.com)。 |
-| `WORKER_APP_URL` | `.env` | 员工门户的公开访问 URL (worker.geahr.com)。 |
+| `ADMIN_APP_URL` | `.env` | 管理后台的公开访问 URL (admin.extendglobal.ai)。 |
+| `PORTAL_APP_URL` | `.env` | 客户门户的公开访问 URL (app.extendglobal.ai)。 |
+| `WORKER_APP_URL` | `.env` | 员工门户的公开访问 URL (worker.extendglobal.ai)。 |
 | `OSS_ACCESS_KEY_ID` | `.env` (Secrets) | 阿里云 OSS 访问密钥 ID。 |
 | `OSS_ACCESS_KEY_SECRET` | `.env` (Secrets) | 阿里云 OSS 访问密钥 Secret。 |
 | `OSS_REGION` | `.env` | 阿里云 OSS 的区域 (e.g., ap-southeast-3)。 |
@@ -135,6 +135,50 @@ graph TD
 
 系统提供三个独立的前端门户，服务于不同角色的用户：
 
-*   **管理后台 (Admin Portal)**: `admin.geahr.com` - 供内部运营团队使用，管理客户、员工、合同、薪酬、发票等核心业务数据。
-*   **客户门户 (Client Portal)**: `app.geahr.com` - 供客户公司的 HR 或管理员使用，用于员工入职、管理团队、查看发票和报告等自服务功能。
-*   **员工门户 (Worker Portal)**: `worker.geahr.com` - 供签约的员工或承包商使用，提供个人资料管理、合同查看、薪资单/发票下载、工时与里程碑跟踪、以及入职流程引导等功能。
+*   **管理后台 (Admin Portal)**: `admin.extendglobal.ai` - 供内部运营团队使用，管理客户、员工、合同、薪酬、发票等核心业务数据。
+*   **客户门户 (Client Portal)**: `app.extendglobal.ai` - 供客户公司的 HR 或管理员使用，用于员工入职、管理团队、查看发票和报告等自服务功能。
+*   **员工门户 (Worker Portal)**: `worker.extendglobal.ai` - 供签约的员工或承包商使用，提供个人资料管理、合同查看、薪资单/发票下载、工时与里程碑跟踪、以及入职流程引导等功能。
+
+## 8. Channel Partner (CP) 白标子域名部署
+
+### 8.1 DNS 配置
+在阿里云 DNS 控制台为 `extendglobal.ai` 添加以下记录：
+
+| 记录类型 | 主机记录 | 记录值 | 说明 |
+| :--- | :--- | :--- | :--- |
+| A | admin | 服务器 IP | 管理后台 |
+| A | app | 服务器 IP | 客户门户 |
+| A | worker | 服务器 IP | 员工门户 |
+| A | * | 服务器 IP | CP 白标通配符（所有 CP 子域名） |
+
+### 8.2 SSL 证书
+- **方案 A（推荐）**：申请通配符证书 `*.extendglobal.ai`，支持所有 CP 子域名
+  - 需要 DNS TXT 记录验证
+  - 运行 `enable-ssl.sh` 选择选项 2
+- **方案 B（简易）**：仅为固定子域名申请证书
+  - HTTP 验证，全自动
+  - CP 子域名需要单独申请证书或使用 HTTP
+  - 运行 `enable-ssl.sh` 选择选项 1
+
+### 8.3 CP 子域名路由逻辑
+1. 用户访问 `acme.extendglobal.ai`
+2. Nginx 通配符 `*.extendglobal.ai` server 块捕获请求
+3. 前端 SPA 通过 `isCpDomain()` 检测到 CP 子域名 `acme`
+4. 前端调用 `GET /api/branding/acme` 获取 CP 品牌信息（Logo、主色调、公司名）
+5. 根据 URL 路径渲染对应门户：
+   - `acme.extendglobal.ai/portal` → ACME 的客户门户（白标）
+   - `acme.extendglobal.ai/worker` → ACME 的员工门户（白标）
+   - `acme.extendglobal.ai/` → 默认重定向到客户门户
+
+### 8.4 四方资金流转
+系统支持完整的 B2B2B 四方资金流转：
+1. **Client → CP**：客户支付 Layer 2 发票（CP 品牌）
+2. **CP → EG**：CP 钱包自动扣款 Layer 1 发票金额
+3. **EG → Vendor**：EG 支付供应商账单
+4. **差额 = CP 利润**：Layer 2 - Layer 1 = CP 服务费收入
+
+### 8.5 财务引擎
+- **双层发票引擎**：Layer 1（EG→CP）+ Layer 2（CP→Client）
+- **双币种对账**：Invoice ↔ Vendor Bill 自动匹配
+- **汇差剥离**：分离 pass-through 成本与 FX markup 收入
+- **净额法 P&L**：多维度（按 CP、客户、国家、币种、月份）分析

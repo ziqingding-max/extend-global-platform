@@ -253,7 +253,7 @@ export default function InvoiceDetail() {
   // ── Loading / Not Found ──
   if (isLoading) {
     return (
-      <Layout breadcrumb={["GEA", "Invoices", "Loading..."]}>
+      <Layout breadcrumb={["EG", "Invoices", "Loading..."]}>
         <div className="p-6 space-y-6 max-w-6xl mx-auto">
           <Skeleton className="h-10 w-48" />
           <div className="grid grid-cols-4 gap-4">
@@ -267,7 +267,7 @@ export default function InvoiceDetail() {
 
   if (!invoice) {
     return (
-      <Layout breadcrumb={["GEA", "Invoices", "Not Found"]}>
+      <Layout breadcrumb={["EG", "Invoices", "Not Found"]}>
         <div className="p-6 max-w-6xl mx-auto">
           <Button variant="ghost" onClick={() => setLocation("/invoices")} className="gap-2 mb-8">
             <ArrowLeft className="w-4 h-4" /> Back to Invoices
@@ -333,7 +333,7 @@ export default function InvoiceDetail() {
 
   // ── Render ──
   return (
-    <Layout breadcrumb={["GEA", "Invoices", invoice.invoiceNumber || `INV-${invoice.id}`]}>
+    <Layout breadcrumb={["EG", "Invoices", invoice.invoiceNumber || `INV-${invoice.id}`]}>
       <div className="p-6 max-w-6xl mx-auto space-y-6 page-enter">
 
         {/* ── Back + Header ── */}

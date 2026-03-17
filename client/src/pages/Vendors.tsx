@@ -1,5 +1,5 @@
 /**
- * GEA Admin — Vendor Management
+ * EG Admin — Vendor Management
  * List + Detail view for managing external service providers
  */
 import Layout from "@/components/Layout";
@@ -120,7 +120,7 @@ function VendorList() {
   }
 
   return (
-    <Layout breadcrumb={["GEA", "Vendors"]}>
+    <Layout breadcrumb={["EG", "Vendors"]}>
       <div className="p-6 space-y-6 page-enter">
         <div className="flex items-center justify-between">
           <div>
@@ -445,7 +445,7 @@ function VendorDetail({ id }: { id: number }) {
 
   if (isLoading) {
     return (
-      <Layout breadcrumb={["GEA", "Vendors", t("common.loading") + "..."]}>
+      <Layout breadcrumb={["EG", "Vendors", t("common.loading") + "..."]}>
         <div className="p-6 space-y-6">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-64 w-full" />
@@ -456,7 +456,7 @@ function VendorDetail({ id }: { id: number }) {
 
   if (!vendor) {
     return (
-      <Layout breadcrumb={["GEA", "Vendors", "Not Found"]}>
+      <Layout breadcrumb={["EG", "Vendors", "Not Found"]}>
         <div className="p-6 text-center py-20">
           <Truck className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-30" />
           <h2 className="text-xl font-semibold">Vendor not found</h2>
@@ -469,7 +469,7 @@ function VendorDetail({ id }: { id: number }) {
   }
 
   return (
-    <Layout breadcrumb={["GEA", "Vendors", vendor.name]}>
+    <Layout breadcrumb={["EG", "Vendors", vendor.name]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center gap-4">

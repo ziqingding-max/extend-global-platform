@@ -494,7 +494,7 @@ export default function ContractorDetail() {
   if (!contractor) return <Layout>Not Found</Layout>;
 
   return (
-    <Layout breadcrumb={["GEA", "People", "Contractors", `${contractor.firstName} ${contractor.lastName}`]}>
+    <Layout breadcrumb={["EG", "People", "Contractors", `${contractor.firstName} ${contractor.lastName}`]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center gap-4">

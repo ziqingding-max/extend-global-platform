@@ -1,6 +1,6 @@
 
 /**
- * GEA Admin — Reimbursements
+ * EG Admin — Reimbursements
  * Manage employee reimbursement claims with approval workflow
  */
 import Layout from "@/components/Layout";
@@ -330,7 +330,7 @@ export default function Reimbursements() {
   );
 
   return (
-    <Layout breadcrumb={["GEA", t("nav.operations"), t("nav.reimbursements")]}>
+    <Layout breadcrumb={["EG", t("nav.operations"), t("nav.reimbursements")]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center justify-between">

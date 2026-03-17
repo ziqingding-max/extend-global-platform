@@ -145,7 +145,7 @@ export default function PortalPayrollCycleIndicator({ month, compact = false, la
           {period.cutoffPassed && (
             <p className="text-xs text-red-600 mt-1.5 flex items-center gap-1">
               <Info className="w-3 h-3" />
-              The submission deadline for this payroll period has passed. Please contact your GEA account manager for any changes.
+              The submission deadline for this payroll period has passed. Please contact your EG account manager for any changes.
             </p>
           )}
           {isUrgent && !period.cutoffPassed && (

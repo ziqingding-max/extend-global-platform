@@ -296,7 +296,7 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
   const totalQuotationValue = items.reduce((sum, item) => sum + (item.totalMonthly || 0), 0);
 
   return (
-    <Layout breadcrumb={["GEA", t("nav.sales"), t("nav.quotations"), isEditMode ? "Edit Quotation" : t("quotations.create.title")]}>
+    <Layout breadcrumb={["EG", t("nav.sales"), t("nav.quotations"), isEditMode ? "Edit Quotation" : t("quotations.create.title")]}>
       <div className="p-6 space-y-6 max-w-7xl mx-auto">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => setLocation("/quotations")}>

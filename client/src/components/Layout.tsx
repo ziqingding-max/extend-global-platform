@@ -1,5 +1,5 @@
 /*
- * GEA Admin — Layout Component
+ * EG Admin — Layout Component
  * Design: Fixed left sidebar (deep slate) + top header + main content area
  * Sidebar: 240px fixed, collapsible to 64px icon-only mode
  * i18n: Supports English/Chinese toggle
@@ -45,7 +45,8 @@ import {
   Layers,
   PieChart,
   KeyRound,
-  Handshake
+  Handshake,
+  ArrowLeftRight
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -92,6 +93,7 @@ function useNavGroups(user: any) {
       items: [
         { label: t("nav.dashboard"), icon: LayoutDashboard, href: "/" },
         { label: t("nav.profit_loss"), icon: BarChart3, href: "/reports/profit-loss" },
+        { label: "Reconciliation", icon: ArrowLeftRight, href: "/reports/reconciliation" },
       ].filter(() => hasRole(["admin", "finance_manager", "operations_manager"])),
     },
     {
@@ -256,13 +258,13 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
         {collapsed ? (
           <img 
             src="/brand/gea-logo-icon.png" 
-            alt="GEA" 
+            alt="EG" 
             className="w-8 h-8 flex-shrink-0 object-contain"
           />
         ) : (
           <img 
             src="/brand/gea-logo-horizontal-white.png" 
-            alt="GEA - Global Employment Advisors" 
+            alt="Extend Global" 
             className="h-10 object-contain"
           />
         )}

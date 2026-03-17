@@ -32,9 +32,9 @@
 - **云服务商**: Alibaba Cloud Malaysia (ap-southeast-3)
 - **文件存储**: Alibaba Cloud OSS (S3-compatible API via `@aws-sdk/client-s3`)
 - **三端访问**:
-  - **Admin Portal**: `admin.geahr.com` - 内部运营管理
-  - **Client Portal**: `app.geahr.com` - 客户自助服务
-  - **Worker Portal**: `worker.geahr.com` - 雇员/合同工自助服务
+  - **Admin Portal**: `admin.extendglobal.ai` - 内部运营管理
+  - **Client Portal**: `app.extendglobal.ai` - 客户自助服务
+  - **Worker Portal**: `worker.extendglobal.ai` - 雇员/合同工自助服务
 - **AI 服务**: Alibaba Cloud DashScope (e.g., qwen-turbo, qwen-max)
 - **i18n**: Zustand-based i18n store at `client/src/lib/i18n.ts`
 
@@ -120,7 +120,7 @@
 
 ---
 
-### 4.4 Worker Portal: `worker.geahr.com`
+### 4.4 Worker Portal: `worker.extendglobal.ai`
 
 Worker Portal 是为雇员和合同工设计的自助服务平台，提供以下核心功能：
 - **个人资料管理**: 查看和更新个人信息。
@@ -165,9 +165,9 @@ Worker Portal 是为雇员和合同工设计的自助服务平台，提供以下
 | `ADMIN_BOOTSTRAP_EMAIL` | `admin@example.com` | **[必需]** 初始管理员邮箱 |
 | `ADMIN_BOOTSTRAP_NAME` | `Admin User` | **[必需]** 初始管理员姓名 |
 | `ADMIN_BOOTSTRAP_PASSWORD` | `securePassword123` | **[必需]** 初始管理员密码 |
-| `ADMIN_APP_URL` | `https://admin.geahr.com` | **[必需]** Admin 门户 URL |
-| `PORTAL_APP_URL` | `https://app.geahr.com` | **[必需]** Client 门户 URL |
-| `WORKER_APP_URL` | `https://worker.geahr.com` | **[必需]** Worker 门户 URL |
+| `ADMIN_APP_URL` | `https://admin.extendglobal.ai` | **[必需]** Admin 门户 URL |
+| `PORTAL_APP_URL` | `https://app.extendglobal.ai` | **[必需]** Client 门户 URL |
+| `WORKER_APP_URL` | `https://worker.extendglobal.ai` | **[必需]** Worker 门户 URL |
 | `OSS_ACCESS_KEY_ID` | `your-access-key` | **[必需]** 阿里云 OSS Access Key |
 | `OSS_ACCESS_KEY_SECRET` | `your-secret-key` | **[必需]** 阿里云 OSS Secret Key |
 | `OSS_REGION` | `ap-southeast-3` | **[必需]** 阿里云 OSS Region |
@@ -175,6 +175,6 @@ Worker Portal 是为雇员和合同工设计的自助服务平台，提供以下
 | `OSS_ENDPOINT` | `oss-ap-southeast-3.aliyuncs.com` | **[必需]** 阿里云 OSS Endpoint |
 | `EMAIL_HOST` | `smtp.aliyun.com` | **[必需]** 邮件服务器地址 |
 | `EMAIL_PORT` | `465` | **[必需]** 邮件服务器端口 |
-| `EMAIL_USER` | `noreply@geahr.com` | **[必需]** 邮件发送用户名 |
+| `EMAIL_USER` | `noreply@extendglobal.ai` | **[必需]** 邮件发送用户名 |
 | `EMAIL_PASS` | `your-email-password` | **[必需]** 邮件发送密码 |
 | `DASHSCOPE_API_KEY` | `sk-xxxxxxxxxxxx` | **[必需]** 阿里云通义千问 API Key |

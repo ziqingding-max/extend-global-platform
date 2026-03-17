@@ -2,7 +2,7 @@ import { isWorkerDomain } from "./portalBasePath";
 
 /**
  * Returns the base path prefix for worker portal routes.
- * - On worker subdomain (worker.geahr.com): "" (routes are at root)
+ * - On worker subdomain (worker.extendglobal.ai): "" (routes are at root)
  * - On admin/other: "/worker"
  */
 export function getWorkerBasePath(): string {

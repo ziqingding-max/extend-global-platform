@@ -1,5 +1,5 @@
 /*
- * GEA Admin — Settings (Consolidated)
+ * EG Admin — Settings (Consolidated)
  * Tabs: Payroll Config | Exchange Rates | User Management
  * Admin-only access for Exchange Rates and User Management
  */
@@ -64,7 +64,7 @@ export default function Settings() {
   const isAdmin = user?.role === "admin";
 
   return (
-    <Layout breadcrumb={["GEA", "Settings"]}>
+    <Layout breadcrumb={["EG", "Settings"]}>
       <div className="p-6 space-y-6 page-enter">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t("settings.title")}</h1>

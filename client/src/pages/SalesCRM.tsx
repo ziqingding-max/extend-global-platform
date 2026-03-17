@@ -1,5 +1,5 @@
 /**
- * GEA Admin — Sales CRM Pipeline
+ * EG Admin — Sales CRM Pipeline
  *
  * Pipeline stages:
  *   Discovery       → Only contact info, no clear demand
@@ -381,7 +381,7 @@ function LeadList({ onSelect }: { onSelect: (id: number) => void }) {
   const closedLostCount = allLeads.filter((l: any) => l.status === "closed_lost").length;
 
   return (
-    <Layout breadcrumb={["GEA", t("sales.title")]}>
+    <Layout breadcrumb={["EG", t("sales.title")]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -671,7 +671,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
 
   if (isLoading) {
     return (
-      <Layout breadcrumb={["GEA", t("sales.title"), "..."]}>
+      <Layout breadcrumb={["EG", t("sales.title"), "..."]}>
         <div className="p-6 space-y-4">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-48 w-full" />
@@ -682,7 +682,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
 
   if (!lead) {
     return (
-      <Layout breadcrumb={["GEA", t("sales.title")]}>
+      <Layout breadcrumb={["EG", t("sales.title")]}>
         <div className="p-6">
           <p className="text-muted-foreground">Lead not found</p>
           <Button variant="outline" className="mt-4" onClick={onBack}>
@@ -702,7 +702,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
   const hasCustomer = !!lead.convertedCustomerId;
 
   return (
-    <Layout breadcrumb={["GEA", t("sales.title"), lead.companyName]}>
+    <Layout breadcrumb={["EG", t("sales.title"), lead.companyName]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center justify-between">

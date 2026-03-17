@@ -12,9 +12,9 @@ GEA EOR SaaS 系统的技术背景信息：
 代码仓库地址：https://github.com/ziqingding-max/geaplatform_trae.git
 
 正式环境地址：
-- Admin Portal: admin.geahr.com (内部运营)
-- Client Portal: app.geahr.com (客户自助服务)
-- Worker Portal: worker.geahr.com (员工/合同工自助服务)
+- Admin Portal: admin.extendglobal.ai (内部运营)
+- Client Portal: app.extendglobal.ai (客户自助服务)
+- Worker Portal: worker.extendglobal.ai (员工/合同工自助服务)
 
 技术栈核心：
 - 认证: JWT + bcrypt + HttpOnly Cookie。Admin (HS256), Portal/Worker (Invite Registration)。

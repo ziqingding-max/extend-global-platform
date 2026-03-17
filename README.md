@@ -3,9 +3,9 @@
 **Global Employment Advisors (GEA)** 是一套企业级 Employer of Record (EOR) 全球雇佣管理系统，支持从客户签约、员工入职、多国薪酬处理到发票结算的端到端数字化解决方案。
 系统采用 **TypeScript 全栈架构**，支持中英双语，覆盖 126 个国家和地区。
 
-> **管理后台**: [admin.geahr.com](https://admin.geahr.com)
-> **客户门户**: [app.geahr.com](https://app.geahr.com)
-> **员工门户**: [worker.geahr.com](https://worker.geahr.com)
+> **管理后台**: [admin.extendglobal.ai](https://admin.extendglobal.ai)
+> **客户门户**: [app.extendglobal.ai](https://app.extendglobal.ai)
+> **员工门户**: [worker.extendglobal.ai](https://worker.extendglobal.ai)
 
 ---
 

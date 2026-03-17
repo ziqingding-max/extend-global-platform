@@ -12,7 +12,7 @@
  * 5. Employee onboarding invite (self-service form)
  * 6. Worker portal password reset
  *
- * All emails use the branded GEA layout from emailLayout.ts.
+ * All emails use the branded EG layout from emailLayout.ts.
  */
 
 import {
@@ -48,7 +48,7 @@ async function sendEmail(payload: { to: string; subject: string; html: string })
   });
 
   await transporter.sendMail({
-    from: `GEA <${ENV.emailFrom}>`,
+    from: `Extend Global <${ENV.emailFrom}>`,
     to: payload.to,
     subject: payload.subject,
     html: payload.html,
@@ -69,7 +69,7 @@ export async function sendAdminInviteEmail(params: {
 }) {
   const body = `
 <p>Dear ${params.name},</p>
-<p>You have been invited to join the <strong>GEA Admin Panel</strong> as a team member. Your account has been created with the following details:</p>
+<p>You have been invited to join the <strong>EG Admin Panel</strong> as a team member. Your account has been created with the following details:</p>
 ${emailInfoCard([
   { label: "Name", value: params.name },
   { label: "Email", value: params.to },
@@ -78,17 +78,17 @@ ${emailInfoCard([
 <p>To activate your account, please click the button below to set your password:</p>
 ${emailButton("Accept Invitation & Set Password", params.inviteUrl)}
 ${emailBanner("This invitation link will expire in 7 days. If you did not expect this invitation, please ignore this email.", "info")}
-<p>Once activated, you can log in at the GEA Admin Panel to begin managing operations.</p>
-<p>Best regards,<br><strong>GEA System</strong><br>Global Employment Advisors</p>`;
+<p>Once activated, you can log in at the EG Admin Panel to begin managing operations.</p>
+<p>Best regards,<br><strong>EG System</strong><br>Extend Global</p>`;
 
   const html = renderEmailLayout(body, {
     audience: "admin",
-    preheader: "You've been invited to the GEA Admin Panel",
+    preheader: "You've been invited to the EG Admin Panel",
   });
 
   await sendEmail({
     to: params.to,
-    subject: "You're Invited to GEA Admin Panel — Set Up Your Account",
+    subject: "You're Invited to EG Admin Panel — Set Up Your Account",
     html,
   });
 }
@@ -106,7 +106,7 @@ export async function sendAdminPasswordResetEmail(params: {
   const body = `
 ${emailBanner("Your password has been reset by an administrator.", "warning")}
 <p>Dear ${params.name},</p>
-<p>An administrator has reset your password for the GEA Admin Panel. Please use the temporary password below to log in:</p>
+<p>An administrator has reset your password for the EG Admin Panel. Please use the temporary password below to log in:</p>
 ${emailInfoCard([
   { label: "Email", value: params.to },
   { label: "Temporary Password", value: `<code style="font-size:16px;font-weight:bold;color:#005430;background:#f0fdf4;padding:2px 8px;border-radius:4px;">${params.tempPassword}</code>` },
@@ -114,16 +114,16 @@ ${emailInfoCard([
 ${emailBanner("We strongly recommend changing your password after logging in for security.", "info")}
 ${emailButton("Log In to Admin Panel", params.loginUrl)}
 <p>If you did not request this password reset, please contact your system administrator immediately.</p>
-<p>Best regards,<br><strong>GEA System</strong><br>Global Employment Advisors</p>`;
+<p>Best regards,<br><strong>EG System</strong><br>Extend Global</p>`;
 
   const html = renderEmailLayout(body, {
     audience: "admin",
-    preheader: "Your GEA Admin password has been reset",
+    preheader: "Your EG Admin password has been reset",
   });
 
   await sendEmail({
     to: params.to,
-    subject: "Your GEA Admin Password Has Been Reset",
+    subject: "Your EG Admin Password Has Been Reset",
     html,
   });
 }
@@ -146,7 +146,7 @@ export async function sendPortalInviteEmail(params: {
 
   const body = `
 <p>Dear ${params.contactName},</p>
-<p>You have been invited to join the <strong>GEA Client Portal</strong> for <strong>${params.companyName}</strong>. The Client Portal gives you access to manage employees, view invoices, track onboarding progress, and more.</p>
+<p>You have been invited to join the <strong>EG Client Portal</strong> for <strong>${params.companyName}</strong>. The Client Portal gives you access to manage employees, view invoices, track onboarding progress, and more.</p>
 ${emailInfoCard([
   { label: "Company", value: params.companyName },
   { label: "Your Email", value: params.to },
@@ -155,17 +155,17 @@ ${emailInfoCard([
 <p>To get started, click the button below to set your password and activate your account:</p>
 ${emailButton("Accept Invitation & Set Up Account", params.inviteUrl)}
 ${emailBanner("This invitation link will expire in 7 days. If you did not expect this invitation, please ignore this email.", "info")}
-<p>If you have any questions, please contact us at <a href="mailto:support@bestgea.com" style="color:#005430;">support@bestgea.com</a>.</p>
-<p>Best regards,<br><strong>GEA Operations Team</strong><br>Global Employment Advisors</p>`;
+<p>If you have any questions, please contact us at <a href="mailto:support@extendglobal.ai" style="color:#005430;">support@extendglobal.ai</a>.</p>
+<p>Best regards,<br><strong>EG Operations Team</strong><br>Extend Global</p>`;
 
   const html = renderEmailLayout(body, {
     audience: "client",
-    preheader: `You've been invited to the GEA Client Portal for ${params.companyName}`,
+    preheader: `You've been invited to the EG Client Portal for ${params.companyName}`,
   });
 
   await sendEmail({
     to: params.to,
-    subject: `You're Invited to the GEA Client Portal — ${params.companyName}`,
+    subject: `You're Invited to the EG Client Portal — ${params.companyName}`,
     html,
   });
 }
@@ -181,21 +181,21 @@ export async function sendPortalPasswordResetEmail(params: {
 }) {
   const body = `
 <p>Dear ${params.contactName},</p>
-<p>We received a request to reset your password for the GEA Client Portal. If you made this request, please click the button below to set a new password:</p>
+<p>We received a request to reset your password for the EG Client Portal. If you made this request, please click the button below to set a new password:</p>
 ${emailButton("Reset Your Password", params.resetUrl)}
 ${emailBanner("This link will expire in 1 hour. If you did not request a password reset, you can safely ignore this email — your password will remain unchanged.", "info")}
 <p>For security reasons, this link can only be used once. If you need to reset your password again, please visit the login page and request a new link.</p>
-<p>If you have any concerns about your account security, please contact us at <a href="mailto:support@bestgea.com" style="color:#005430;">support@bestgea.com</a>.</p>
-<p>Best regards,<br><strong>GEA Security Team</strong><br>Global Employment Advisors</p>`;
+<p>If you have any concerns about your account security, please contact us at <a href="mailto:support@extendglobal.ai" style="color:#005430;">support@extendglobal.ai</a>.</p>
+<p>Best regards,<br><strong>EG Security Team</strong><br>Extend Global</p>`;
 
   const html = renderEmailLayout(body, {
     audience: "client",
-    preheader: "Reset your GEA Client Portal password",
+    preheader: "Reset your EG Client Portal password",
   });
 
   await sendEmail({
     to: params.to,
-    subject: "Reset Your GEA Client Portal Password",
+    subject: "Reset Your EG Client Portal Password",
     html,
   });
 }
@@ -212,8 +212,8 @@ export async function sendOnboardingInviteEmail(params: {
 }) {
   const body = `
 <p>Dear ${params.employeeName},</p>
-<p>Welcome! <strong>${params.companyName}</strong> has invited you to complete your onboarding with <strong>Global Employment Advisors (GEA)</strong>.</p>
-<p>As your Employer of Record (EOR), GEA will handle your employment administration, payroll, and compliance. To get started, we need you to fill in some personal and employment information.</p>
+<p>Welcome! <strong>${params.companyName}</strong> has invited you to complete your onboarding with <strong>Extend Global (EG)</strong>.</p>
+<p>As your Employer of Record (EOR), EG will handle your employment administration, payroll, and compliance. To get started, we need you to fill in some personal and employment information.</p>
 ${emailInfoCard([
   { label: "Company", value: params.companyName },
   { label: "Your Email", value: params.to },
@@ -221,17 +221,17 @@ ${emailInfoCard([
 <p>Please click the button below to complete your onboarding form:</p>
 ${emailButton("Complete Onboarding Form", params.inviteUrl)}
 ${emailBanner("This link will expire in 72 hours. Please complete the form before it expires.", "info")}
-<p>If you have any questions about the onboarding process, please contact your HR representative at ${params.companyName} or reach out to us at <a href="mailto:support@bestgea.com" style="color:#005430;">support@bestgea.com</a>.</p>
-<p>Best regards,<br><strong>GEA Operations Team</strong><br>Global Employment Advisors</p>`;
+<p>If you have any questions about the onboarding process, please contact your HR representative at ${params.companyName} or reach out to us at <a href="mailto:support@extendglobal.ai" style="color:#005430;">support@extendglobal.ai</a>.</p>
+<p>Best regards,<br><strong>EG Operations Team</strong><br>Extend Global</p>`;
 
   const html = renderEmailLayout(body, {
     audience: "worker",
-    preheader: `Complete your onboarding with ${params.companyName} via GEA`,
+    preheader: `Complete your onboarding with ${params.companyName} via EG`,
   });
 
   await sendEmail({
     to: params.to,
-    subject: `Complete Your Onboarding — ${params.companyName} via GEA`,
+    subject: `Complete Your Onboarding — ${params.companyName} via EG`,
     html,
   });
 }
@@ -247,21 +247,21 @@ export async function sendWorkerPasswordResetEmail(params: {
 }) {
   const body = `
 <p>Dear ${params.workerName},</p>
-<p>We received a request to reset your password for the GEA Worker Portal. If you made this request, please click the button below to set a new password:</p>
+<p>We received a request to reset your password for the EG Worker Portal. If you made this request, please click the button below to set a new password:</p>
 ${emailButton("Reset Your Password", params.resetUrl)}
 ${emailBanner("This link will expire in 1 hour. If you did not request a password reset, you can safely ignore this email — your password will remain unchanged.", "info")}
 <p>For security reasons, this link can only be used once. If you need to reset your password again, please visit the login page and request a new link.</p>
-<p>If you have any concerns about your account security, please contact us at <a href="mailto:support@bestgea.com" style="color:#005430;">support@bestgea.com</a>.</p>
-<p>Best regards,<br><strong>GEA Security Team</strong><br>Global Employment Advisors</p>`;
+<p>If you have any concerns about your account security, please contact us at <a href="mailto:support@extendglobal.ai" style="color:#005430;">support@extendglobal.ai</a>.</p>
+<p>Best regards,<br><strong>EG Security Team</strong><br>Extend Global</p>`;
 
   const html = renderEmailLayout(body, {
     audience: "worker",
-    preheader: "Reset your GEA Worker Portal password",
+    preheader: "Reset your EG Worker Portal password",
   });
 
   await sendEmail({
     to: params.to,
-    subject: "Reset Your GEA Worker Portal Password",
+    subject: "Reset Your EG Worker Portal Password",
     html,
   });
 }
@@ -277,21 +277,21 @@ export async function sendAdminForgotPasswordEmail(params: {
 }) {
   const body = `
 <p>Dear ${params.name},</p>
-<p>We received a request to reset your password for the GEA Admin Panel. If you made this request, please click the button below to set a new password:</p>
+<p>We received a request to reset your password for the EG Admin Panel. If you made this request, please click the button below to set a new password:</p>
 ${emailButton("Reset Your Password", params.resetUrl)}
 ${emailBanner("This link will expire in 1 hour. If you did not request a password reset, you can safely ignore this email — your password will remain unchanged.", "info")}
 <p>For security reasons, this link can only be used once. If you need to reset your password again, please visit the login page and request a new link.</p>
 <p>If you have any concerns about your account security, please contact your system administrator immediately.</p>
-<p>Best regards,<br><strong>GEA Security Team</strong><br>Global Employment Advisors</p>`;
+<p>Best regards,<br><strong>EG Security Team</strong><br>Extend Global</p>`;
 
   const html = renderEmailLayout(body, {
     audience: "admin",
-    preheader: "Reset your GEA Admin Panel password",
+    preheader: "Reset your EG Admin Panel password",
   });
 
   await sendEmail({
     to: params.to,
-    subject: "Reset Your GEA Admin Panel Password",
+    subject: "Reset Your EG Admin Panel Password",
     html,
   });
 }
@@ -307,26 +307,26 @@ export async function sendPortalPasswordChangedEmail(params: {
   loginUrl: string;
 }) {
   const body = `
-${emailBanner("Your Client Portal password has been reset by a GEA administrator.", "warning")}
+${emailBanner("Your Client Portal password has been reset by a EG administrator.", "warning")}
 <p>Dear ${params.contactName},</p>
-<p>A GEA administrator has reset your password for the Client Portal. Please use the new credentials below to log in:</p>
+<p>A EG administrator has reset your password for the Client Portal. Please use the new credentials below to log in:</p>
 ${emailInfoCard([
   { label: "Email", value: params.to },
   { label: "New Password", value: `<code style="font-size:16px;font-weight:bold;color:#005430;background:#f0fdf4;padding:2px 8px;border-radius:4px;">${params.newPassword}</code>` },
 ])}
 ${emailBanner("We strongly recommend changing your password after logging in for security.", "info")}
 ${emailButton("Log In to Client Portal", params.loginUrl)}
-<p>If you did not expect this change, please contact your GEA account manager or email us at <a href="mailto:support@bestgea.com" style="color:#005430;">support@bestgea.com</a>.</p>
-<p>Best regards,<br><strong>GEA Security Team</strong><br>Global Employment Advisors</p>`;
+<p>If you did not expect this change, please contact your EG account manager or email us at <a href="mailto:support@extendglobal.ai" style="color:#005430;">support@extendglobal.ai</a>.</p>
+<p>Best regards,<br><strong>EG Security Team</strong><br>Extend Global</p>`;
 
   const html = renderEmailLayout(body, {
     audience: "client",
-    preheader: "Your GEA Client Portal password has been reset",
+    preheader: "Your EG Client Portal password has been reset",
   });
 
   await sendEmail({
     to: params.to,
-    subject: "Your GEA Client Portal Password Has Been Reset",
+    subject: "Your EG Client Portal Password Has Been Reset",
     html,
   });
 }
@@ -346,7 +346,7 @@ export async function sendWorkerPortalInviteEmail(params: {
   const typeLabel = params.workerType === "employee" ? "employee" : "contractor";
   const body = `
 <p>Dear ${params.workerName},</p>
-<p>You have been invited to join the <strong>GEA Worker Portal</strong> as a ${typeLabel} of <strong>${params.companyName}</strong>.</p>
+<p>You have been invited to join the <strong>EG Worker Portal</strong> as a ${typeLabel} of <strong>${params.companyName}</strong>.</p>
 <p>The Worker Portal gives you access to manage your work-related information, including:</p>
 <ul>
   ${params.workerType === "employee" ? `
@@ -363,17 +363,17 @@ export async function sendWorkerPortalInviteEmail(params: {
 <p>To get started, please click the button below to set your password and activate your account:</p>
 ${emailButton("Activate Your Account", params.inviteUrl)}
 ${emailBanner("This invitation link will expire in 7 days. If you did not expect this invitation, please ignore this email.", "info")}
-<p>If you have any questions, please contact your HR representative at ${params.companyName} or reach out to us at <a href="mailto:support@bestgea.com" style="color:#005430;">support@bestgea.com</a>.</p>
-<p>Best regards,<br><strong>GEA Operations Team</strong><br>Global Employment Advisors</p>`;
+<p>If you have any questions, please contact your HR representative at ${params.companyName} or reach out to us at <a href="mailto:support@extendglobal.ai" style="color:#005430;">support@extendglobal.ai</a>.</p>
+<p>Best regards,<br><strong>EG Operations Team</strong><br>Extend Global</p>`;
 
   const html = renderEmailLayout(body, {
     audience: "worker",
-    preheader: `You've been invited to the GEA Worker Portal by ${params.companyName}`,
+    preheader: `You've been invited to the EG Worker Portal by ${params.companyName}`,
   });
 
   await sendEmail({
     to: params.to,
-    subject: `Welcome to GEA Worker Portal — ${params.companyName}`,
+    subject: `Welcome to EG Worker Portal — ${params.companyName}`,
     html,
   });
 }

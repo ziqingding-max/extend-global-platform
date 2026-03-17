@@ -311,9 +311,9 @@ The database is **SQLite**, accessed via `@libsql/client` with `drizzle-orm/libs
 
 ### Deployment
  The entire system is self-hosted on **Alibaba Cloud Malaysia (ap-southeast-3)** using **Docker Compose, Nginx, and Certbot for SSL**. It is fully independent and does not rely on any external platform services. The public-facing domains are:
-- **Admin Portal**: `admin.geahr.com`
-- **Client Portal**: `app.geahr.com`
-- **Worker Portal**: `worker.geahr.com`
+- **Admin Portal**: `admin.extendglobal.ai`
+- **Client Portal**: `app.extendglobal.ai`
+- **Worker Portal**: `worker.extendglobal.ai`
 
 ### File Storage
 File storage uses **Alibaba Cloud OSS**, which is compatible with the S3 API. The `@aws-sdk/client-s3` library is used to interact with it. Configuration is managed through environment variables: `OSS_ACCESS_KEY_ID`, `OSS_ACCESS_KEY_SECRET`, `OSS_REGION`, `OSS_BUCKET`, and `OSS_ENDPOINT`.

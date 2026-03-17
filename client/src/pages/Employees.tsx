@@ -1,5 +1,5 @@
 /*
- * GEA Admin — Employee Management
+ * EG Admin — Employee Management
  * List + Detail view with status workflow, document uploads, form validation
  * Enhanced with: Salary Info, Leave Balance, Payroll History, Adjustments, Visa Tracking
  * Documents tab unified: contracts, visa docs, and general documents all in one place
@@ -117,6 +117,7 @@ function EmployeeList() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [customerFilter, setCustomerFilter] = useState<string>("all");
   const [countryFilter, setCountryFilter] = useState<string>("all");
+  const [cpFilter, setCpFilter] = useState<string>("all");
   const [, _setLocation] = useLocation();
   // const searchString = useSearch(); // Already defined above
   const [createOpen, setCreateOpen] = useState(false);
@@ -142,19 +143,21 @@ function EmployeeList() {
       return;
     }
     setPage(1);
-  }, [search, statusFilter, customerFilter, countryFilter]);
+  }, [search, statusFilter, customerFilter, countryFilter, cpFilter]);
 
   const { data, isLoading, refetch } = trpc.employees.list.useQuery({
     search: search || undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
     customerId: customerFilter !== "all" ? parseInt(customerFilter) : undefined,
     country: countryFilter !== "all" ? countryFilter : undefined,
+    channelPartnerId: cpFilter === "all" ? undefined : cpFilter === "direct" ? null : parseInt(cpFilter),
     limit: pageSize,
     offset: (page - 1) * pageSize,
   });
 
   const { data: customers } = trpc.customers.list.useQuery({ limit: 200 });
   const { data: countriesList } = trpc.countries.list.useQuery();
+  const { data: cpList } = trpc.channelPartners.list.useQuery({ limit: 200, includeInternal: true });
 
   // Onboarding Invites
   const [showInvites, setShowInvites] = useState(false);
@@ -316,7 +319,7 @@ function EmployeeList() {
   const errCls = (field: string) => errors[field] ? "border-red-500 ring-1 ring-red-500" : "";
 
   return (
-    <Layout breadcrumb={["GEA", "People"]}>
+    <Layout breadcrumb={["EG", "People"]}>
       <div className="p-6 space-y-6 page-enter">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <div className="flex items-center justify-between">
@@ -658,6 +661,16 @@ function EmployeeList() {
               <SelectItem value="on_leave">{t("status.on_leave")}</SelectItem>
               <SelectItem value="offboarding">{t("status.offboarding")}</SelectItem>
               <SelectItem value="terminated">{t("status.terminated")}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={cpFilter} onValueChange={setCpFilter}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Channel Partner" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Partners</SelectItem>
+              <SelectItem value="direct">EG Direct</SelectItem>
+              {cpList?.data?.map((cp: any) => (
+                <SelectItem key={cp.id} value={String(cp.id)}>{cp.companyName}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -1068,7 +1081,7 @@ function EmployeeDetail({ id }: { id: number }) {
 
   if (isLoading) {
     return (
-      <Layout breadcrumb={["GEA", "Employees", "Loading..."]}>
+      <Layout breadcrumb={["EG", "Employees", "Loading..."]}>
         <div className="p-6 space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>
       </Layout>
     );
@@ -1076,7 +1089,7 @@ function EmployeeDetail({ id }: { id: number }) {
 
   if (!employee) {
     return (
-      <Layout breadcrumb={["GEA", "Employees", "Not Found"]}>
+      <Layout breadcrumb={["EG", "Employees", "Not Found"]}>
         <div className="p-6 text-center py-20">
           <p className="text-muted-foreground">{t("employees.detail.notFound")}</p>
           <Button variant="outline" className="mt-4" onClick={() => setLocation(`/people?page=${fromPage}&tab=employees`)}>{t("employees.button.backToEmployees")}</Button>
@@ -1135,7 +1148,7 @@ function EmployeeDetail({ id }: { id: number }) {
   ];
 
   return (
-    <Layout breadcrumb={["GEA", "Employees", `${employee.firstName} ${employee.lastName}`]}>
+    <Layout breadcrumb={["EG", "Employees", `${employee.firstName} ${employee.lastName}`]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center gap-4">

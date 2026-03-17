@@ -96,7 +96,7 @@ async function getCpLogoHtml(branding: CpBranding): Promise<string> {
 
 /**
  * Render a white-label email layout using the CP's branding.
- * Structure mirrors the GEA emailLayout.ts but with dynamic colors and logo.
+ * Structure mirrors the EG emailLayout.ts but with dynamic colors and logo.
  */
 async function renderCpEmailLayout(
   bodyHtml: string,
@@ -215,7 +215,7 @@ export async function sendCpPortalInvite(params: {
     return;
   }
 
-  const portalUrl = `https://${params.subdomain}.extendglobal.com/cp/register?token=${params.inviteToken}`;
+  const portalUrl = `https://${params.subdomain}.extendglobal.ai/cp/register?token=${params.inviteToken}`;
   const bodyHtml = `
     <h2 style="margin:0 0 16px;font-size:20px;color:#1a1a1a;">Welcome to ${branding.companyName}</h2>
     <p style="margin:0 0 12px;font-size:14px;color:#555555;line-height:1.6;">
@@ -263,7 +263,7 @@ export async function sendCpPasswordReset(params: {
     return;
   }
 
-  const resetUrl = `https://${params.subdomain}.extendglobal.com/cp/reset-password?token=${params.resetToken}`;
+  const resetUrl = `https://${params.subdomain}.extendglobal.ai/cp/reset-password?token=${params.resetToken}`;
   const bodyHtml = `
     <h2 style="margin:0 0 16px;font-size:20px;color:#1a1a1a;">Password Reset</h2>
     <p style="margin:0 0 12px;font-size:14px;color:#555555;line-height:1.6;">

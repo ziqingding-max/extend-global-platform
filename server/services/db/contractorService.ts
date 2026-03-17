@@ -61,6 +61,7 @@ export async function listContractors(
     customerId?: number;
     status?: string;
     search?: string;
+    channelPartnerId?: number | null; // Filter by CP via customer's channelPartnerId
   },
   limit: number = 50,
   offset: number = 0
@@ -79,6 +80,14 @@ export async function listContractors(
       like(contractors.email, `%${filters.search}%`),
       like(contractors.contractorCode, `%${filters.search}%`)
     ));
+  }
+  // Filter by CP via the customer's channelPartnerId
+  if (filters.channelPartnerId !== undefined) {
+    if (filters.channelPartnerId === null) {
+      conditions.push(isNull(customers.channelPartnerId));
+    } else {
+      conditions.push(eq(customers.channelPartnerId, filters.channelPartnerId));
+    }
   }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;

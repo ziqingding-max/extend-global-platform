@@ -1,6 +1,6 @@
 
 /*
- * GEA Admin — Time Off & Milestones
+ * EG Admin — Time Off & Milestones
  * Manage employee leave requests and contractor milestones
  */
 import Layout from "@/components/Layout";
@@ -369,7 +369,7 @@ export default function Leave() {
   }, [data, customerFilter, countryFilter, employeeMap, viewTab]);
 
   return (
-    <Layout breadcrumb={["GEA", "Time Off & Milestones"]}>
+    <Layout breadcrumb={["EG", "Time Off & Milestones"]}>
       <div className="p-6 space-y-6 page-enter">
         <div className="flex items-center justify-between">
           <div>
@@ -619,7 +619,7 @@ export default function Leave() {
                 <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
                   <span className="text-sm text-emerald-800">
                     <CheckCircle2 className="w-4 h-4 inline mr-1" />
-                    {pendingApproval.length} leave record(s) pending GEA approval
+                    {pendingApproval.length} leave record(s) pending EG approval
                   </span>
                   <Button
                     size="sm"

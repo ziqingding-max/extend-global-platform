@@ -1,4 +1,4 @@
-// GEA — Mock Data Store
+// EG — Mock Data Store
 // Provides realistic sample data for all modules
 
 export const employees = [

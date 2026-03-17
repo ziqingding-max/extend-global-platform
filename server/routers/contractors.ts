@@ -52,6 +52,7 @@ export const contractorsRouter = router({
         customerId: z.number().optional(),
         status: z.string().optional(),
         search: z.string().optional(),
+        channelPartnerId: z.number().nullable().optional(),
         limit: z.number().default(50),
         offset: z.number().default(0),
       })
@@ -62,6 +63,7 @@ export const contractorsRouter = router({
           customerId: input.customerId,
           status: input.status,
           search: input.search,
+          channelPartnerId: input.channelPartnerId,
         },
         input.limit,
         input.offset

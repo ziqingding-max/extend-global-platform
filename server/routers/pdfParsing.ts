@@ -248,7 +248,7 @@ export const pdfParsingRouter = router({
         messages: [
           {
             role: "system",
-            content: `You are a senior financial analyst for an EOR (Employer of Record) company called Best GEA.
+            content: `You are a senior financial analyst for an EOR (Employer of Record) company called Extend Global.
 You are analyzing multiple documents from a SINGLE vendor for the service month ${input.serviceMonth}.
 The documents may include invoices, payment receipts (POP), bank statements, or other supporting documents.
 

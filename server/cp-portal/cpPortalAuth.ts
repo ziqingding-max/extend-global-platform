@@ -36,7 +36,7 @@ export interface CpPortalUser {
   contactName: string;
   cpRole: "cp_admin" | "cp_finance" | "cp_hr" | "cp_viewer";
   companyName: string;
-  /** Subdomain for this CP (e.g. "fa" -> fa.extendglobal.com) */
+  /** Subdomain for this CP (e.g. "fa" -> fa.extendglobal.ai) */
   subdomain: string | null;
   /** Whether this CP is the internal EG-DIRECT CP */
   isInternal: boolean;

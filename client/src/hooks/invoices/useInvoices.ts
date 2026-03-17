@@ -11,6 +11,8 @@ export function useInvoices() {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [monthFilter, setMonthFilter] = useState<string>("");
   const [search, setSearch] = useState("");
+  const [cpFilter, setCpFilter] = useState<string>("all");
+  const [layerFilter, setLayerFilter] = useState<string>("all");
   const searchString = useSearch();
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   
@@ -37,24 +39,33 @@ export function useInvoices() {
     }
     setActivePage(1); 
     setHistoryPage(1);
-  }, [statusFilter, typeFilter, monthFilter, search]);
+  }, [statusFilter, typeFilter, monthFilter, search, cpFilter, layerFilter]);
 
   const utils = trpc.useUtils();
 
   const { data, isLoading } = trpc.invoices.list.useQuery({
     status: statusFilter !== "all" ? statusFilter : undefined,
     invoiceMonth: monthFilter || undefined,
+    channelPartnerId: cpFilter === "all" ? undefined : cpFilter === "direct" ? null : parseInt(cpFilter),
+    invoiceLayer: layerFilter !== "all" ? layerFilter : undefined,
     excludeCreditNotes: true,
     limit: 200,
   });
 
   const { data: customers } = trpc.customers.list.useQuery({ limit: 200 });
+  const { data: cpList } = trpc.channelPartners.list.useQuery({ limit: 200, includeInternal: true });
 
   const customerMap = useMemo(() => {
     const map: Record<number, string> = {};
     customers?.data?.forEach((c) => { map[c.id] = c.companyName; });
     return map;
   }, [customers]);
+
+  const cpMap = useMemo(() => {
+    const map: Record<number, string> = {};
+    cpList?.data?.forEach((cp: any) => { map[cp.id] = cp.companyName; });
+    return map;
+  }, [cpList]);
 
   const invoices = data?.data || [];
   const historyStatuses = ["paid", "cancelled"];
@@ -122,6 +133,8 @@ export function useInvoices() {
     filtered,
     filteredHistory,
     customerMap,
+    cpMap,
+    cpList: cpList?.data || [],
     filters: {
       status: statusFilter,
       setStatus: setStatusFilter,
@@ -131,6 +144,10 @@ export function useInvoices() {
       setMonth: setMonthFilter,
       search,
       setSearch,
+      cp: cpFilter,
+      setCp: setCpFilter,
+      layer: layerFilter,
+      setLayer: setLayerFilter,
     },
     pagination: {
       activePage,

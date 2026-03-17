@@ -30,8 +30,8 @@ export async function mergePdfs(buffers: Buffer[], options: {
     if (options.metadata.author) mergedPdf.setAuthor(options.metadata.author);
     if (options.metadata.subject) mergedPdf.setSubject(options.metadata.subject);
   }
-  mergedPdf.setCreator("GEA Platform (Powered by pdf-lib)");
-  mergedPdf.setProducer("GEA Platform");
+  mergedPdf.setCreator("EG Platform (Powered by pdf-lib)");
+  mergedPdf.setProducer("EG Platform");
 
   let totalPageCount = 0;
 

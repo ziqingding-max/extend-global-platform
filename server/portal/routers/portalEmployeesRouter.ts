@@ -577,7 +577,7 @@ export const portalEmployeesRouter = portalRouter({
           .limit(1);
         const companyName = custRows[0]?.companyName || "Your Company";
 
-        const portalOrigin = process.env.PORTAL_APP_URL || "https://app.geahr.com";
+        const portalOrigin = process.env.PORTAL_APP_URL || "https://app.extendglobal.ai";
         const inviteUrl = `${portalOrigin}/self-onboarding?token=${token}`;
 
         await sendOnboardingInviteEmail({
@@ -666,7 +666,7 @@ export const portalEmployeesRouter = portalRouter({
           .limit(1);
         const companyName = custRows[0]?.companyName || "Your Company";
 
-        const portalOrigin = process.env.PORTAL_APP_URL || "https://app.geahr.com";
+        const portalOrigin = process.env.PORTAL_APP_URL || "https://app.extendglobal.ai";
         const inviteUrl = `${portalOrigin}/self-onboarding?token=${newToken}`;
 
         await sendOnboardingInviteEmail({
@@ -969,7 +969,7 @@ export const portalEmployeesRouter = portalRouter({
           })
           .where(eq(onboardingInvites.id, invite.id));
 
-        // Send onboarding completed notification to client HR + GEA admin
+        // Send onboarding completed notification to client HR + EG admin
         notificationService.send({
           type: "employee_onboarding_completed",
           customerId: invite.customerId,

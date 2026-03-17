@@ -1,5 +1,5 @@
 /**
- * GEA Admin — Billing Entities Management
+ * EG Admin — Billing Entities Management
  * Full CRUD with logo upload, IBAN/beneficiary, invoice prefix
  */
 import { useState, useRef } from "react";

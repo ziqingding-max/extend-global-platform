@@ -224,8 +224,8 @@ case "$1" in
     ssl)
         echo "正在申请 SSL 证书..."
         echo "请确保域名已解析到此服务器 IP"
-        read -p "请输入域名（如 admin.geahr.com）: " DOMAIN
-        docker compose -f docker-compose.prod.yml run --rm certbot certonly --webroot -w /var/www/certbot -d ${DOMAIN} --email admin@geahr.com --agree-tos --no-eff-email
+        read -p "请输入域名（如 admin.extendglobal.ai）: " DOMAIN
+        docker compose -f docker-compose.prod.yml run --rm certbot certonly --webroot -w /var/www/certbot -d ${DOMAIN} --email admin@extendglobal.ai --agree-tos --no-eff-email
         echo "SSL 证书申请完成，请更新 Nginx 配置启用 HTTPS"
         ;;
     *)

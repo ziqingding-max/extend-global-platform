@@ -10,6 +10,7 @@ import { useState, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
+import { useCpBranding } from "@/hooks/useCpBranding";
 import { useI18n } from "@/lib/i18n";
 import { portalPath, getPortalBasePath } from "@/lib/portalBasePath";
 import {
@@ -126,6 +127,7 @@ export default function PortalLayout({ children, title }: PortalLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, loading, logout } = usePortalAuth();
+  const { branding, isCp } = useCpBranding();
   const { t, locale, setLocale } = useI18n();
 
   // Change Password state
@@ -178,24 +180,26 @@ export default function PortalLayout({ children, title }: PortalLayoutProps) {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      {/* Company Logo / Name */}
+      {/* Company Logo / Name — supports CP white-label branding */}
       <div className={cn(
         "flex items-center gap-3 px-4 py-4 border-b border-white/10"
       )}>
         {collapsed ? (
-          <img 
-            src="/brand/gea-logo-icon.png" 
-            alt="GEA" 
-            className="w-8 h-8 flex-shrink-0 object-contain"
-          />
+          isCp && branding?.logoUrl ? (
+            <img src={branding.logoUrl} alt={branding.companyName} className="w-8 h-8 flex-shrink-0 object-contain" />
+          ) : (
+            <img src="/brand/gea-logo-icon.png" alt="EG" className="w-8 h-8 flex-shrink-0 object-contain" />
+          )
         ) : (
           <div className="min-w-0">
-            <img 
-              src="/brand/gea-logo-horizontal-white.png" 
-              alt="GEA - Global Employment Advisors" 
-              className="h-10 object-contain"
-            />
-            <div className="text-xs text-white/50 leading-tight mt-1">{user.companyName} · {t("nav.clientPortal")}</div>
+            {isCp && branding?.logoUrl ? (
+              <img src={branding.logoUrl} alt={branding.companyName} className="h-10 object-contain" />
+            ) : (
+              <img src="/brand/gea-logo-horizontal-white.png" alt="Extend Global" className="h-10 object-contain" />
+            )}
+            <div className="text-xs text-white/50 leading-tight mt-1">
+              {user.companyName} · {isCp && branding ? branding.companyName : t("nav.clientPortal")}
+            </div>
           </div>
         )}
       </div>
