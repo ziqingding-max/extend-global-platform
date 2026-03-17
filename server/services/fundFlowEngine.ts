@@ -161,7 +161,6 @@ export async function processClientPayment(
         layer2Invoice.currency,
         layer1Invoice.total,
         layer1Invoice.id,
-        `Auto-deduct for Layer 1 invoice ${layer1Invoice.invoiceNumber}`,
         userId,
       );
 
@@ -230,7 +229,6 @@ export async function processLayer1Payment(
       layer1Invoice.currency,
       paidAmount,
       layer1Invoice.id,
-      `Manual payment for Layer 1 invoice ${layer1Invoice.invoiceNumber}`,
       userId,
     );
   } catch (err: any) {

@@ -140,11 +140,11 @@ export const fundFlowRouter = router({
             .limit(20);
 
           summary.recentTransactions = recentTxns.map((tx) => ({
-            date: tx.createdAt,
-            type: tx.type,
+            date: tx.createdAt instanceof Date ? tx.createdAt.toISOString() : String(tx.createdAt),
+            type: tx.type as string,
             amount: parseFloat(tx.amount),
             description: tx.description || "",
-            invoiceNumber: undefined, // Could be enriched with invoice lookup
+            invoiceNumber: undefined as string | undefined,
           }));
         } catch {
           // Wallet may not exist yet

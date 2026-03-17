@@ -247,7 +247,7 @@ export const netPnlRouter = router({
       }
 
       // Calculate net profit per month
-      for (const entry of monthlyMap.values()) {
+      for (const entry of Array.from(monthlyMap.values())) {
         entry.netProfit = entry.totalNetRevenue - entry.vendorServiceFees - entry.bankCharges;
       }
 
@@ -276,7 +276,7 @@ export const netPnlRouter = router({
       }>();
 
       // Get customer names
-      const customerIds = [...new Set(breakdowns.map((b) => b.customerId))];
+      const customerIds = Array.from(new Set(breakdowns.map((b) => b.customerId)));
       const customerNames = new Map<number, string>();
       if (customerIds.length > 0) {
         const custs = await db
@@ -330,7 +330,7 @@ export const netPnlRouter = router({
       }>();
 
       // Get CP names
-      const cpIds = [...new Set(breakdowns.filter((b) => b.channelPartnerId).map((b) => b.channelPartnerId!))];
+      const cpIds = Array.from(new Set(breakdowns.filter((b) => b.channelPartnerId).map((b) => b.channelPartnerId!)));
       const cpNames = new Map<number, string>();
       if (cpIds.length > 0) {
         const cps = await db

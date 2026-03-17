@@ -548,7 +548,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <p>{{message}}</p>
 <p>Please log in to the Admin Panel to review and approve these items as soon as possible.</p>
 <EG_BUTTON text="Go to Admin Panel" href="https://admin.extendglobal.ai" />
-<p>\2014 EG System</p>`,
+<p>\u2014 EG System</p>`,
         inAppMessage: "{{totalPending}} pending items for {{period}} need approval."
       },
       zh: {

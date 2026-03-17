@@ -18,7 +18,7 @@ import {
   getReconciliationSummary,
   unreconciledVendorBill,
 } from "../services/reconciliationEngine";
-import { createAuditLog } from "../services/db/auditLogService";
+import { logAuditAction } from "../services/db/commonService";
 
 export const reconciliationRouter = router({
   /**
@@ -60,7 +60,7 @@ export const reconciliationRouter = router({
         input.note,
       );
 
-      await createAuditLog({
+      await logAuditAction({
         userId: ctx.user.id,
         userName: ctx.user.name || ctx.user.email || "Unknown",
         action: "reconcile",
@@ -85,7 +85,7 @@ export const reconciliationRouter = router({
     .mutation(async ({ input, ctx }) => {
       const results = await batchReconcile(input.payrollMonth);
 
-      await createAuditLog({
+      await logAuditAction({
         userId: ctx.user.id,
         userName: ctx.user.name || ctx.user.email || "Unknown",
         action: "batch_reconcile",
@@ -112,7 +112,7 @@ export const reconciliationRouter = router({
     .mutation(async ({ input, ctx }) => {
       await unreconciledVendorBill(input.vendorBillId);
 
-      await createAuditLog({
+      await logAuditAction({
         userId: ctx.user.id,
         userName: ctx.user.name || ctx.user.email || "Unknown",
         action: "unreconcile",

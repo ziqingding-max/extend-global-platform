@@ -282,7 +282,7 @@ export async function batchReconcile(
   }
 
   const results: ReconcileResult[] = [];
-  for (const match of billToInvoice.values()) {
+  for (const match of Array.from(billToInvoice.values())) {
     try {
       const result = await executeReconciliation(match.vendorBillId, match.invoiceId);
       results.push(result);
