@@ -30,6 +30,8 @@ export const users = sqliteTable(
     resetToken: text("resetToken", { length: 255 }),
     resetExpiresAt: integer("resetExpiresAt", { mode: "timestamp_ms" }),
     mustChangePassword: integer("mustChangePassword", { mode: "boolean" }).default(false).notNull(),
+    // ── EG Channel Partner Association ──
+    channelPartnerId: integer("channelPartnerId"), // FK → channel_partners.id (null = EG internal user)
     createdAt: integer("createdAt", { mode: "timestamp_ms" }).defaultNow().notNull(),
     updatedAt: integer("updatedAt", { mode: "timestamp_ms" }).defaultNow().$onUpdate(() => new Date()).notNull(),
     lastSignedIn: integer("lastSignedIn", { mode: "timestamp_ms" }).defaultNow().notNull(),
@@ -38,6 +40,7 @@ export const users = sqliteTable(
     emailIdx: index("email_idx").on(table.email),
     roleIdx: index("role_idx").on(table.role),
     inviteTokenIdx: index("invite_token_idx").on(table.inviteToken),
+    channelPartnerIdIdx: index("user_cp_id_idx").on(table.channelPartnerId),
   })
 );
 
@@ -158,13 +161,374 @@ export type PublicHoliday = typeof publicHolidays.$inferSelect;
 export type InsertPublicHoliday = typeof publicHolidays.$inferInsert;
 
 // ============================================================================
-// 3. CUSTOMER MANAGEMENT
+// 2B. CHANNEL PARTNER MANAGEMENT (EG B2B2B Layer)
+// ============================================================================
+
+/**
+ * Channel Partners — the core B2B2B entity.
+ * Each CP has its own brand, settlement terms, and client portfolio.
+ * EG settles with CPs centrally in Hong Kong.
+ */
+export const channelPartners = sqliteTable(
+  "channel_partners",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    partnerCode: text("partnerCode", { length: 20 }).notNull().unique(), // Auto-generated: CP-0001
+    companyName: text("companyName", { length: 255 }).notNull(),
+    legalEntityName: text("legalEntityName", { length: 255 }),
+    registrationNumber: text("registrationNumber", { length: 100 }),
+    country: text("country", { length: 100 }).notNull(),
+    address: text("address"),
+    city: text("city", { length: 100 }),
+    state: text("state", { length: 100 }),
+    postalCode: text("postalCode", { length: 20 }),
+    // Primary contact
+    primaryContactName: text("primaryContactName", { length: 255 }),
+    primaryContactEmail: text("primaryContactEmail", { length: 320 }),
+    primaryContactPhone: text("primaryContactPhone", { length: 20 }),
+    // Settlement terms (EG <-> CP)
+    settlementCurrency: text("settlementCurrency", { length: 3 }).default("USD").notNull(),
+    paymentTermDays: integer("paymentTermDays").default(30).notNull(),
+    creditLimit: text("creditLimit"), // Maximum outstanding balance allowed
+    depositMultiplier: integer("depositMultiplier").default(2).notNull(), // Deposit = estimated cost × multiplier
+    // Branding / White-label configuration
+    logoUrl: text("logoUrl"), // S3 URL for CP logo
+    logoFileKey: text("logoFileKey", { length: 500 }),
+    brandPrimaryColor: text("brandPrimaryColor", { length: 7 }).default("#1a73e8"), // Hex color
+    brandSecondaryColor: text("brandSecondaryColor", { length: 7 }),
+    brandAccentColor: text("brandAccentColor", { length: 7 }),
+    faviconUrl: text("faviconUrl"),
+    faviconFileKey: text("faviconFileKey", { length: 500 }),
+    // CP's own billing info (for CP-to-Client invoices)
+    cpBillingEntityName: text("cpBillingEntityName", { length: 255 }),
+    cpBillingAddress: text("cpBillingAddress"),
+    cpBillingTaxId: text("cpBillingTaxId", { length: 100 }),
+    cpBankDetails: text("cpBankDetails"), // Free-text bank info shown on CP->Client invoices
+    cpInvoicePrefix: text("cpInvoicePrefix", { length: 20 }), // e.g. "CIIC-" for CP invoice numbering
+    cpInvoiceSequence: integer("cpInvoiceSequence").default(0).notNull(), // Last used CP invoice sequence
+    // Status
+    status: text("status", { enum: ["active", "suspended", "terminated"] }).default("active").notNull(),
+    notes: text("notes"),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" }).defaultNow().notNull(),
+    updatedAt: integer("updatedAt", { mode: "timestamp_ms" }).defaultNow().$onUpdate(() => new Date()).notNull(),
+  },
+  (table) => ({
+    cpPartnerCodeIdx: uniqueIndex("cp_partner_code_idx").on(table.partnerCode),
+    cpCompanyNameIdx: index("cp_company_name_idx").on(table.companyName),
+    cpStatusIdx: index("cp_status_idx").on(table.status),
+    cpCountryIdx: index("cp_country_idx").on(table.country),
+  })
+);
+
+export type ChannelPartner = typeof channelPartners.$inferSelect;
+export type InsertChannelPartner = typeof channelPartners.$inferInsert;
+
+/**
+ * CP Contacts — portal users for Channel Partner organizations.
+ * Similar to customerContacts but for CP-level access.
+ */
+export const channelPartnerContacts = sqliteTable(
+  "channel_partner_contacts",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    channelPartnerId: integer("channelPartnerId").notNull(), // FK → channel_partners.id
+    contactName: text("contactName", { length: 255 }).notNull(),
+    email: text("email", { length: 320 }).notNull(),
+    phone: text("phone", { length: 20 }),
+    role: text("role", { length: 100 }), // Business role (e.g. "Operations Director")
+    isPrimary: integer("isPrimary", { mode: "boolean" }).default(false).notNull(),
+    // Portal Authentication
+    hasPortalAccess: integer("hasPortalAccess", { mode: "boolean" }).default(false).notNull(),
+    passwordHash: text("passwordHash", { length: 255 }),
+    portalRole: text("portalRole", { enum: ["admin", "finance", "operations", "viewer"] }).default("viewer"),
+    inviteToken: text("inviteToken", { length: 255 }),
+    inviteExpiresAt: integer("inviteExpiresAt", { mode: "timestamp_ms" }),
+    resetToken: text("resetToken", { length: 255 }),
+    resetExpiresAt: integer("resetExpiresAt", { mode: "timestamp_ms" }),
+    isPortalActive: integer("isPortalActive", { mode: "boolean" }).default(false).notNull(),
+    lastLoginAt: integer("lastLoginAt", { mode: "timestamp_ms" }),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" }).defaultNow().notNull(),
+    updatedAt: integer("updatedAt", { mode: "timestamp_ms" }).defaultNow().$onUpdate(() => new Date()).notNull(),
+  },
+  (table) => ({
+    cpcChannelPartnerIdx: index("cpc_cp_id_idx").on(table.channelPartnerId),
+    cpcEmailIdx: uniqueIndex("cpc_email_idx").on(table.email),
+    cpcInviteTokenIdx: index("cpc_invite_token_idx").on(table.inviteToken),
+  })
+);
+
+export type ChannelPartnerContact = typeof channelPartnerContacts.$inferSelect;
+export type InsertChannelPartnerContact = typeof channelPartnerContacts.$inferInsert;
+
+/**
+ * CP Pricing Rules — EG-to-CP settlement pricing.
+ * Defines how much EG charges each CP (base cost + EG service fee).
+ * This replaces the old customerPricing for the EG→CP layer.
+ */
+export const cpPricingRules = sqliteTable(
+  "cp_pricing_rules",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    channelPartnerId: integer("channelPartnerId").notNull(), // FK → channel_partners.id
+    pricingType: text("pricingType", { enum: [
+      "fixed_per_employee",  // Fixed fee per employee per month
+      "percentage_markup",   // Percentage markup on employment cost
+      "tiered",              // Tiered pricing based on headcount
+    ] }).notNull(),
+    // For fixed_per_employee
+    fixedFeeAmount: text("fixedFeeAmount"),
+    // For percentage_markup
+    markupPercentage: text("markupPercentage"), // e.g. "5.00" = 5%
+    // For tiered pricing
+    tierConfig: text("tierConfig", { mode: "json" }), // JSON array of { minHeadcount, maxHeadcount, feeAmount }
+    // Scope
+    countryCode: text("countryCode", { length: 3 }), // null = global rule, specific = country override
+    serviceType: text("serviceType", { enum: ["eor", "visa_eor"] }),
+    currency: text("currency", { length: 3 }).default("USD"),
+    // FX markup that EG applies when converting local currency costs to settlement currency
+    fxMarkupPercentage: text("fxMarkupPercentage").default("3.00"), // e.g. "3.00" = 3%
+    // Validity
+    effectiveFrom: text("effectiveFrom").notNull(),
+    effectiveTo: text("effectiveTo"),
+    isActive: integer("isActive", { mode: "boolean" }).default(true).notNull(),
+    // Traceability
+    sourceQuotationId: integer("sourceQuotationId"),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" }).defaultNow().notNull(),
+    updatedAt: integer("updatedAt", { mode: "timestamp_ms" }).defaultNow().$onUpdate(() => new Date()).notNull(),
+  },
+  (table) => ({
+    cprChannelPartnerIdx: index("cpr_cp_id_idx").on(table.channelPartnerId),
+    cprCountryIdx: index("cpr_country_idx").on(table.countryCode),
+    cprActiveIdx: index("cpr_active_idx").on(table.isActive),
+  })
+);
+
+export type CpPricingRule = typeof cpPricingRules.$inferSelect;
+export type InsertCpPricingRule = typeof cpPricingRules.$inferInsert;
+
+/**
+ * CP Client Pricing — CP-to-End-Client billing rules.
+ * Defines how much CP charges each End Client.
+ * CP can customize service fees, FX rates, and additional charges.
+ */
+export const cpClientPricing = sqliteTable(
+  "cp_client_pricing",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    channelPartnerId: integer("channelPartnerId").notNull(), // FK → channel_partners.id
+    customerId: integer("customerId").notNull(), // FK → customers.id (End Client)
+    pricingType: text("pricingType", { enum: [
+      "fixed_per_employee",  // Fixed fee per employee per month
+      "percentage_markup",   // Percentage markup on employment cost
+      "mixed",               // Base fee + percentage
+    ] }).notNull(),
+    // For fixed_per_employee
+    fixedFeeAmount: text("fixedFeeAmount"),
+    // For percentage_markup
+    markupPercentage: text("markupPercentage"),
+    // For mixed
+    baseFeeAmount: text("baseFeeAmount"),
+    additionalMarkupPercentage: text("additionalMarkupPercentage"),
+    // Scope
+    countryCode: text("countryCode", { length: 3 }), // null = global rule
+    serviceType: text("serviceType", { enum: ["eor", "visa_eor"] }),
+    currency: text("currency", { length: 3 }).default("USD"),
+    // FX markup that CP applies to End Client
+    fxMarkupPercentage: text("fxMarkupPercentage").default("5.00"),
+    // Validity
+    effectiveFrom: text("effectiveFrom").notNull(),
+    effectiveTo: text("effectiveTo"),
+    isActive: integer("isActive", { mode: "boolean" }).default(true).notNull(),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" }).defaultNow().notNull(),
+    updatedAt: integer("updatedAt", { mode: "timestamp_ms" }).defaultNow().$onUpdate(() => new Date()).notNull(),
+  },
+  (table) => ({
+    ccpChannelPartnerIdx: index("ccp_cp_id_idx").on(table.channelPartnerId),
+    ccpCustomerIdx: index("ccp_customer_id_idx").on(table.customerId),
+    ccpCountryIdx: index("ccp_country_idx").on(table.countryCode),
+    ccpActiveIdx: index("ccp_active_idx").on(table.isActive),
+    ccpCpCustomerIdx: index("ccp_cp_customer_idx").on(table.channelPartnerId, table.customerId),
+  })
+);
+
+export type CpClientPricing = typeof cpClientPricing.$inferSelect;
+export type InsertCpClientPricing = typeof cpClientPricing.$inferInsert;
+
+/**
+ * CP Contracts — agreements between EG and Channel Partners.
+ */
+export const channelPartnerContracts = sqliteTable(
+  "channel_partner_contracts",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    channelPartnerId: integer("channelPartnerId").notNull(), // FK → channel_partners.id
+    contractName: text("contractName", { length: 255 }).notNull(),
+    contractType: text("contractType", { length: 100 }),
+    fileUrl: text("fileUrl"),
+    fileKey: text("fileKey", { length: 500 }),
+    signedDate: text("signedDate"),
+    effectiveDate: text("effectiveDate"),
+    expiryDate: text("expiryDate"),
+    status: text("status", { enum: ["draft", "signed", "expired", "terminated"] }).default("draft").notNull(),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" }).defaultNow().notNull(),
+    updatedAt: integer("updatedAt", { mode: "timestamp_ms" }).defaultNow().$onUpdate(() => new Date()).notNull(),
+  },
+  (table) => ({
+    cpctrCpIdIdx: index("cpctr_cp_id_idx").on(table.channelPartnerId),
+  })
+);
+
+export type ChannelPartnerContract = typeof channelPartnerContracts.$inferSelect;
+export type InsertChannelPartnerContract = typeof channelPartnerContracts.$inferInsert;
+
+// ============================================================================
+// 2C. CHANNEL PARTNER WALLET (PREPAYMENT) SYSTEM
+// ============================================================================
+
+/**
+ * CP Wallets — stores current balance per currency at the CP level.
+ * Replaces customer_wallets for the EG→CP settlement layer.
+ * Optimistic locking (version) prevents concurrent balance updates.
+ */
+export const channelPartnerWallets = sqliteTable(
+  "channel_partner_wallets",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    channelPartnerId: integer("channelPartnerId").notNull(), // FK → channel_partners.id
+    currency: text("currency", { length: 3 }).notNull(), // USD, HKD, etc.
+    balance: text("balance").default("0").notNull(), // Decimal string
+    version: integer("version").default(0).notNull(), // Optimistic lock
+    updatedAt: integer("updatedAt", { mode: "timestamp_ms" }).defaultNow().$onUpdate(() => new Date()).notNull(),
+  },
+  (table) => ({
+    cpwCpCurrencyIdx: uniqueIndex("cpw_cp_currency_idx").on(table.channelPartnerId, table.currency),
+  })
+);
+
+export type ChannelPartnerWallet = typeof channelPartnerWallets.$inferSelect;
+export type InsertChannelPartnerWallet = typeof channelPartnerWallets.$inferInsert;
+
+/**
+ * CP Wallet Transactions — immutable ledger of all CP fund movements.
+ */
+export const cpWalletTransactions = sqliteTable(
+  "cp_wallet_transactions",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    walletId: integer("walletId").notNull(), // FK → channel_partner_wallets.id
+    channelPartnerId: integer("channelPartnerId").notNull(), // Denormalized for query perf
+    
+    type: text("type", { enum: [
+      "top_up",               // Direct bank transfer top-up (+)
+      "invoice_deduction",    // Balance used to pay EG invoice (-)
+      "invoice_refund",       // Invoice rejected/voided, balance returned (+)
+      "credit_note_in",       // Credit Note converted to balance (+)
+      "overpayment_in",       // Invoice overpayment converted to balance (+)
+      "manual_adjustment",    // Admin manual adjustment (+/-)
+      "payout",               // Withdrawal/Refund to bank (-)
+      "deposit_release",      // Deposit released to operating balance (+)
+    ] }).notNull(),
+
+    amount: text("amount").notNull(), // Always positive
+    direction: text("direction", { enum: ["credit", "debit"] }).notNull(),
+    
+    balanceBefore: text("balanceBefore").notNull(),
+    balanceAfter: text("balanceAfter").notNull(),
+    
+    // Audit Trail
+    referenceId: integer("referenceId").notNull(), // InvoiceID, CreditNoteID, PaymentID
+    referenceType: text("referenceType", { enum: ["invoice", "credit_note", "payment", "manual"] }).notNull(),
+    
+    description: text("description"),
+    internalNote: text("internalNote"),
+    createdBy: integer("createdBy"),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" }).defaultNow().notNull(),
+  },
+  (table) => ({
+    cpwtWalletIdIdx: index("cpwt_wallet_id_idx").on(table.walletId),
+    cpwtCpIdIdx: index("cpwt_cp_id_idx").on(table.channelPartnerId),
+    cpwtReferenceIdx: index("cpwt_reference_idx").on(table.referenceId, table.referenceType),
+    cpwtCreatedIdx: index("cpwt_created_idx").on(table.createdAt),
+  })
+);
+
+export type CpWalletTransaction = typeof cpWalletTransactions.$inferSelect;
+export type InsertCpWalletTransaction = typeof cpWalletTransactions.$inferInsert;
+
+/**
+ * CP Frozen Wallets — stores deposit/security funds at CP level.
+ * Physically isolated from main wallets to prevent accidental usage.
+ */
+export const channelPartnerFrozenWallets = sqliteTable(
+  "channel_partner_frozen_wallets",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    channelPartnerId: integer("channelPartnerId").notNull(),
+    currency: text("currency", { length: 3 }).notNull(),
+    balance: text("balance").default("0").notNull(),
+    version: integer("version").default(0).notNull(),
+    updatedAt: integer("updatedAt", { mode: "timestamp_ms" }).defaultNow().$onUpdate(() => new Date()).notNull(),
+  },
+  (table) => ({
+    cpfwCpCurrencyIdx: uniqueIndex("cpfw_cp_currency_idx").on(table.channelPartnerId, table.currency),
+  })
+);
+
+export type ChannelPartnerFrozenWallet = typeof channelPartnerFrozenWallets.$inferSelect;
+export type InsertChannelPartnerFrozenWallet = typeof channelPartnerFrozenWallets.$inferInsert;
+
+/**
+ * CP Frozen Wallet Transactions — immutable ledger of CP deposit funds.
+ */
+export const cpFrozenWalletTransactions = sqliteTable(
+  "cp_frozen_wallet_transactions",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    walletId: integer("walletId").notNull(), // FK → channel_partner_frozen_wallets.id
+    channelPartnerId: integer("channelPartnerId").notNull(),
+    
+    type: text("type", { enum: [
+      "deposit_in",           // Deposit payment received (+)
+      "deposit_release",      // Deposit released to main wallet (-)
+      "deposit_refund",       // Deposit refunded to bank (-)
+      "deposit_deduction",    // Deposit used to cover unpaid bills (-)
+      "manual_adjustment",    // Admin manual adjustment (+/-)
+    ] }).notNull(),
+
+    amount: text("amount").notNull(),
+    direction: text("direction", { enum: ["credit", "debit"] }).notNull(),
+    
+    balanceBefore: text("balanceBefore").notNull(),
+    balanceAfter: text("balanceAfter").notNull(),
+    
+    referenceId: integer("referenceId").notNull(),
+    referenceType: text("referenceType", { enum: ["invoice", "payment", "credit_note", "manual"] }).notNull(),
+    
+    description: text("description"),
+    internalNote: text("internalNote"),
+    createdBy: integer("createdBy"),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" }).defaultNow().notNull(),
+  },
+  (table) => ({
+    cpfwtWalletIdIdx: index("cpfwt_wallet_id_idx").on(table.walletId),
+    cpfwtCpIdIdx: index("cpfwt_cp_id_idx").on(table.channelPartnerId),
+    cpfwtReferenceIdx: index("cpfwt_reference_idx").on(table.referenceId, table.referenceType),
+    cpfwtCreatedIdx: index("cpfwt_created_idx").on(table.createdAt),
+  })
+);
+
+export type CpFrozenWalletTransaction = typeof cpFrozenWalletTransactions.$inferSelect;
+export type InsertCpFrozenWalletTransaction = typeof cpFrozenWalletTransactions.$inferInsert;
+
+// ============================================================================
+// 3. CUSTOMER MANAGEMENT (End Clients — now owned by Channel Partners)
 // ============================================================================
 
 export const customers = sqliteTable(
   "customers",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
+    channelPartnerId: integer("channelPartnerId"), // FK → channel_partners.id (null = legacy/direct)
     clientCode: text("clientCode", { length: 20 }).unique(), // Auto-generated: CUS-0001
     companyName: text("companyName", { length: 255 }).notNull(),
     legalEntityName: text("legalEntityName", { length: 255 }),
@@ -192,6 +556,7 @@ export const customers = sqliteTable(
     companyNameIdx: index("company_name_idx").on(table.companyName),
     countryIdx: index("country_idx").on(table.country),
     statusIdx: index("status_idx").on(table.status),
+    custChannelPartnerIdx: index("cust_cp_id_idx").on(table.channelPartnerId),
   })
 );
 
@@ -204,6 +569,7 @@ export const customerContacts = sqliteTable(
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
     customerId: integer("customerId").notNull(),
+    channelPartnerId: integer("channelPartnerId"), // FK → channel_partners.id (denormalized from customer)
     contactName: text("contactName", { length: 255 }).notNull(),
     email: text("email", { length: 320 }).notNull(),
     phone: text("phone", { length: 20 }),
@@ -226,6 +592,7 @@ export const customerContacts = sqliteTable(
     customerIdIdx: index("cc_customer_id_idx").on(table.customerId),
     emailIdx: uniqueIndex("cc_email_idx").on(table.email),
     inviteTokenIdx: index("cc_invite_token_idx").on(table.inviteToken),
+    ccChannelPartnerIdx: index("cc_cp_id_idx").on(table.channelPartnerId),
   })
 );
 
@@ -325,6 +692,7 @@ export const employees = sqliteTable(
     id: integer("id").primaryKey({ autoIncrement: true }),
     employeeCode: text("employeeCode", { length: 20 }).unique(), // Auto-generated: EMP-0001
     customerId: integer("customerId").notNull(),
+    channelPartnerId: integer("channelPartnerId"), // FK → channel_partners.id (denormalized from customer for query perf)
     // Personal info
     firstName: text("firstName", { length: 100 }).notNull(),
     lastName: text("lastName", { length: 100 }).notNull(),
@@ -387,6 +755,7 @@ export const employees = sqliteTable(
     empStatusIdx: index("emp_status_idx").on(table.status),
     empCountryIdx: index("emp_country_idx").on(table.country),
     empServiceTypeIdx: index("emp_service_type_idx").on(table.serviceType),
+    empChannelPartnerIdx: index("emp_cp_id_idx").on(table.channelPartnerId),
   })
 );
 
@@ -648,8 +1017,16 @@ export const invoices = sqliteTable(
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
     customerId: integer("customerId").notNull(),
+    channelPartnerId: integer("channelPartnerId"), // FK → channel_partners.id
     billingEntityId: integer("billingEntityId"), // Which billing entity issues this invoice
     invoiceNumber: text("invoiceNumber", { length: 100 }).notNull().unique(),
+    // ── Dual-Layer Invoice Support ──
+    invoiceLayer: text("invoiceLayer", { enum: [
+      "eg_to_cp",        // Layer 1: EG charges CP (consolidated, real A/R)
+      "cp_to_client",    // Layer 2: CP charges End Client (draft, system-generated)
+      "legacy",          // Pre-migration invoices (GEA direct-to-customer)
+    ] }).default("legacy").notNull(),
+    parentInvoiceId: integer("parentInvoiceId"), // For cp_to_client: links back to the eg_to_cp invoice
     invoiceType: text("invoiceType", { enum: [
       "deposit",
       "monthly_eor",
@@ -694,6 +1071,13 @@ export const invoices = sqliteTable(
     amountDue: text("amountDue"), // Adjusted amount due after credit (total - creditApplied - walletAppliedAmount)
     // Cost allocation tracking (denormalized for query performance)
     costAllocated: text("costAllocated").default("0"), // Total vendor bill cost allocated to this invoice
+    // ── Dual-Currency Tracking (EG B2B2B) ──
+    localCurrencyTotal: text("localCurrencyTotal"), // Sum of all employment costs in local currency
+    localCurrency: text("localCurrency", { length: 3 }), // Local currency code (GBP, EUR, JPY etc.)
+    settlementAmountUsd: text("settlementAmountUsd"), // Actual USD amount for settlement
+    fxRateUsed: text("fxRateUsed"), // FX rate used for this invoice
+    fxMarkupRate: text("fxMarkupRate"), // FX markup rate applied
+    fxGainLoss: text("fxGainLoss"), // Calculated FX gain/loss amount
     // Related credit note / refund
     relatedInvoiceId: integer("relatedInvoiceId"),
     notes: text("notes"),
@@ -703,9 +1087,12 @@ export const invoices = sqliteTable(
   },
   (table) => ({
     invCustomerIdIdx: index("inv_customer_id_idx").on(table.customerId),
+    invChannelPartnerIdx: index("inv_cp_id_idx").on(table.channelPartnerId),
     invInvoiceNumberIdx: uniqueIndex("inv_invoice_number_idx").on(table.invoiceNumber),
     invStatusIdx: index("inv_status_idx").on(table.status),
     invInvoiceMonthIdx: index("inv_invoice_month_idx").on(table.invoiceMonth),
+    invLayerIdx: index("inv_layer_idx").on(table.invoiceLayer),
+    invParentIdx: index("inv_parent_id_idx").on(table.parentInvoiceId),
   })
 );
 
@@ -750,6 +1137,8 @@ export const invoiceItems = sqliteTable(
     localAmount: text("localAmount"), // Amount in local currency
     exchangeRate: text("exchangeRate"), // Rate used for conversion
     exchangeRateWithMarkup: text("exchangeRateWithMarkup"), // Rate with markup
+    // ── EG Dual-Layer Control ──
+    isImmutableCost: integer("isImmutableCost", { mode: "boolean" }).default(false).notNull(), // true = employment cost, locked from CP editing
     createdAt: integer("createdAt", { mode: "timestamp_ms" }).defaultNow().notNull(),
     updatedAt: integer("updatedAt", { mode: "timestamp_ms" }).defaultNow().$onUpdate(() => new Date()).notNull(),
   },
@@ -802,6 +1191,17 @@ export const auditLogs = sqliteTable(
     entityType: text("entityType", { length: 100 }).notNull(),
     entityId: integer("entityId"),
     changes: text("changes", { mode: "json" }),
+    // ── EG Enhanced Audit Fields ──
+    beforeState: text("beforeState", { mode: "json" }), // Full JSON snapshot before change
+    afterState: text("afterState", { mode: "json" }), // Full JSON snapshot after change
+    portalSource: text("portalSource", { enum: [
+      "super_admin",
+      "cp_portal",
+      "client_portal",
+      "worker_portal",
+      "system",
+    ] }), // Which portal initiated this action
+    channelPartnerId: integer("channelPartnerId"), // CP context for filtering
     ipAddress: text("ipAddress", { length: 50 }),
     userAgent: text("userAgent"),
     createdAt: integer("createdAt", { mode: "timestamp_ms" }).defaultNow().notNull(),
@@ -810,6 +1210,8 @@ export const auditLogs = sqliteTable(
     alUserIdIdx: index("al_user_id_idx").on(table.userId),
     alEntityTypeIdx: index("al_entity_type_idx").on(table.entityType),
     alCreatedAtIdx: index("al_created_at_idx").on(table.createdAt),
+    alPortalSourceIdx: index("al_portal_source_idx").on(table.portalSource),
+    alChannelPartnerIdx: index("al_cp_id_idx").on(table.channelPartnerId),
   })
 );
 
@@ -951,6 +1353,7 @@ export const onboardingInvites = sqliteTable(
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
     customerId: integer("customerId").notNull(),
+    channelPartnerId: integer("channelPartnerId"), // FK → channel_partners.id (denormalized from customer)
     employeeName: text("employeeName", { length: 200 }).notNull(),
     employeeEmail: text("employeeEmail", { length: 320 }).notNull(),
     token: text("token", { length: 64 }).notNull().unique(),
@@ -1150,12 +1553,36 @@ export const vendorBills = sqliteTable(
       "marketing",
       "other",
     ] }).default("other").notNull(),
-    // Bill type: operational (regular service costs), deposit (vendor deposit/guarantee), deposit_refund
+    // Bill type: restructured for EG net-revenue accounting
+    // service_fee = Accounting Firm fees (EG operating expense)
+    // pass_through = Employee costs paid to gov/institutions (not P&L expense)
+    // bank_charge = Wire/transfer fees (financial expense)
+    // operational/deposit/deposit_refund = legacy types preserved
     billType: text("billType", { enum: [
       "operational",
       "deposit",
       "deposit_refund",
+      "service_fee",
+      "pass_through",
+      "bank_charge",
     ] }).default("operational").notNull(),
+    // ── Dual-Currency Tracking for Reconciliation ──
+    localAmount: text("localAmount"), // Amount in local currency (for pass_through reconciliation)
+    localCurrency: text("localCurrency", { length: 3 }), // Local currency code
+    settlementAmountUsd: text("settlementAmountUsd"), // Actual USD amount debited from bank
+    fxRateActual: text("fxRateActual"), // Actual FX rate at time of payment
+    // ── Reconciliation Status ──
+    reconciliationStatus: text("reconciliationStatus", { enum: [
+      "pending",
+      "matched",
+      "variance",
+      "manual_override",
+    ] }).default("pending"),
+    reconciliationNote: text("reconciliationNote"),
+    reconciliationVariance: text("reconciliationVariance"), // Variance amount if any
+    // ── Country linkage for pass_through bills ──
+    countryCode: text("countryCode", { length: 3 }), // Which country this bill relates to
+    payrollMonth: text("payrollMonth"), // Which payroll month (YYYY-MM-01) for reconciliation matching
     description: text("description"),
     internalNotes: text("internalNotes"),
     // File attachment (vendor's original invoice/receipt)
@@ -1183,6 +1610,10 @@ export const vendorBills = sqliteTable(
     vbBillMonthIdx: index("vb_bill_month_idx").on(table.billMonth),
     vbCategoryIdx: index("vb_category_idx").on(table.category),
     vbBillNumberIdx: index("vb_bill_number_idx").on(table.billNumber),
+    vbBillTypeIdx: index("vb_bill_type_idx").on(table.billType),
+    vbReconciliationIdx: index("vb_reconciliation_idx").on(table.reconciliationStatus),
+    vbCountryCodeIdx: index("vb_country_code_idx").on(table.countryCode),
+    vbPayrollMonthIdx: index("vb_payroll_month_idx").on(table.payrollMonth),
   })
 );
 
@@ -1283,6 +1714,7 @@ export const salesLeads = sqliteTable(
   "sales_leads",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
+    channelPartnerId: integer("channelPartnerId"), // FK → channel_partners.id (null = EG direct lead)
     companyName: text("companyName", { length: 255 }).notNull(),
     contactName: text("contactName", { length: 255 }),
     contactEmail: text("contactEmail", { length: 320 }),
@@ -1319,6 +1751,7 @@ export const salesLeads = sqliteTable(
     slStatusIdx: index("sl_status_idx").on(table.status),
     slAssignedToIdx: index("sl_assigned_to_idx").on(table.assignedTo),
     slCompanyNameIdx: index("sl_company_name_idx").on(table.companyName),
+    slChannelPartnerIdx: index("sl_cp_id_idx").on(table.channelPartnerId),
   })
 );
 
@@ -1556,10 +1989,11 @@ export const notifications = sqliteTable(
     id: integer("id").primaryKey({ autoIncrement: true }),
     
     // Target definition
-    targetPortal: text("targetPortal", { enum: ["admin", "client", "worker"] }).notNull(),
+    targetPortal: text("targetPortal", { enum: ["admin", "cp", "client", "worker"] }).notNull(),
     targetUserId: integer("targetUserId"), // Specific user ID (optional)
     targetRole: text("targetRole"), // e.g. 'finance_manager', 'hr_manager' (optional)
     targetCustomerId: integer("targetCustomerId"), // For client portal notifications (optional)
+    targetChannelPartnerId: integer("targetChannelPartnerId"), // For CP portal notifications (optional)
     
     // Content definition
     type: text("type").notNull(), // e.g. 'invoice_sent', 'invoice_overdue'
@@ -1575,6 +2009,7 @@ export const notifications = sqliteTable(
   (table) => ({
     notifTargetIdx: index("notif_target_idx").on(table.targetPortal, table.targetUserId, table.targetRole),
     notifCustomerIdx: index("notif_customer_idx").on(table.targetCustomerId),
+    notifCpIdx: index("notif_cp_idx").on(table.targetChannelPartnerId),
     notifReadIdx: index("notif_read_idx").on(table.isRead),
     notifTypeIdx: index("notif_type_idx").on(table.type),
     notifCreatedIdx: index("notif_created_idx").on(table.createdAt),
@@ -1787,38 +2222,8 @@ export type SalesDocument = typeof salesDocuments.$inferSelect;
 export type InsertSalesDocument = typeof salesDocuments.$inferInsert;
 
 // ============================================================================
-// 18. COPILOT ASSISTANT — AI-Powered Enterprise Assistant
+// 18. COPILOT ASSISTANT — Removed during EG migration (copilot-schema.ts deleted)
 // ============================================================================
-// Re-export all Copilot-related tables and types from copilot-schema.ts
-// This maintains consistency with the project's import patterns
-// ============================================================================
-
-export {
-  // Tables
-  copilotUserConfigs,
-  copilotConversations,
-  copilotMessages,
-  copilotFileAnalyses,
-  copilotPredictions,
-  copilotShortcuts,
-  copilotMetrics,
-  
-  // Types
-  type CopilotUserConfig,
-  type CopilotConversation,
-  type CopilotMessage,
-  type CopilotFileAnalysis,
-  type CopilotPrediction,
-  type CopilotShortcut,
-  type CopilotMetric,
-  type InsertCopilotUserConfig,
-  type InsertCopilotConversation,
-  type InsertCopilotMessage,
-  type InsertCopilotFileAnalysis,
-  type InsertCopilotPrediction,
-  type InsertCopilotShortcut,
-  type InsertCopilotMetric,
-} from "./copilot-schema";
 
 // ============================================================================
 // 19. CUSTOMER WALLET (PREPAYMENT) SYSTEM

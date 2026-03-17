@@ -7,6 +7,8 @@
  *
  * Note: The existing codebase uses manual JOINs for all queries. These relations
  * are provided for future refactoring and new feature development.
+ *
+ * Updated: Phase 1 — Channel Partner B2B2B layer added.
  */
 import { relations } from "drizzle-orm";
 import {
@@ -14,6 +16,17 @@ import {
   countriesConfig,
   leaveTypes,
   publicHolidays,
+  // Channel Partner tables
+  channelPartners,
+  channelPartnerContacts,
+  cpPricingRules,
+  cpClientPricing,
+  channelPartnerContracts,
+  channelPartnerWallets,
+  cpWalletTransactions,
+  channelPartnerFrozenWallets,
+  cpFrozenWalletTransactions,
+  // Customer tables
   customers,
   customerContacts,
   customerPricing,
@@ -89,10 +102,97 @@ export const publicHolidaysRelations = relations(publicHolidays, ({ one }) => ({
 }));
 
 // ============================================================================
-// 2. CUSTOMER DOMAIN
+// 1B. CHANNEL PARTNER DOMAIN (EG B2B2B Layer)
 // ============================================================================
 
-export const customersRelations = relations(customers, ({ many }) => ({
+export const channelPartnersRelations = relations(channelPartners, ({ many }) => ({
+  contacts: many(channelPartnerContacts),
+  pricingRules: many(cpPricingRules),
+  clientPricing: many(cpClientPricing),
+  contracts: many(channelPartnerContracts),
+  wallets: many(channelPartnerWallets),
+  frozenWallets: many(channelPartnerFrozenWallets),
+  customers: many(customers),
+  employees: many(employees),
+  invoices: many(invoices),
+  salesLeads: many(salesLeads),
+}));
+
+export const channelPartnerContactsRelations = relations(channelPartnerContacts, ({ one }) => ({
+  channelPartner: one(channelPartners, {
+    fields: [channelPartnerContacts.channelPartnerId],
+    references: [channelPartners.id],
+  }),
+}));
+
+export const cpPricingRulesRelations = relations(cpPricingRules, ({ one }) => ({
+  channelPartner: one(channelPartners, {
+    fields: [cpPricingRules.channelPartnerId],
+    references: [channelPartners.id],
+  }),
+}));
+
+export const cpClientPricingRelations = relations(cpClientPricing, ({ one }) => ({
+  channelPartner: one(channelPartners, {
+    fields: [cpClientPricing.channelPartnerId],
+    references: [channelPartners.id],
+  }),
+  customer: one(customers, {
+    fields: [cpClientPricing.customerId],
+    references: [customers.id],
+  }),
+}));
+
+export const channelPartnerContractsRelations = relations(channelPartnerContracts, ({ one }) => ({
+  channelPartner: one(channelPartners, {
+    fields: [channelPartnerContracts.channelPartnerId],
+    references: [channelPartners.id],
+  }),
+}));
+
+// ============================================================================
+// 1C. CHANNEL PARTNER WALLET DOMAIN
+// ============================================================================
+
+export const channelPartnerWalletsRelations = relations(channelPartnerWallets, ({ one, many }) => ({
+  channelPartner: one(channelPartners, {
+    fields: [channelPartnerWallets.channelPartnerId],
+    references: [channelPartners.id],
+  }),
+  transactions: many(cpWalletTransactions),
+}));
+
+export const cpWalletTransactionsRelations = relations(cpWalletTransactions, ({ one }) => ({
+  wallet: one(channelPartnerWallets, {
+    fields: [cpWalletTransactions.walletId],
+    references: [channelPartnerWallets.id],
+  }),
+}));
+
+export const channelPartnerFrozenWalletsRelations = relations(channelPartnerFrozenWallets, ({ one, many }) => ({
+  channelPartner: one(channelPartners, {
+    fields: [channelPartnerFrozenWallets.channelPartnerId],
+    references: [channelPartners.id],
+  }),
+  transactions: many(cpFrozenWalletTransactions),
+}));
+
+export const cpFrozenWalletTransactionsRelations = relations(cpFrozenWalletTransactions, ({ one }) => ({
+  wallet: one(channelPartnerFrozenWallets, {
+    fields: [cpFrozenWalletTransactions.walletId],
+    references: [channelPartnerFrozenWallets.id],
+  }),
+}));
+
+// ============================================================================
+// 2. CUSTOMER DOMAIN (End Clients — now owned by Channel Partners)
+// ============================================================================
+
+export const customersRelations = relations(customers, ({ one, many }) => ({
+  channelPartner: one(channelPartners, {
+    fields: [customers.channelPartnerId],
+    references: [channelPartners.id],
+  }),
   contacts: many(customerContacts),
   pricing: many(customerPricing),
   contracts: many(customerContracts),
@@ -101,16 +201,20 @@ export const customersRelations = relations(customers, ({ many }) => ({
   invoices: many(invoices),
   wallet: many(customerWallets),
   adjustments: many(adjustments),
-  // payrollRuns: many(payrollRuns), // Removed: payroll runs are per country, not per customer
   salesLeads: many(salesLeads),
   quotations: many(quotations),
   salesDocuments: many(salesDocuments),
+  cpClientPricing: many(cpClientPricing),
 }));
 
 export const customerContactsRelations = relations(customerContacts, ({ one }) => ({
   customer: one(customers, {
     fields: [customerContacts.customerId],
     references: [customers.id],
+  }),
+  channelPartner: one(channelPartners, {
+    fields: [customerContacts.channelPartnerId],
+    references: [channelPartners.id],
   }),
 }));
 
@@ -147,6 +251,10 @@ export const employeesRelations = relations(employees, ({ one, many }) => ({
   customer: one(customers, {
     fields: [employees.customerId],
     references: [customers.id],
+  }),
+  channelPartner: one(channelPartners, {
+    fields: [employees.channelPartnerId],
+    references: [channelPartners.id],
   }),
   contracts: many(employeeContracts),
   documents: many(employeeDocuments),
@@ -221,10 +329,6 @@ export const reimbursementsRelations = relations(reimbursements, ({ one }) => ({
 // ============================================================================
 
 export const payrollRunsRelations = relations(payrollRuns, ({ one, many }) => ({
-  // customer: one(customers, { // Removed: payroll runs are per country
-  //   fields: [payrollRuns.customerId],
-  //   references: [customers.id],
-  // }),
   country: one(countriesConfig, {
     fields: [payrollRuns.countryCode],
     references: [countriesConfig.countryCode],
@@ -244,13 +348,22 @@ export const payrollItemsRelations = relations(payrollItems, ({ one }) => ({
 }));
 
 // ============================================================================
-// 7. INVOICING
+// 7. INVOICING (Dual-Layer: EG→CP and CP→Client)
 // ============================================================================
 
 export const invoicesRelations = relations(invoices, ({ one, many }) => ({
   customer: one(customers, {
     fields: [invoices.customerId],
     references: [customers.id],
+  }),
+  channelPartner: one(channelPartners, {
+    fields: [invoices.channelPartnerId],
+    references: [channelPartners.id],
+  }),
+  parentInvoice: one(invoices, {
+    fields: [invoices.parentInvoiceId],
+    references: [invoices.id],
+    relationName: "parentInvoice",
   }),
   items: many(invoiceItems),
   creditNoteApplications: many(creditNoteApplications),
@@ -274,7 +387,7 @@ export const creditNoteApplicationsRelations = relations(creditNoteApplications,
     relationName: "creditNote",
   }),
   targetInvoice: one(invoices, {
-    fields: [creditNoteApplications.appliedToInvoiceId], // Fixed: targetInvoiceId -> appliedToInvoiceId
+    fields: [creditNoteApplications.appliedToInvoiceId],
     references: [invoices.id],
     relationName: "targetInvoice",
   }),
@@ -321,8 +434,12 @@ export const billInvoiceAllocationsRelations = relations(billInvoiceAllocations,
 
 export const salesLeadsRelations = relations(salesLeads, ({ one, many }) => ({
   customer: one(customers, {
-    fields: [salesLeads.convertedCustomerId], // Fixed: customerId -> convertedCustomerId
+    fields: [salesLeads.convertedCustomerId],
     references: [customers.id],
+  }),
+  channelPartner: one(channelPartners, {
+    fields: [salesLeads.channelPartnerId],
+    references: [channelPartners.id],
   }),
   activities: many(salesActivities),
   quotations: many(quotations),
@@ -494,7 +611,7 @@ export const employeePayslipsRelations = relations(employeePayslips, ({ one }) =
 }));
 
 // ============================================================================
-// 13. CUSTOMER WALLET
+// 13. CUSTOMER WALLET (Legacy — preserved for backward compatibility)
 // ============================================================================
 
 export const customerWalletsRelations = relations(customerWallets, ({ one, many }) => ({
