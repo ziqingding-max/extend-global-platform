@@ -2,7 +2,7 @@ import { getDb } from "../db";
 import { type InvokeParams, type InvokeResult } from "../_core/llm";
 import { aiTaskExecutions } from "../../drizzle/schema";
 
-export type AITask = "knowledge_summarize" | "source_authority_review" | "vendor_bill_parse" | "invoice_audit" | "knowledge_generate_guide" | "copilot_chat";
+export type AITask = "knowledge_summarize" | "source_authority_review" | "vendor_bill_parse" | "invoice_audit" | "knowledge_generate_guide";
 export type AIProvider = "qwen";
 
 function resolveEnvKey(name: string): string {
