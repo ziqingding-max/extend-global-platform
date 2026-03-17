@@ -738,30 +738,10 @@ export const invoicesRouter = router({
         }
       }
 
-      // ── Four-Party Fund Flow: When a Layer 2 (CP→Client) invoice is paid,
-      //    auto-deduct from CP wallet and mark Layer 1 (EG→CP) as paid ──
-      if (input.status === "paid") {
-        const paidInv = await getInvoiceById(input.id);
-        if (paidInv && paidInv.invoiceLayer === "cp_to_client" && paidInv.channelPartnerId) {
-          try {
-            const { processClientPayment } = await import("../services/fundFlowEngine");
-            const flowResult = await processClientPayment(input.id, input.paidAmount || paidInv.total, ctx.user.id);
-            if (flowResult.success) {
-              console.log(`[FundFlow] Layer 2 #${input.id} paid → Layer 1 #${flowResult.layer1InvoiceId} auto-settled, CP margin: ${flowResult.cpMarginAmount}`);
-              await logAuditAction({
-                userId: ctx.user.id,
-                userName: ctx.user.name || null,
-                action: "fund_flow_auto_settle",
-                entityType: "invoice",
-                entityId: input.id,
-                changes: JSON.stringify(flowResult),
-              });
-            }
-          } catch (err) {
-            console.error(`[FundFlow] Auto-settle failed for Layer 2 #${input.id}:`, err);
-          }
-        }
-      }
+      // ── Four-Party Fund Flow Note ──
+      // Layer 2 (CP→Client) invoices: CP manually marks as Paid when client pays.
+      // Layer 1 (EG→CP) invoices: CP manually pays from wallet via fundFlow.payLayer1.
+      // NO automatic wallet deduction — all CP wallet operations are CP-initiated.
 
       // ── AOR Payment Sync: When a monthly_aor client invoice is paid,
       //    automatically mark associated contractor invoices as 'paid' ──
