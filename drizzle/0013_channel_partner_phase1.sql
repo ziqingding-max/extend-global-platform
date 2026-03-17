@@ -51,6 +51,8 @@ CREATE TABLE IF NOT EXISTS `channel_partners` (
   `cpBankDetails` text,
   `cpInvoicePrefix` text(20),
   `cpInvoiceSequence` integer NOT NULL DEFAULT 0,
+  `subdomain` text(63),
+  `isInternal` integer NOT NULL DEFAULT 0,
   `status` text NOT NULL DEFAULT 'active',
   `notes` text,
   `createdAt` integer DEFAULT (unixepoch() * 1000) NOT NULL,
@@ -60,6 +62,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS `cp_partner_code_idx` ON `channel_partners`(`p
 CREATE INDEX IF NOT EXISTS `cp_company_name_idx` ON `channel_partners`(`companyName`);--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `cp_status_idx` ON `channel_partners`(`status`);--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `cp_country_idx` ON `channel_partners`(`country`);--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS `cp_subdomain_idx` ON `channel_partners`(`subdomain`);--> statement-breakpoint
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- PART 2: Create channel_partner_contacts table
