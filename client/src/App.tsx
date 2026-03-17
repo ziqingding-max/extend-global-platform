@@ -42,6 +42,7 @@ import CountryGuideList from "@/pages/admin/CountryGuideList";
 import CountryGuideEditor from "@/pages/admin/CountryGuideEditor";
 import AdminCountryGuide from "@/pages/admin/AdminCountryGuide";
 import ChannelPartners from "./pages/ChannelPartners";
+import Reconciliation from "./pages/Reconciliation";
 
 // Portal pages (lazy loaded to keep admin bundle separate)
 import { lazy, Suspense } from "react";
@@ -289,6 +290,7 @@ function AdminRouter() {
       <Route path="/admin/release-tasks" component={ReleaseTasks} />
       {/* Cost Allocation merged into VendorBills detail page */}
       <Route path="/reports/profit-loss" component={ProfitLossReport} />
+      <Route path="/reports/reconciliation" component={Reconciliation} />
       <Route path="/exchange-rates">{() => <Redirect to="/settings" />}</Route>
       <Route path="/users">{() => <Redirect to="/settings" />}</Route>
       <Route path="/audit-logs">{() => <AuditLogs />}</Route>

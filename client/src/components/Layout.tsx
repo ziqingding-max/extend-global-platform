@@ -45,7 +45,8 @@ import {
   Layers,
   PieChart,
   KeyRound,
-  Handshake
+  Handshake,
+  ArrowLeftRight
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -92,6 +93,7 @@ function useNavGroups(user: any) {
       items: [
         { label: t("nav.dashboard"), icon: LayoutDashboard, href: "/" },
         { label: t("nav.profit_loss"), icon: BarChart3, href: "/reports/profit-loss" },
+        { label: "Reconciliation", icon: ArrowLeftRight, href: "/reports/reconciliation" },
       ].filter(() => hasRole(["admin", "finance_manager", "operations_manager"])),
     },
     {
