@@ -36,6 +36,7 @@ import { channelPartnersRouter } from "./routers/channelPartners";
 import { reconciliationRouter } from "./routers/reconciliation";
 import { fxStrippingRouter } from "./routers/fxStripping";
 import { netPnlRouter } from "./routers/netPnl";
+import { fundFlowRouter } from "./routers/fundFlow";
 
 export const appRouter = router({
   system: systemRouter,
@@ -83,6 +84,7 @@ export const appRouter = router({
   reconciliation: reconciliationRouter,
   fxStripping: fxStrippingRouter,
   netPnl: netPnlRouter,
+  fundFlow: fundFlowRouter,
 });
 
 export type AppRouter = typeof appRouter;
