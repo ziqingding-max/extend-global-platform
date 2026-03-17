@@ -41,6 +41,7 @@ import AdminResetPassword from "./pages/AdminResetPassword";
 import CountryGuideList from "@/pages/admin/CountryGuideList";
 import CountryGuideEditor from "@/pages/admin/CountryGuideEditor";
 import AdminCountryGuide from "@/pages/admin/AdminCountryGuide";
+import ChannelPartners from "./pages/ChannelPartners";
 
 // Portal pages (lazy loaded to keep admin bundle separate)
 import { lazy, Suspense } from "react";
@@ -51,6 +52,23 @@ import { portalTrpc } from "@/lib/portalTrpc";
 import { workerTrpc } from "@/lib/workerTrpc";
 import { Loader2 } from "lucide-react";
 import { isPortalDomain, getPortalBasePath, isWorkerDomain } from "@/lib/portalBasePath";
+import { cpTrpc } from "@/lib/cpPortalTrpc";
+import { BrandingProvider } from "@/hooks/useBranding";
+import { isCpDomain } from "@/lib/cpBranding";
+
+// CP Portal pages
+const CpPortalLogin = lazy(() => import("./pages/cp-portal/CpPortalLogin"));
+const CpPortalRegister = lazy(() => import("./pages/cp-portal/CpPortalRegister"));
+const CpPortalForgotPassword = lazy(() => import("./pages/cp-portal/CpPortalForgotPassword"));
+const CpPortalResetPassword = lazy(() => import("./pages/cp-portal/CpPortalResetPassword"));
+const CpPortalLayout = lazy(() => import("./pages/cp-portal/CpPortalLayout"));
+const CpPortalDashboard = lazy(() => import("./pages/cp-portal/CpPortalDashboard"));
+const CpPortalClients = lazy(() => import("./pages/cp-portal/CpPortalClients"));
+const CpPortalPricing = lazy(() => import("./pages/cp-portal/CpPortalPricing"));
+const CpPortalInvoices = lazy(() => import("./pages/cp-portal/CpPortalInvoices"));
+const CpPortalInvoiceDetail = lazy(() => import("./pages/cp-portal/CpPortalInvoiceDetail"));
+const CpPortalWallet = lazy(() => import("./pages/cp-portal/CpPortalWallet"));
+const CpPortalSettings = lazy(() => import("./pages/cp-portal/CpPortalSettings"));
 
 // Worker Portal pages
 const WorkerLogin = lazy(() => import("./pages/worker/WorkerLogin"));
@@ -91,7 +109,24 @@ const PortalCountryGuide = lazy(() => import("./pages/portal/CountryGuide"));
 const PortalSalaryBenchmark = lazy(() => import("./pages/portal/PortalSalaryBenchmark"));
 const PortalWallet = lazy(() => import("./pages/portal/PortalWallet"));
 
-// Worker Portal pagesSeparate QueryClient for portal (no admin auth redirect)
+// Separate QueryClient for CP Portal
+const cpQueryClient = new QueryClient();
+const cpTrpcClient = cpTrpc.createClient({
+  links: [
+    httpBatchLink({
+      url: "/api/cp-portal",
+      transformer: superjson,
+      fetch(input, init) {
+        return globalThis.fetch(input, {
+          ...(init ?? {}),
+          credentials: "include",
+        });
+      },
+    }),
+  ],
+});
+
+// Separate QueryClient for portal (no admin auth redirect)
 const portalQueryClient = new QueryClient();
 const portalTrpcClient = portalTrpc.createClient({
   links: [
@@ -261,6 +296,8 @@ function AdminRouter() {
       <Route path="/admin/knowledge/country-guides/:countryCode" component={CountryGuideEditor} />
       <Route path="/admin/knowledge/country-guides" component={CountryGuideList} />
       <Route path="/admin/country-guide" component={AdminCountryGuide} />
+      <Route path="/channel-partners/:id" component={ChannelPartners} />
+      <Route path="/channel-partners" component={ChannelPartners} />
       <Route path="/settings" component={Settings} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
@@ -269,12 +306,44 @@ function AdminRouter() {
 }
 
 /**
- * Top-level Router — dispatches to Portal or Admin based on subdomain or path.
+ * CP Portal Router — wrapped in its own tRPC provider + BrandingProvider
+ */
+function CpPortalRouter() {
+  return (
+    <cpTrpc.Provider client={cpTrpcClient} queryClient={cpQueryClient}>
+      <QueryClientProvider client={cpQueryClient}>
+        <BrandingProvider>
+          <Suspense fallback={<PortalFallback />}>
+            <Switch>
+              {/* Auth pages (no layout) */}
+              <Route path="/cp/login" component={CpPortalLogin} />
+              <Route path="/cp/register" component={CpPortalRegister} />
+              <Route path="/cp/forgot-password" component={CpPortalForgotPassword} />
+              <Route path="/cp/reset-password" component={CpPortalResetPassword} />
+              {/* Authenticated pages (with layout) */}
+              <Route path="/cp/clients" component={() => <CpPortalLayout><CpPortalClients /></CpPortalLayout>} />
+              <Route path="/cp/pricing" component={() => <CpPortalLayout><CpPortalPricing /></CpPortalLayout>} />
+              <Route path="/cp/invoices/:id" component={() => <CpPortalLayout><CpPortalInvoiceDetail /></CpPortalLayout>} />
+              <Route path="/cp/invoices" component={() => <CpPortalLayout><CpPortalInvoices /></CpPortalLayout>} />
+              <Route path="/cp/wallet" component={() => <CpPortalLayout><CpPortalWallet /></CpPortalLayout>} />
+              <Route path="/cp/settings" component={() => <CpPortalLayout><CpPortalSettings /></CpPortalLayout>} />
+              <Route path="/cp">{() => <CpPortalLayout><CpPortalDashboard /></CpPortalLayout>}</Route>
+              <Route component={NotFound} />
+            </Switch>
+          </Suspense>
+        </BrandingProvider>
+      </QueryClientProvider>
+    </cpTrpc.Provider>
+  );
+}
+
+/**
+ * Top-level Router — dispatches to Portal, Worker, CP Portal, or Admin based on subdomain or path.
  *
  * Subdomain routing:
- *   - app.geahr.com → PortalRouter (all routes at root: /, /login, /employees, etc.)
- *   - admin.geahr.com → AdminRouter (admin dashboard at root)
- *   - localhost / *.manus.space → path-based: /portal/* → PortalRouter, else AdminRouter
+ *   - {cp}.extendglobal.com → CP branded domain (CP Portal at /cp, Portal at /portal, Worker at /worker)
+ *   - app.extendglobal.com → EG direct (Portal at root, Admin at /admin)
+ *   - localhost / dev → path-based: /cp/* → CpPortalRouter, /portal/* → PortalRouter, etc.
  */
 function Router() {
   // On worker subdomain (worker.geahr.com), render worker portal at root level
@@ -294,6 +363,11 @@ function Router() {
       <Route path="/invite" component={AdminInvite} />
       <Route path="/forgot-password" component={AdminForgotPassword} />
       <Route path="/reset-password" component={AdminResetPassword} />
+
+      {/* CP Portal routes */}
+      <Route path="/cp/:a/:b" component={CpPortalRouter} />
+      <Route path="/cp/:rest*" component={CpPortalRouter} />
+      <Route path="/cp" component={CpPortalRouter} />
       
       {/* Worker Portal routes */}
       <Route path="/worker/:rest*" component={WorkerRouter} />

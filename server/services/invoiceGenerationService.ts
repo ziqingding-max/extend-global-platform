@@ -18,6 +18,12 @@ import { eq, and, isNull, inArray, desc, lte } from "drizzle-orm";
 import { getDb } from "../db";
 import { getExchangeRate } from "./exchangeRateService";
 import { generateInvoiceNumber } from "./invoiceNumberService";
+import {
+  generateDualLayerInvoices,
+  deleteLayer2ForLayer1,
+  EmployeeInvoiceData,
+} from "./dualLayerInvoiceService";
+import { channelPartners } from "../../drizzle/schema";
 
 /**
  * Main function to generate invoices for a specific payroll month.
@@ -117,45 +123,19 @@ export async function generateInvoicesFromPayroll(
     let skippedDuplicates = 0;
 
     // 5. Process each group -> Create EOR / Visa EOR Invoice
+    //    For customers with a Channel Partner, use dual-layer invoice generation.
+    //    For customers without a CP (legacy), use the original single-layer logic.
     for (const [key, items] of Array.from(groups.entries())) {
       const [customerIdStr, currency, groupServiceType] = key.split("|");
       const customerId = parseInt(customerIdStr);
 
-      // Check for existing invoice for this month/customer/type
-      // Note: We might have multiple invoices if different currencies.
-      // We check by invoiceNumber pattern or metadata? 
-      // Schema has `invoiceMonth` and `customerId` and `invoiceType`.
-      const existing = await db
-        .select()
-        .from(invoices)
-        .where(
-          and(
-            eq(invoices.customerId, customerId),
-            eq(invoices.invoiceMonth, payrollMonthStr),
-            inArray(invoices.invoiceType, ["monthly_eor", "monthly_visa_eor"])
-          )
-        );
-
-      // If existing invoice found for this currency, skip to avoid duplicates?
-      // Or should we delete and recreate? Safe approach: Skip and warn.
-      const existingForCurrency = existing.find(i => i.currency === currency); // Need to check settlement currency
-      
-      // We need to know settlement currency to check duplicates accurately.
+      // Get customer details
       const customerResult = await db.select().from(customers).where(eq(customers.id, customerId)).limit(1);
       if (customerResult.length === 0) continue;
       const customer = customerResult[0];
       const settlementCurrency = customer.settlementCurrency || "USD";
 
-      if (existing.some(i => i.currency === settlementCurrency)) {
-         // Potential duplicate for this month.
-         // However, maybe we are regenerating?
-         // For now, we skip if exact match found.
-         // skippedDuplicates++;
-         // continue;
-         // Actually, let's allow multiple if needed, or user should regenerate.
-      }
-
-      // Exchange Rate Logic
+      // Exchange Rate Logic (shared by both paths)
       let exchangeRate = 1;
       let rateWithMarkup = 1;
       let rateFallbackNote = "";
@@ -174,12 +154,7 @@ export async function generateInvoicesFromPayroll(
         }
       }
 
-      // Build Line Items
-      const lineItemsList: InsertInvoiceItem[] = [];
-      let totalSubtotal = 0;
-      let totalServiceFee = 0;
-
-      // Group by Employee to calculate Service Fees correctly
+      // Group by Employee to aggregate costs
       const employeeItems = new Map<number, typeof items>();
       for (const row of items) {
         if (!employeeItems.has(row.employee.id)) {
@@ -188,10 +163,68 @@ export async function generateInvoicesFromPayroll(
         employeeItems.get(row.employee.id)!.push(row);
       }
 
+      const invoiceType: "monthly_eor" | "monthly_visa_eor" =
+        groupServiceType === "visa_eor" ? "monthly_visa_eor" : "monthly_eor";
+
+      // ── DUAL-LAYER PATH: Customer has a Channel Partner ──
+      if (customer.channelPartnerId) {
+        // Build employee data array for dual-layer service
+        const employeeDataList: EmployeeInvoiceData[] = [];
+
+        for (const [empId, empRows] of Array.from(employeeItems.entries())) {
+          const employee = empRows[0].employee;
+          let empTotalCost = 0;
+          for (const row of empRows) {
+            empTotalCost += parseFloat(row.item.totalEmploymentCost);
+          }
+          const amountSettlement = empTotalCost * rateWithMarkup;
+
+          employeeDataList.push({
+            employeeId: empId,
+            employeeName: `${employee.firstName} ${employee.lastName}`,
+            countryCode: employee.country,
+            serviceType: employee.serviceType === "visa_eor" ? "visa_eor" : "eor",
+            totalEmploymentCostLocal: empTotalCost,
+            totalEmploymentCostSettlement: amountSettlement,
+            localCurrency: currency,
+            exchangeRate,
+            exchangeRateWithMarkup: rateWithMarkup,
+          });
+        }
+
+        const billingEntityId = customer.billingEntityId || null;
+
+        const dualResult = await generateDualLayerInvoices(
+          customerId,
+          employeeDataList,
+          payrollMonthStr,
+          monthLabel,
+          settlementCurrency,
+          invoiceType,
+          billingEntityId,
+          exchangeRate,
+          rateWithMarkup,
+          warnings
+        );
+
+        if (dualResult) {
+          invoiceIds.push(dualResult.layer1InvoiceId);
+          if (dualResult.layer2InvoiceId) {
+            invoiceIds.push(dualResult.layer2InvoiceId);
+          }
+        }
+        continue; // Skip the legacy single-layer path
+      }
+
+      // ── LEGACY SINGLE-LAYER PATH: No Channel Partner ──
+      // (Preserved for backward compatibility with customers not yet assigned to a CP)
+      const lineItemsList: InsertInvoiceItem[] = [];
+      let totalSubtotal = 0;
+      let totalServiceFee = 0;
+
       for (const [empId, empRows] of Array.from(employeeItems.entries())) {
         const employee = empRows[0].employee;
         
-        // Sum up costs for this employee
         let empTotalCost = 0;
         for (const row of empRows) {
            empTotalCost += parseFloat(row.item.totalEmploymentCost);
@@ -200,7 +233,6 @@ export async function generateInvoicesFromPayroll(
         const amountSettlement = empTotalCost * rateWithMarkup;
         totalSubtotal += amountSettlement;
 
-        // Add Employment Cost Line Item
         lineItemsList.push({
           invoiceId: 0,
           description: `Employment Cost - ${employee.firstName} ${employee.lastName} (${monthLabel})`,
@@ -217,8 +249,7 @@ export async function generateInvoicesFromPayroll(
           employeeId: empId,
         });
 
-        // Calculate Service Fee
-        // Get Country Config
+        // Calculate Service Fee (legacy: from customerPricing / countriesConfig)
         const ccResult = await db.select().from(countriesConfig).where(eq(countriesConfig.countryCode, employee.country)).limit(1);
         const cc = ccResult.length > 0 ? ccResult[0] : null;
 
@@ -248,7 +279,6 @@ export async function generateInvoicesFromPayroll(
 
       const finalTotal = totalSubtotal + totalServiceFee;
 
-      // Create Invoice
       const billingEntityId = customer.billingEntityId || null;
       const invoiceNumber = await generateInvoiceNumber(billingEntityId, payrollMonth);
       
@@ -256,9 +286,6 @@ export async function generateInvoicesFromPayroll(
       const issueDate = new Date();
       const dueDate = new Date(issueDate);
       dueDate.setDate(dueDate.getDate() + termDays);
-
-      // Determine invoice type based on the group's service type
-      const invoiceType = groupServiceType === "visa_eor" ? "monthly_visa_eor" : "monthly_eor";
 
       const invoiceData: InsertInvoice = {
         customerId,
@@ -288,7 +315,6 @@ export async function generateInvoicesFromPayroll(
       }
       invoiceIds.push(invoiceId);
 
-      // Insert Items
       const finalLineItems = lineItemsList.map((li) => ({ ...li, invoiceId }));
       if (finalLineItems.length > 0) {
         await db.insert(invoiceItems).values(finalLineItems);
@@ -648,6 +674,21 @@ export async function regenerateSingleInvoice(
     await db.update(contractorInvoices)
       .set({ clientInvoiceId: null })
       .where(eq(contractorInvoices.clientInvoiceId, invoiceId));
+  }
+
+  // 2b. If this is a Layer 1 invoice, also delete its associated Layer 2 draft(s)
+  if (invoice.invoiceLayer === "eg_to_cp") {
+    const deletedL2Ids = await deleteLayer2ForLayer1([invoiceId]);
+    if (deletedL2Ids.length > 0) {
+      console.log(`[regenerate] Deleted ${deletedL2Ids.length} Layer 2 draft(s) for Layer 1 #${invoiceId}`);
+    }
+  }
+
+  // 2c. If this is a Layer 2 invoice, also regenerate its parent Layer 1
+  //     (Layer 2 should not be regenerated independently; regenerate the parent instead)
+  if (invoice.invoiceLayer === "cp_to_client" && invoice.parentInvoiceId) {
+    // Redirect to regenerate the parent Layer 1 invoice instead
+    return regenerateSingleInvoice(invoice.parentInvoiceId);
   }
 
   // 3. Delete invoice

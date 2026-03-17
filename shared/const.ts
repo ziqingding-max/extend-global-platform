@@ -11,3 +11,10 @@ export const PORTAL_UNAUTHED_ERR_MSG = 'Portal: Please login (20001)';
 export const PORTAL_FORBIDDEN_ERR_MSG = 'Portal: Insufficient permissions (20002)';
 export const PORTAL_JWT_EXPIRY = '7d';
 export const PORTAL_INVITE_EXPIRY_HOURS = 72; // Invite link valid for 72 hours
+
+// ── CP Portal Constants (strictly separate from admin and client portal) ──
+export const CP_PORTAL_COOKIE_NAME = "cp_portal_session";
+export const CP_PORTAL_UNAUTHED_ERR_MSG = 'CP Portal: Please login (30001)';
+export const CP_PORTAL_FORBIDDEN_ERR_MSG = 'CP Portal: Insufficient permissions (30002)';
+export const CP_PORTAL_JWT_EXPIRY = '7d';
+export const CP_PORTAL_INVITE_EXPIRY_HOURS = 72;
