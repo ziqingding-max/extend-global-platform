@@ -33,6 +33,7 @@ import { salaryBenchmarkRouter } from "./routers/salaryBenchmarkRouter";
 import { contractorsRouter } from "./routers/contractors";
 import { walletRouter } from "./routers/billing/walletRouter";
 import { channelPartnersRouter } from "./routers/channelPartners";
+import { reconciliationRouter } from "./routers/reconciliation";
 
 export const appRouter = router({
   system: systemRouter,
@@ -77,6 +78,7 @@ export const appRouter = router({
   contractors: contractorsRouter,
   wallet: walletRouter,
   channelPartners: channelPartnersRouter,
+  reconciliation: reconciliationRouter,
 });
 
 export type AppRouter = typeof appRouter;
