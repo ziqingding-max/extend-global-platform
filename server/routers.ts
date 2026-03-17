@@ -34,6 +34,7 @@ import { contractorsRouter } from "./routers/contractors";
 import { walletRouter } from "./routers/billing/walletRouter";
 import { channelPartnersRouter } from "./routers/channelPartners";
 import { reconciliationRouter } from "./routers/reconciliation";
+import { fxStrippingRouter } from "./routers/fxStripping";
 
 export const appRouter = router({
   system: systemRouter,
@@ -79,6 +80,7 @@ export const appRouter = router({
   wallet: walletRouter,
   channelPartners: channelPartnersRouter,
   reconciliation: reconciliationRouter,
+  fxStripping: fxStrippingRouter,
 });
 
 export type AppRouter = typeof appRouter;
