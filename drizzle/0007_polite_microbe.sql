@@ -1,0 +1,1 @@
+ALTER TABLE `vendor_bill_items` ADD `itemType` text DEFAULT 'other' NOT NULL;

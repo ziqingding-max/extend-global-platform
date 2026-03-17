@@ -1,0 +1,26 @@
+[
+  {
+    "id": 30001,
+    "vendorCode": "VND-30001",
+    "name": "Rüter & Partner",
+    "legalName": "Rüter und Partner Steuerberatungsgesellschaft mbB",
+    "contactName": null,
+    "contactEmail": "info@rueterpartner.de",
+    "contactPhone": "+49 89 55 25 36-0",
+    "country": "Germany",
+    "address": "Erika-Mann-Str. 63",
+    "city": "80636 München",
+    "state": null,
+    "postalCode": null,
+    "serviceType": "Payroll Processing",
+    "currency": "EUR",
+    "bankDetails": null,
+    "taxId": "DE 182209542",
+    "paymentTermDays": 30,
+    "vendorType": "client_related",
+    "status": "active",
+    "notes": "Auto-created from AI parsing (1 files, 2026-02)",
+    "createdAt": "2026-02-28T04:20:54.000Z",
+    "updatedAt": "2026-02-28T04:20:54.000Z"
+  }
+]

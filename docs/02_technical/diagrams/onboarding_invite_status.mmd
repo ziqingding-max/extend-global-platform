@@ -1,0 +1,14 @@
+stateDiagram-v2
+    direction LR
+    [*] --> pending: AM 发送入职邀请
+    pending --> completed: 员工完成入职信息填写
+    pending --> expired: 邀请链接过期
+    pending --> cancelled: AM 取消邀请
+
+    classDef am fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+    classDef success fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    classDef terminal fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+
+    class pending am
+    class completed success
+    class expired,cancelled terminal

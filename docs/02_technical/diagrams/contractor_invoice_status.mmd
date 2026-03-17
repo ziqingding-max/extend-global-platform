@@ -1,0 +1,20 @@
+stateDiagram-v2
+    direction LR
+    [*] --> draft: Job 3 自动生成\n(每月5号)
+    draft --> pending_approval: Ops 提交审核
+    pending_approval --> approved: Finance 审批通过
+    pending_approval --> rejected: Finance 驳回
+    rejected --> draft: 退回修改
+    approved --> paid: 向承包商打款完成
+
+    classDef auto fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    classDef ops fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+    classDef finance fill:#F3E5F5,stroke:#9C27B0,stroke-width:2px
+    classDef rejected fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+    classDef success fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+
+    class draft auto
+    class pending_approval ops
+    class approved finance
+    class paid success
+    class rejected rejected

@@ -1,0 +1,16 @@
+graph LR
+    A["提交<br/>submitted"] -->|"客户审核"| B["client_approved"]
+    B -->|"Ops 审核"| C["admin_approved"]
+    C -->|"Job 2 自动锁定<br/>(每月5号)"| D["locked"]
+    D -->|"Job 3 消费<br/>(每月5号)"| E["consumed<br/>打上 payrollRunId"]
+
+    A -->|"驳回"| R1["rejected"]
+    B -->|"驳回"| R2["rejected"]
+
+    style A fill:#ffd93d,color:#333
+    style B fill:#6bcb77,color:#fff
+    style C fill:#4d96ff,color:#fff
+    style D fill:#ff6b6b,color:#fff
+    style E fill:#333,color:#fff
+    style R1 fill:#aaa,color:#fff
+    style R2 fill:#aaa,color:#fff

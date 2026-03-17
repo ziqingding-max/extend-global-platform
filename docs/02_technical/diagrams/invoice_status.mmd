@@ -1,0 +1,24 @@
+stateDiagram-v2
+    direction LR
+    [*] --> draft: Finance 生成发票
+    draft --> pending_review: 需要内部审核
+    draft --> sent: Finance 发送给客户
+    pending_review --> sent: 审核通过后发送
+    sent --> paid: 客户全额付款
+    sent --> partially_paid: 客户部分付款
+    sent --> overdue: Job 5 自动标记\n(超过 Due Date)
+    partially_paid --> paid: 补齐尾款
+    overdue --> paid: 客户付款
+    draft --> cancelled: 作废
+    sent --> void: 发票冲销
+
+    classDef auto fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    classDef finance fill:#F3E5F5,stroke:#9C27B0,stroke-width:2px
+    classDef terminal fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+    classDef success fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+
+    class draft,pending_review finance
+    class sent finance
+    class overdue auto
+    class paid,partially_paid success
+    class cancelled,void terminal

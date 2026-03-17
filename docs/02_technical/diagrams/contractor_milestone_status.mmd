@@ -1,0 +1,23 @@
+stateDiagram-v2
+    direction LR
+    [*] --> pending: Admin/Client 创建
+    pending --> submitted: Contractor 提交完成
+    submitted --> client_approved: Client Portal\n客户审核通过
+    submitted --> client_rejected: Client Portal\n客户驳回
+    client_rejected --> pending: 退回修改
+    client_approved --> admin_approved: Admin Portal\nOps 审核通过
+    client_approved --> admin_rejected: Admin Portal\nOps 驳回
+    admin_rejected --> pending: 退回修改
+    admin_approved --> locked: Job 2 自动锁定\n(每月5号)
+
+    classDef auto fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    classDef client fill:#FFF3E0,stroke:#FF9800,stroke-width:2px
+    classDef admin fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+    classDef rejected fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+    classDef initial fill:#F5F5F5,stroke:#9E9E9E,stroke-width:2px
+
+    class pending initial
+    class submitted,client_approved client
+    class admin_approved admin
+    class locked auto
+    class client_rejected,admin_rejected rejected

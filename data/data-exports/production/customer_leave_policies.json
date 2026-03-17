@@ -1,0 +1,145 @@
+[
+  {
+    "id": 330013,
+    "customerId": 480038,
+    "countryCode": "DE",
+    "leaveTypeId": 211831,
+    "annualEntitlement": 30,
+    "expiryRule": "year_end",
+    "carryOverDays": 20,
+    "createdAt": "2026-02-26T11:49:02.000Z",
+    "updatedAt": "2026-02-26T11:49:43.000Z"
+  },
+  {
+    "id": 330014,
+    "customerId": 480038,
+    "countryCode": "DE",
+    "leaveTypeId": 211832,
+    "annualEntitlement": 0,
+    "expiryRule": "year_end",
+    "carryOverDays": 0,
+    "createdAt": "2026-02-26T11:49:02.000Z",
+    "updatedAt": "2026-02-26T11:49:02.000Z"
+  },
+  {
+    "id": 330015,
+    "customerId": 480038,
+    "countryCode": "DE",
+    "leaveTypeId": 211833,
+    "annualEntitlement": 0,
+    "expiryRule": "year_end",
+    "carryOverDays": 0,
+    "createdAt": "2026-02-26T11:49:02.000Z",
+    "updatedAt": "2026-02-26T11:49:02.000Z"
+  },
+  {
+    "id": 330016,
+    "customerId": 480038,
+    "countryCode": "DE",
+    "leaveTypeId": 211834,
+    "annualEntitlement": 98,
+    "expiryRule": "year_end",
+    "carryOverDays": 0,
+    "createdAt": "2026-02-26T11:49:02.000Z",
+    "updatedAt": "2026-02-26T11:49:02.000Z"
+  },
+  {
+    "id": 330017,
+    "customerId": 480038,
+    "countryCode": "DE",
+    "leaveTypeId": 211835,
+    "annualEntitlement": 0,
+    "expiryRule": "year_end",
+    "carryOverDays": 0,
+    "createdAt": "2026-02-26T11:49:02.000Z",
+    "updatedAt": "2026-02-26T11:49:02.000Z"
+  },
+  {
+    "id": 330018,
+    "customerId": 480038,
+    "countryCode": "DE",
+    "leaveTypeId": 211836,
+    "annualEntitlement": 2,
+    "expiryRule": "year_end",
+    "carryOverDays": 0,
+    "createdAt": "2026-02-26T11:49:02.000Z",
+    "updatedAt": "2026-02-26T11:49:02.000Z"
+  },
+  {
+    "id": 690001,
+    "customerId": 870093,
+    "countryCode": "VN",
+    "leaveTypeId": 211704,
+    "annualEntitlement": 12,
+    "expiryRule": "year_end",
+    "carryOverDays": 0,
+    "createdAt": "2026-02-28T09:10:21.000Z",
+    "updatedAt": "2026-02-28T09:10:21.000Z"
+  },
+  {
+    "id": 690002,
+    "customerId": 870093,
+    "countryCode": "VN",
+    "leaveTypeId": 211705,
+    "annualEntitlement": 30,
+    "expiryRule": "year_end",
+    "carryOverDays": 0,
+    "createdAt": "2026-02-28T09:10:21.000Z",
+    "updatedAt": "2026-02-28T09:10:21.000Z"
+  },
+  {
+    "id": 690003,
+    "customerId": 870093,
+    "countryCode": "VN",
+    "leaveTypeId": 211706,
+    "annualEntitlement": 0,
+    "expiryRule": "year_end",
+    "carryOverDays": 0,
+    "createdAt": "2026-02-28T09:10:21.000Z",
+    "updatedAt": "2026-02-28T09:10:21.000Z"
+  },
+  {
+    "id": 690004,
+    "customerId": 870093,
+    "countryCode": "VN",
+    "leaveTypeId": 211707,
+    "annualEntitlement": 180,
+    "expiryRule": "year_end",
+    "carryOverDays": 0,
+    "createdAt": "2026-02-28T09:10:21.000Z",
+    "updatedAt": "2026-02-28T09:10:21.000Z"
+  },
+  {
+    "id": 690005,
+    "customerId": 870093,
+    "countryCode": "VN",
+    "leaveTypeId": 211708,
+    "annualEntitlement": 5,
+    "expiryRule": "year_end",
+    "carryOverDays": 0,
+    "createdAt": "2026-02-28T09:10:21.000Z",
+    "updatedAt": "2026-02-28T09:10:21.000Z"
+  },
+  {
+    "id": 690006,
+    "customerId": 870093,
+    "countryCode": "VN",
+    "leaveTypeId": 211709,
+    "annualEntitlement": 3,
+    "expiryRule": "year_end",
+    "carryOverDays": 0,
+    "createdAt": "2026-02-28T09:10:21.000Z",
+    "updatedAt": "2026-02-28T09:10:21.000Z"
+  },
+  {
+    "id": 690007,
+    "customerId": 870093,
+    "countryCode": "VN",
+    "leaveTypeId": 211710,
+    "annualEntitlement": 3,
+    "expiryRule": "year_end",
+    "carryOverDays": 0,
+    "createdAt": "2026-02-28T09:10:21.000Z",
+    "updatedAt": "2026-02-28T09:10:21.000Z"
+  }
+]

@@ -1,0 +1,22 @@
+stateDiagram-v2
+    direction LR
+    [*] --> pending_review: AM 发起入职
+    pending_review --> documents_incomplete: AM 审核/退回补资料
+    documents_incomplete --> pending_review: 员工重新提交
+    pending_review --> onboarding: AM 审核通过
+    documents_incomplete --> onboarding: 资料补齐
+    onboarding --> contract_signed: 合同签署完成
+    contract_signed --> active: Job 1 自动激活\n(到达 Start Date)
+    active --> on_leave: Job 4 自动切换\n(假期开始)
+    on_leave --> active: Job 4 自动切换\n(假期结束)
+    active --> offboarding: Ops 发起离职
+    on_leave --> offboarding: Ops 发起离职
+    offboarding --> terminated: 离职清算完成
+
+    classDef auto fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    classDef manual fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+    classDef terminal fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+
+    class active,on_leave auto
+    class pending_review,documents_incomplete,onboarding,contract_signed,offboarding manual
+    class terminated terminal

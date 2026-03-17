@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "configKey": "payroll_cutoff_day",
+    "configValue": "4",
+    "description": "Day of month for payroll cutoff (23:59 Beijing time)",
+    "createdAt": "2026-02-24T14:55:14.000Z",
+    "updatedAt": "2026-02-24T14:55:14.000Z"
+  },
+  {
+    "id": 2,
+    "configKey": "payroll_cutoff_time",
+    "configValue": "23:59",
+    "description": "Time of cutoff in Beijing time (HH:mm)",
+    "createdAt": "2026-02-24T14:55:14.000Z",
+    "updatedAt": "2026-02-24T14:55:14.000Z"
+  },
+  {
+    "id": 3,
+    "configKey": "payroll_auto_create_day",
+    "configValue": "5",
+    "description": "Day of month to auto-create next month draft payroll runs (00:01 Beijing time)",
+    "createdAt": "2026-02-24T14:55:14.000Z",
+    "updatedAt": "2026-02-24T14:55:14.000Z"
+  },
+  {
+    "id": 4,
+    "configKey": "payroll_timezone",
+    "configValue": "Asia/Shanghai",
+    "description": "Timezone for payroll cutoff and auto-create",
+    "createdAt": "2026-02-24T14:55:14.000Z",
+    "updatedAt": "2026-02-24T14:55:14.000Z"
+  },
+  {
+    "id": 5,
+    "configKey": "mid_month_cutoff_day",
+    "configValue": "15",
+    "description": "Day of month: employees becoming active on or before this day are added to current month payroll",
+    "createdAt": "2026-02-24T14:55:14.000Z",
+    "updatedAt": "2026-02-24T14:55:14.000Z"
+  },
+  {
+    "id": 30001,
+    "configKey": "exchange_rate_markup_percentage",
+    "configValue": "5.00",
+    "description": "Global exchange rate markup percentage applied to all currency conversions",
+    "createdAt": "2026-02-25T17:21:49.000Z",
+    "updatedAt": "2026-02-25T17:21:49.000Z"
+  }
+]

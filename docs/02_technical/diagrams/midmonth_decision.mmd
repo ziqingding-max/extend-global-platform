@@ -1,0 +1,13 @@
+graph TD
+    START["新员工到达 Start Date<br/>Job 1 自动激活"] --> Q{"入职日期 ≤ 15号?"}
+    Q -->|"是 (例: 4月12号)"| YES["✅ Pro-rata 进当月薪资单<br/>按实际工作天数计算"]
+    Q -->|"否 (例: 4月18号)"| NO["❌ 不进当月薪资单"]
+    NO --> BONUS["系统自动生成 Sign-on Bonus<br/>金额 = 4月 Pro-rata 工资<br/>生效月份 = 5月"]
+    BONUS --> APPROVE["⚠️ 需要走完整审批流<br/>客户 Approve → Ops Approve"]
+    APPROVE --> NEXT["5月薪资单中发放<br/>= 5月底薪 + 4月补发"]
+
+    style Q fill:#3498db,color:#fff
+    style YES fill:#27ae60,color:#fff
+    style NO fill:#e74c3c,color:#fff
+    style BONUS fill:#f39c12,color:#fff
+    style APPROVE fill:#e74c3c,color:#fff

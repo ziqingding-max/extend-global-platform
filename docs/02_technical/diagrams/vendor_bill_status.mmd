@@ -1,0 +1,22 @@
+stateDiagram-v2
+    direction LR
+    [*] --> draft: Finance 创建
+    draft --> pending_approval: Finance 提交审核
+    pending_approval --> approved: Admin 审批通过
+    approved --> paid: 完成付款
+    approved --> partially_paid: 部分付款
+    partially_paid --> paid: 补齐尾款
+    approved --> overdue: 超过付款期限
+    overdue --> paid: 完成付款
+    draft --> cancelled: 作废
+    approved --> void: 冲销
+
+    classDef finance fill:#F3E5F5,stroke:#9C27B0,stroke-width:2px
+    classDef terminal fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+    classDef success fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+
+    class draft,pending_approval finance
+    class approved finance
+    class paid,partially_paid success
+    class overdue finance
+    class cancelled,void terminal

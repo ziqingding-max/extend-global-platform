@@ -1,0 +1,65 @@
+import { InferInsertModel } from "drizzle-orm";
+import { countriesConfig } from "../../../drizzle/schema";
+
+type CountryConfig = InferInsertModel<typeof countriesConfig>;
+
+export const countriesData: CountryConfig[] = [
+  // APAC
+  { countryCode: "CN", countryName: "China", localCurrency: "CNY", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "HK", countryName: "Hong Kong, China", localCurrency: "HKD", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "SG", countryName: "Singapore", localCurrency: "SGD", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "VN", countryName: "Vietnam", localCurrency: "VND", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "JP", countryName: "Japan", localCurrency: "JPY", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "KR", countryName: "South Korea", localCurrency: "KRW", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "AU", countryName: "Australia", localCurrency: "AUD", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "IN", countryName: "India", localCurrency: "INR", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "TH", countryName: "Thailand", localCurrency: "THB", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "MY", countryName: "Malaysia", localCurrency: "MYR", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "ID", countryName: "Indonesia", localCurrency: "IDR", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "PH", countryName: "Philippines", localCurrency: "PHP", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "TW", countryName: "Taiwan, China", localCurrency: "TWD", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "NZ", countryName: "New Zealand", localCurrency: "NZD", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "PK", countryName: "Pakistan", localCurrency: "PKR", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "BD", countryName: "Bangladesh", localCurrency: "BDT", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "LK", countryName: "Sri Lanka", localCurrency: "LKR", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "KH", countryName: "Cambodia", localCurrency: "KHR", standardRateCurrency: "USD", isActive: true },
+
+  // Americas
+  { countryCode: "US", countryName: "United States", localCurrency: "USD", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "CA", countryName: "Canada", localCurrency: "CAD", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "MX", countryName: "Mexico", localCurrency: "MXN", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "BR", countryName: "Brazil", localCurrency: "BRL", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "AR", countryName: "Argentina", localCurrency: "ARS", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "CO", countryName: "Colombia", localCurrency: "COP", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "CL", countryName: "Chile", localCurrency: "CLP", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "PE", countryName: "Peru", localCurrency: "PEN", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "CR", countryName: "Costa Rica", localCurrency: "CRC", standardRateCurrency: "USD", isActive: true },
+
+  // EMEA
+  { countryCode: "GB", countryName: "United Kingdom", localCurrency: "GBP", standardRateCurrency: "GBP", isActive: true },
+  { countryCode: "DE", countryName: "Germany", localCurrency: "EUR", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "FR", countryName: "France", localCurrency: "EUR", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "IT", countryName: "Italy", localCurrency: "EUR", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "ES", countryName: "Spain", localCurrency: "EUR", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "NL", countryName: "Netherlands", localCurrency: "EUR", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "SE", countryName: "Sweden", localCurrency: "SEK", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "CH", countryName: "Switzerland", localCurrency: "CHF", standardRateCurrency: "CHF", isActive: true },
+  { countryCode: "IE", countryName: "Ireland", localCurrency: "EUR", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "PL", countryName: "Poland", localCurrency: "PLN", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "BE", countryName: "Belgium", localCurrency: "EUR", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "AT", countryName: "Austria", localCurrency: "EUR", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "PT", countryName: "Portugal", localCurrency: "EUR", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "NO", countryName: "Norway", localCurrency: "NOK", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "DK", countryName: "Denmark", localCurrency: "DKK", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "FI", countryName: "Finland", localCurrency: "EUR", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "CZ", countryName: "Czech Republic", localCurrency: "CZK", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "HU", countryName: "Hungary", localCurrency: "HUF", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "RO", countryName: "Romania", localCurrency: "RON", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "GR", countryName: "Greece", localCurrency: "EUR", standardRateCurrency: "EUR", isActive: true },
+  { countryCode: "TR", countryName: "Turkey", localCurrency: "TRY", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "AE", countryName: "United Arab Emirates", localCurrency: "AED", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "SA", countryName: "Saudi Arabia", localCurrency: "SAR", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "ZA", countryName: "South Africa", localCurrency: "ZAR", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "EG", countryName: "Egypt", localCurrency: "EGP", standardRateCurrency: "USD", isActive: true },
+  { countryCode: "IL", countryName: "Israel", localCurrency: "ILS", standardRateCurrency: "USD", isActive: true },
+];

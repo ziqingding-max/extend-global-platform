@@ -1,0 +1,15 @@
+graph LR
+    subgraph "每月时间线"
+        A["1号<br/>年假累计<br/>(Job 7)"] --> B["4号 23:59<br/>⛔ Client Cutoff<br/>客户提交通道关闭"]
+        B --> C["5号 00:00<br/>🔒 数据锁定<br/>(Job 2)"]
+        C --> D["5号 00:01<br/>📋 创建薪资单<br/>(Job 3)"]
+        D --> E["5-14号<br/>👤 Ops 审核<br/>draft → pending"]
+        E --> F["15号<br/>⚡ 月中分界线<br/>新员工上车截止"]
+        F --> G["16号+<br/>💰 Finance Approve<br/>pending → approved"]
+    end
+
+    style B fill:#e74c3c,color:#fff,stroke:#c0392b
+    style C fill:#3498db,color:#fff,stroke:#2980b9
+    style D fill:#3498db,color:#fff,stroke:#2980b9
+    style F fill:#e67e22,color:#fff,stroke:#d35400
+    style G fill:#27ae60,color:#fff,stroke:#229954

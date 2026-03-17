@@ -1,0 +1,58 @@
+[
+  {
+    "id": 90001,
+    "customerId": 480038,
+    "contractName": "EOR补充协议",
+    "contractType": "addendum",
+    "fileUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663378930055/JQyvSf69aJVYCoGGHU7Nf4/contracts/480038/olj5oief-EOR补充协议-2025.pdf",
+    "fileKey": "contracts/480038/olj5oief-EOR补充协议-2025.pdf",
+    "signedDate": "2025-05-06T00:00:00.000Z",
+    "effectiveDate": "2025-05-06T00:00:00.000Z",
+    "expiryDate": null,
+    "status": "signed",
+    "createdAt": "2026-02-26T11:41:01.000Z",
+    "updatedAt": "2026-02-26T11:41:01.000Z"
+  },
+  {
+    "id": 120001,
+    "customerId": 870091,
+    "contractName": "MSA-中科时代",
+    "contractType": "service_agreement",
+    "fileUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663378930055/JQyvSf69aJVYCoGGHU7Nf4/contracts/870091/gsgffxud-Complete_with_Docusign_MSA-中科时代-GEA.pdf",
+    "fileKey": "contracts/870091/gsgffxud-Complete_with_Docusign_MSA-中科时代-GEA.pdf",
+    "signedDate": "2024-10-28T00:00:00.000Z",
+    "effectiveDate": "2024-10-28T00:00:00.000Z",
+    "expiryDate": null,
+    "status": "signed",
+    "createdAt": "2026-03-02T06:10:38.000Z",
+    "updatedAt": "2026-03-02T06:10:38.000Z"
+  },
+  {
+    "id": 150001,
+    "customerId": 870093,
+    "contractName": "MSA&EOR addendu",
+    "contractType": "service_agreement",
+    "fileUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663378930055/JQyvSf69aJVYCoGGHU7Nf4/contracts/870093/d3ia3kxe-【双章扫描件】GEA-南孚电池-MSA&EOR addendum-signed.pdf",
+    "fileKey": "contracts/870093/d3ia3kxe-【双章扫描件】GEA-南孚电池-MSA&EOR addendum-signed.pdf",
+    "signedDate": null,
+    "effectiveDate": null,
+    "expiryDate": null,
+    "status": "signed",
+    "createdAt": "2026-03-02T08:11:57.000Z",
+    "updatedAt": "2026-03-02T08:11:57.000Z"
+  },
+  {
+    "id": 150002,
+    "customerId": 870092,
+    "contractName": "MSA_GEA_LONG_BRIDGE",
+    "contractType": "service_agreement",
+    "fileUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663378930055/JQyvSf69aJVYCoGGHU7Nf4/contracts/870092/w2cxd4d6-【双签版CGL-长桥】MSA_GEA_LONG_BRIDGE__August_21_2025.pdf",
+    "fileKey": "contracts/870092/w2cxd4d6-【双签版CGL-长桥】MSA_GEA_LONG_BRIDGE__August_21_2025.pdf",
+    "signedDate": "2025-08-20T00:00:00.000Z",
+    "effectiveDate": "2025-08-20T00:00:00.000Z",
+    "expiryDate": null,
+    "status": "signed",
+    "createdAt": "2026-03-02T08:14:52.000Z",
+    "updatedAt": "2026-03-02T08:14:52.000Z"
+  }
+]

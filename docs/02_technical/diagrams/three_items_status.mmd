@@ -1,0 +1,21 @@
+stateDiagram-v2
+    direction LR
+    [*] --> submitted: 员工/客户提交\n或系统自动生成
+    submitted --> client_approved: Client Portal\n客户审核通过
+    submitted --> client_rejected: Client Portal\n客户驳回
+    client_rejected --> submitted: 重新提交
+    client_approved --> admin_approved: Admin Portal\nOps 审核通过
+    client_approved --> admin_rejected: Admin Portal\nOps 驳回
+    admin_rejected --> submitted: 重新提交
+    admin_approved --> locked: Job 2 自动锁定\n(每月5号)
+
+    classDef auto fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    classDef client fill:#FFF3E0,stroke:#FF9800,stroke-width:2px
+    classDef admin fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+    classDef rejected fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+
+    class submitted client
+    class client_approved client
+    class admin_approved admin
+    class locked auto
+    class client_rejected,admin_rejected rejected

@@ -1,0 +1,20 @@
+stateDiagram-v2
+    direction LR
+    [*] --> discovery: Sales 创建线索
+    discovery --> leads: 初步沟通完成
+    leads --> quotation_sent: 发送报价单
+    quotation_sent --> msa_sent: 客户接受报价\n发送 MSA
+    msa_sent --> msa_signed: 客户签署 MSA
+    msa_signed --> closed_won: 签约成功
+    discovery --> closed_lost: 放弃
+    leads --> closed_lost: 放弃
+    quotation_sent --> closed_lost: 客户拒绝
+    msa_sent --> closed_lost: 客户拒绝
+
+    classDef sales fill:#FFF3E0,stroke:#FF9800,stroke-width:2px
+    classDef success fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    classDef terminal fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+
+    class discovery,leads,quotation_sent,msa_sent,msa_signed sales
+    class closed_won success
+    class closed_lost terminal

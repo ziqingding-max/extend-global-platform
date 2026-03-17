@@ -1,0 +1,15 @@
+stateDiagram-v2
+    direction LR
+    [*] --> draft: Sales 创建报价单
+    draft --> sent: Sales 发送给客户
+    sent --> accepted: 客户接受
+    sent --> rejected: 客户拒绝
+    sent --> expired: 超过有效期
+
+    classDef sales fill:#FFF3E0,stroke:#FF9800,stroke-width:2px
+    classDef success fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    classDef terminal fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+
+    class draft,sent sales
+    class accepted success
+    class rejected,expired terminal

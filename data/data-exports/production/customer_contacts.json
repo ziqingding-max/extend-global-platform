@@ -1,0 +1,22 @@
+[
+  {
+    "id": 270001,
+    "customerId": 990001,
+    "contactName": "Simon DING",
+    "email": "simon.ding@bestgea.com",
+    "phone": "18701886665",
+    "role": "Primary Contact",
+    "isPrimary": true,
+    "hasPortalAccess": true,
+    "passwordHash": "$2b$12$sujIkUV.IkvI9STWyAlos.A2VOurz4vTFJhfP4CGE.8JvpSjCYTB6",
+    "portalRole": "admin",
+    "inviteToken": null,
+    "inviteExpiresAt": null,
+    "resetToken": null,
+    "resetExpiresAt": null,
+    "isPortalActive": true,
+    "lastLoginAt": "2026-02-28T17:44:40.000Z",
+    "createdAt": "2026-02-28T17:44:10.000Z",
+    "updatedAt": "2026-02-28T17:44:40.000Z"
+  }
+]

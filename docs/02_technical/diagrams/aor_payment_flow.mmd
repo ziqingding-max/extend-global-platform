@@ -1,0 +1,20 @@
+graph TD
+    subgraph "Fixed Monthly"
+        FM1["每月5号 Job 3"] --> FM2["生成 1 张 Invoice<br/>全额月费 + locked Adjustments"]
+    end
+
+    subgraph "Semi-Monthly"
+        SM1["每月5号 Job 3"] --> SM2["Invoice 1: 上半月<br/>1-15号 基础月费/2"]
+        SM1 --> SM3["Invoice 2: 下半月<br/>16-月末 基础月费/2<br/>+ locked Adjustments"]
+    end
+
+    subgraph "Milestone-based"
+        MS1["承包商提交 Milestone"] --> MS2["客户审核 → admin_approved"]
+        MS2 --> MS3["Job 2 锁定"]
+        MS3 --> MS4["Job 3 生成 Invoice<br/>按 Milestone 金额"]
+    end
+
+    style FM2 fill:#4ecdc4,color:#fff
+    style SM2 fill:#45b7d1,color:#fff
+    style SM3 fill:#45b7d1,color:#fff
+    style MS4 fill:#96ceb4,color:#fff

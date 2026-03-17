@@ -1,0 +1,47 @@
+graph TD
+    subgraph "每日自动化 (Daily)"
+        D1["Job 1: 员工激活<br/>contract_signed → active"]
+        D4["Job 4: 假期状态切换<br/>active ↔ on_leave"]
+        D5["Job 5: 逾期发票检测<br/>sent → overdue"]
+        D6["Job 6: 汇率抓取"]
+    end
+
+    subgraph "每月 1 号"
+        M1["Job 7: 年假累计<br/>按 1/12 比例增加余额"]
+    end
+
+    subgraph "每月 4 号 23:59"
+        CUT["Client Cutoff<br/>客户/员工提交通道关闭"]
+    end
+
+    subgraph "每月 5 号 00:00"
+        J2["Job 2: 数据锁定<br/>admin_approved → locked"]
+    end
+
+    subgraph "每月 5 号 00:01"
+        J3["Job 3: 创建 Payroll Run<br/>聚合 locked 数据<br/>打上 payrollRunId"]
+    end
+
+    subgraph "每月 5-15 号 人工审核"
+        OPS["Ops: 检查 draft 薪资单<br/>Auto-fill → pending_approval"]
+        FIN["Finance: 最终审核<br/>pending_approval → approved"]
+    end
+
+    subgraph "每月 15 号 Mid-month"
+        MID15A["15号前入职: Pro-rata 入当月薪资单"]
+        MID15B["15号后入职: 生成 Sign-on Bonus<br/>下月补发"]
+    end
+
+    M1 --> CUT
+    CUT --> J2
+    J2 --> J3
+    J3 --> OPS
+    OPS --> FIN
+    FIN --> MID15A
+    FIN --> MID15B
+
+    style CUT fill:#ff6b6b,color:#fff
+    style J2 fill:#4ecdc4,color:#fff
+    style J3 fill:#4ecdc4,color:#fff
+    style OPS fill:#45b7d1,color:#fff
+    style FIN fill:#96ceb4,color:#fff

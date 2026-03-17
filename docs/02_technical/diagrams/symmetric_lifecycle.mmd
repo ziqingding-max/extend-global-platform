@@ -1,0 +1,22 @@
+graph TD
+    subgraph "入职 (AM 操作 + 系统自动)"
+        A1["AM: 发送 Onboarding Invite"] --> A2["员工: 填写资料"]
+        A2 --> A3["AM: 签合同<br/>contract_signed"]
+        A3 -->|"Job 1: Start Date 到了"| A4["🟢 active<br/>自动激活 + 初始化假期"]
+    end
+
+    subgraph "在职 (每月循环)"
+        A4 --> B1["正常发薪周期"]
+        B1 --> B2["Job 4: 请假时<br/>自动切换 on_leave"]
+        B2 --> B1
+    end
+
+    subgraph "离职 (Ops 操作 + 系统自动)"
+        B1 -->|"客户请求 / Ops 发起"| C1["Ops: Start Offboarding<br/>填写 End Date"]
+        C1 --> C2["🟡 offboarding<br/>仍然发薪 + 攒年假"]
+        C2 -->|"Job 8: End Date 到了"| C3["🔴 terminated<br/>自动终止 + 退押金"]
+    end
+
+    style A4 fill:#27ae60,color:#fff
+    style C2 fill:#f39c12,color:#fff
+    style C3 fill:#e74c3c,color:#fff
