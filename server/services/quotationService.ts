@@ -296,12 +296,12 @@ export const quotationService = {
         : [];
     
     // Step 1: Fetch billing entity info (for branding + "Issued By" section)
-    // Priority: isDefault=true → first active entity → hardcoded GEA defaults
+    // Priority: isDefault=true → first active entity → hardcoded EG defaults
     let billingEntity: any = undefined;
     let branding: BrandingInfo = {
-      shortName: "GEA",
-      fullName: "Global Employment Advisors",
-      contactEmail: "support@bestgea.com",
+      shortName: "EG",
+      fullName: "Extend Global",
+      contactEmail: "support@extendglobal.ai",
     };
 
     let defaultBilling = await db.query.billingEntities.findFirst({

@@ -95,10 +95,10 @@ const AVAILABLE_RECIPIENTS = [
   { value: "client:finance", label: { en: "Client: Finance", zh: "客户：财务" } },
   { value: "client:admin", label: { en: "Client: Admin", zh: "客户：管理员" } },
   { value: "client:hr_manager", label: { en: "Client: HR Manager", zh: "客户：人事经理" } },
-  { value: "admin:customer_manager", label: { en: "GEA: Customer Manager", zh: "GEA：客户经理" } },
-  { value: "admin:operations_manager", label: { en: "GEA: Ops Manager", zh: "GEA：运营经理" } },
-  { value: "admin:finance_manager", label: { en: "GEA: Finance Manager", zh: "GEA：财务经理" } },
-  { value: "admin:admin", label: { en: "GEA: Admin", zh: "GEA：管理员" } },
+  { value: "admin:customer_manager", label: { en: "EG: Customer Manager", zh: "EG：客户经理" } },
+  { value: "admin:operations_manager", label: { en: "EG: Ops Manager", zh: "EG：运营经理" } },
+  { value: "admin:finance_manager", label: { en: "EG: Finance Manager", zh: "EG：财务经理" } },
+  { value: "admin:admin", label: { en: "EG: Admin", zh: "EG：管理员" } },
   { value: "worker:user", label: { en: "Worker: User", zh: "员工：用户" } },
 ];
 

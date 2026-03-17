@@ -96,7 +96,7 @@ async function getCpLogoHtml(branding: CpBranding): Promise<string> {
 
 /**
  * Render a white-label email layout using the CP's branding.
- * Structure mirrors the GEA emailLayout.ts but with dynamic colors and logo.
+ * Structure mirrors the EG emailLayout.ts but with dynamic colors and logo.
  */
 async function renderCpEmailLayout(
   bodyHtml: string,

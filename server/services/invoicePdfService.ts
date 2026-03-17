@@ -140,7 +140,7 @@ async function resolveBrandingContext(
     billingEntity?.logoFileKey
   );
   return {
-    entityName: billingEntity?.entityName || "GEA - Global Employment Advisors",
+    entityName: billingEntity?.entityName || "Extend Global",
     legalName: billingEntity?.legalName,
     address: billingEntity?.address,
     city: billingEntity?.city,

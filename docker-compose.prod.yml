@@ -1,5 +1,5 @@
 # =============================================================================
-# GEA EOR SaaS Admin — 生产环境 Docker Compose 配置
+# Extend Global (EG) — 生产环境 Docker Compose 配置
 # 阿里云马来西亚（吉隆坡）节点 ap-southeast-3
 # =============================================================================
 # 使用方法：docker compose -f docker-compose.prod.yml up -d --build
@@ -13,7 +13,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
-    container_name: gea-saas-app
+    container_name: eg-saas-app
     restart: always
     ports:
       - "3000:3000"
@@ -45,7 +45,7 @@ services:
       - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY}
     volumes:
       # 持久化 SQLite 数据库文件
-      - gea_data:/app/data
+      - eg_data:/app/data
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
       interval: 30s
@@ -63,7 +63,7 @@ services:
   # ─────────────────────────────────────────────────────────────────────────
   nginx:
     image: nginx:alpine
-    container_name: gea-saas-nginx
+    container_name: eg-saas-nginx
     restart: always
     ports:
       - "80:80"
@@ -87,12 +87,12 @@ services:
   # ─────────────────────────────────────────────────────────────────────────
   certbot:
     image: certbot/certbot
-    container_name: gea-saas-certbot
+    container_name: eg-saas-certbot
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 volumes:
-  gea_data:
+  eg_data:
     driver: local

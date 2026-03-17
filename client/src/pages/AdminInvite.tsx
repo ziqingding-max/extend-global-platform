@@ -119,7 +119,7 @@ export default function AdminInvite() {
         <div className="flex flex-col items-center mb-8">
           <img 
             src="/brand/gea-logo-horizontal-green.png" 
-            alt="GEA - Global Employment Advisors" 
+            alt="Extend Global" 
             className="h-16 object-contain mb-4"
           />
           <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: "'DM Sans', sans-serif" }}>

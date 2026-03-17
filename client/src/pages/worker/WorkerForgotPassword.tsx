@@ -50,7 +50,7 @@ export default function WorkerForgotPassword() {
           <div className="flex flex-col items-center mb-8">
             <img
               src="/brand/gea-logo-horizontal-green.png"
-              alt="GEA - Global Employment Advisors"
+              alt="Extend Global"
               className="h-16 object-contain mb-4"
             />
           </div>
@@ -98,7 +98,7 @@ export default function WorkerForgotPassword() {
         <div className="flex flex-col items-center mb-8">
           <img
             src="/brand/gea-logo-horizontal-green.png"
-            alt="GEA - Global Employment Advisors"
+            alt="Extend Global"
             className="h-16 object-contain mb-4"
           />
         </div>

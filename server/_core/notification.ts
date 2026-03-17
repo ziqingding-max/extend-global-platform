@@ -84,14 +84,14 @@ export async function notifyOwner(
     const bodyHtml = `
 ${emailBanner(title, "warning")}
 <p style="font-size:15px;color:#1a1a1a;line-height:1.65;">${content.replace(/\n/g, "<br/>")}</p>
-<p style="margin-top:20px;font-size:13px;color:#888;">This is an automated system alert from the GEA platform.<br/>Timestamp: ${new Date().toISOString()}</p>
+<p style="margin-top:20px;font-size:13px;color:#888;">This is an automated system alert from the Extend Global platform.<br/>Timestamp: ${new Date().toISOString()}</p>
 `;
     const html = renderEmailLayout(bodyHtml, { audience: "admin", preheader: title });
 
     await transporter.sendMail({
-      from: `GEA Admin <${ENV.emailFrom}>`,
+      from: `EG Admin <${ENV.emailFrom}>`,
       to: ENV.emailAdmin,
-      subject: `[GEA System Alert] ${title}`,
+      subject: `[EG System Alert] ${title}`,
       html,
     });
 

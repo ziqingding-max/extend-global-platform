@@ -1,10 +1,10 @@
 /**
- * GEA Email Layout — Unified HTML email template with brand identity.
+ * EG Email Layout — Unified HTML email template with brand identity.
  *
  * Features:
- * - Brand-colored header with GEA logo
+ * - Brand-colored header with EG logo
  * - Structured content area
- * - Professional footer with "About GEA" for client-facing emails
+ * - Professional footer with "About EG" for client-facing emails
  * - Table-based layout for maximum email client compatibility
  * - Inline CSS only (no external stylesheets)
  */
@@ -22,28 +22,28 @@ const BORDER_LIGHT = "#e5e7eb";
 
 /**
  * Build the logo <img> tag using an externally hosted URL.
- * The logo PNG is served from the app's static files at /brand/gea-logo-email.png.
+ * The logo PNG is served from the app's static files at /brand/eg-logo-email.png.
  * The base URL comes from ADMIN_APP_URL in .env (e.g. https://app.extendglobal.ai).
  * This avoids base64 embedding which triggers anti-spam filters on Aliyun DirectMail.
  */
 function getLogoImg(): string {
   const appUrl = (process.env.ADMIN_APP_URL || "").replace(/\/+$/, "");
   if (appUrl) {
-    return `<img src="${appUrl}/brand/gea-logo-email.png" alt="GEA - Global Employment Advisors" width="220" style="display:block;margin:0 auto;max-width:220px;height:auto;" />`;
+    return `<img src="${appUrl}/brand/eg-logo-email.png" alt="Extend Global" width="220" style="display:block;margin:0 auto;max-width:220px;height:auto;" />`;
   }
-  return `<span style="color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:1px;">GEA — Global Employment Advisors</span>`;
+  return `<span style="color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:1px;">Extend Global</span>`;
 }
 
 /**
  * Audience type determines footer content:
- * - "client": Shows full "About GEA" company introduction
+ * - "client": Shows full "About EG" company introduction
  * - "worker": Shows simplified support info
  * - "admin": Shows minimal internal footer
  */
 export type EmailAudience = "admin" | "client" | "worker";
 
 /**
- * Wraps email body HTML in the branded GEA layout.
+ * Wraps email body HTML in the branded EG layout.
  */
 export function renderEmailLayout(
   bodyHtml: string,
@@ -66,7 +66,7 @@ export function renderEmailLayout(
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-<title>GEA Notification</title>
+<title>EG Notification</title>
 <!--[if mso]>
 <noscript>
 <xml>
@@ -125,7 +125,7 @@ ${footerContent}
 function buildFooter(audience: EmailAudience): string {
   const year = new Date().getFullYear();
 
-  // About GEA section — only for client-facing emails
+  // About EG section — only for client-facing emails
   const aboutSection =
     audience === "client"
       ? `
@@ -134,8 +134,8 @@ function buildFooter(audience: EmailAudience): string {
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
 <tr>
 <td style="border-top:1px solid ${BORDER_LIGHT};padding:20px 0 0 0;">
-<p style="margin:0 0 8px 0;font-size:13px;font-weight:bold;color:${BRAND_GREEN};">About GEA (Global Employment Advisors)</p>
-<p style="margin:0;font-size:12px;line-height:1.6;color:${TEXT_MUTED};">As CGL Group's overseas business sub-brand, GEA helps enterprises navigate emerging markets across the full lifecycle — from Access to Implementation, from Development to Reorganization — providing comprehensive, end-to-end human resources services and solutions.</p>
+<p style="margin:0 0 8px 0;font-size:13px;font-weight:bold;color:${BRAND_GREEN};">About EG (Global Employment Advisors)</p>
+<p style="margin:0;font-size:12px;line-height:1.6;color:${TEXT_MUTED};">As CGL Group overseas business sub-brand, EG helps enterprises navigate emerging markets across the full lifecycle — from Access to Implementation, from Development to Reorganization — providing comprehensive, end-to-end human resources services and solutions.</p>
 </td>
 </tr>
 </table>
@@ -147,7 +147,7 @@ function buildFooter(audience: EmailAudience): string {
   const supportLine =
     audience === "admin"
       ? `This is an internal system notification.`
-      : `Questions? Contact us at <a href="mailto:support@bestgea.com" style="color:${BRAND_GREEN};text-decoration:none;">support@bestgea.com</a>`;
+      : `Questions? Contact us at <a href="mailto:support@extendglobal.ai" style="color:${BRAND_GREEN};text-decoration:none;">support@extendglobal.ai</a>`;
 
   return `
 ${aboutSection}
@@ -159,7 +159,7 @@ ${aboutSection}
 <tr>
 <td style="border-top:1px solid ${BORDER_LIGHT};padding:20px 0 0 0;text-align:center;">
 <p style="margin:0 0 6px 0;font-size:12px;color:${TEXT_MUTED};">${supportLine}</p>
-<p style="margin:0;font-size:11px;color:#aaaaaa;">&copy; ${year} Global Employment Advisors (GEA). All rights reserved.</p>
+<p style="margin:0;font-size:11px;color:#aaaaaa;">&copy; ${year} Extend Global (EG). All rights reserved.</p>
 </td>
 </tr>
 </table>

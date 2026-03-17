@@ -70,7 +70,7 @@ const GUIDE_SECTIONS: GuideSection[] = [
     icon: BookOpen,
     title: { en: "Getting Started", cn: "快速入门" },
     steps: [
-      { en: "1. Log in to the Client Portal using the credentials provided by your GEA account manager.", cn: "1. 使用GEA客户经理提供的凭据登录客户门户。" },
+      { en: "1. Log in to the Client Portal using the credentials provided by your EG account manager.", cn: "1. 使用GEA客户经理提供的凭据登录客户门户。" },
       { en: "2. Your **Dashboard** shows an overview of your employees, pending approvals, and recent invoices.", cn: "2. **仪表板**显示员工概览、待审批项和最近发票。" },
       { en: "3. Use the sidebar navigation to access different modules: Employees, Payroll, Adjustments, Leave, Reimbursements, Invoices, etc.", cn: "3. 使用侧边栏导航访问不同模块：员工、工资、调整项、假期、报销、发票等。" },
       { en: "4. You can switch between English and Chinese using the language switcher in the top-right corner.", cn: "4. 您可以使用右上角的语言切换器在中英文之间切换。" },
@@ -102,7 +102,7 @@ const GUIDE_SECTIONS: GuideSection[] = [
       { en: "1. Navigate to **Adjustments** to view and manage salary adjustments for your employees.", cn: "1. 进入**调整项**页面查看和管理员工的薪资调整。" },
       { en: "2. Click **New Adjustment** to create an adjustment. Select the employee, type (bonus, allowance, deduction, etc.), and enter the amount.", cn: "2. 点击**新建调整项**创建调整。选择员工、类型（奖金、津贴、扣款等）并输入金额。" },
       { en: "3. Adjustments go through an approval workflow: after submission, you can **approve** or **reject** them.", cn: "3. 调整项经过审批流程：提交后，您可以**批准**或**驳回**。" },
-      { en: "4. Approved adjustments are then reviewed by the GEA admin team for final confirmation.", cn: "4. 批准的调整项随后由GEA管理团队进行最终确认。" },
+      { en: "4. Approved adjustments are then reviewed by the EG admin team for final confirmation.", cn: "4. 批准的调整项随后由EG管理团队进行最终确认。" },
     ],
     tips: [
       { en: "Adjustments are included in the next payroll run after they are fully approved and locked.", cn: "调整项在完全批准并锁定后纳入下一次工资批次。" },
@@ -117,7 +117,7 @@ const GUIDE_SECTIONS: GuideSection[] = [
       { en: "1. Navigate to **Leave** to view all leave requests for your employees.", cn: "1. 进入**假期**页面查看所有员工的假期申请。" },
       { en: "2. Click **New Leave Request** to submit a leave request. Select the employee, leave type, start/end dates.", cn: "2. 点击**新建假期申请**提交假期。选择员工、假期类型、开始/结束日期。" },
       { en: "3. Leave days are automatically calculated based on the date range (excluding weekends).", cn: "3. 假期天数根据日期范围自动计算（不含周末）。" },
-      { en: "4. After submission, you can **approve** or **reject** the leave request. Approved requests go to GEA admin for final confirmation.", cn: "4. 提交后，您可以**批准**或**驳回**假期申请。批准的申请将提交GEA管理员最终确认。" },
+      { en: "4. After submission, you can **approve** or **reject** the leave request. Approved requests go to EG admin for final confirmation.", cn: "4. 提交后，您可以**批准**或**驳回**假期申请。批准的申请将提交EG管理员最终确认。" },
     ],
     tips: [
       { en: "Unpaid leave will result in a salary deduction calculated automatically during payroll.", cn: "无薪假将在工资处理时自动计算扣款。" },
@@ -132,7 +132,7 @@ const GUIDE_SECTIONS: GuideSection[] = [
       { en: "1. Navigate to **Reimbursements** to view and manage expense reimbursement requests.", cn: "1. 进入**报销**页面查看和管理费用报销申请。" },
       { en: "2. Click **New Reimbursement** to submit a reimbursement. Select the employee, category (travel, meals, equipment, etc.), and enter the amount.", cn: "2. 点击**新建报销**提交报销。选择员工、类别（差旅、餐饮、设备等）并输入金额。" },
       { en: "3. Upload the receipt or supporting document for the reimbursement.", cn: "3. 上传报销的收据或支持文件。" },
-      { en: "4. After submission, you can **approve** or **reject** the reimbursement. Approved items go to GEA admin for final confirmation.", cn: "4. 提交后，您可以**批准**或**驳回**报销。批准的项目将提交GEA管理员最终确认。" },
+      { en: "4. After submission, you can **approve** or **reject** the reimbursement. Approved items go to EG admin for final confirmation.", cn: "4. 提交后，您可以**批准**或**驳回**报销。批准的项目将提交EG管理员最终确认。" },
     ],
     tips: [
       { en: "Reimbursements are separate from salary and do not affect Gross Pay calculations.", cn: "报销与薪资分开，不影响Gross Pay计算。" },
@@ -162,10 +162,10 @@ const GUIDE_SECTIONS: GuideSection[] = [
       { en: "1. Navigate to **Settings** to manage your company information and portal users.", cn: "1. 进入**设置**页面管理公司信息和门户用户。" },
       { en: "2. **Company Information**: View and edit your company details. Note that legal entity name and settlement currency are read-only.", cn: "2. **公司信息**：查看和编辑公司详情。注意法律实体名称和结算币种为只读。" },
       { en: "3. **Portal Users**: Manage who has access to the portal. You can invite new users via email.", cn: "3. **门户用户**：管理谁可以访问门户。您可以通过邮件邀请新用户。" },
-      { en: "4. **Primary Contact**: This information is managed by your GEA account manager and is read-only in the portal.", cn: "4. **主要联系人**：此信息由GEA客户经理管理，在门户中为只读。" },
+      { en: "4. **Primary Contact**: This information is managed by your EG account manager and is read-only in the portal.", cn: "4. **主要联系人**：此信息由EG客户经理管理，在门户中为只读。" },
     ],
     tips: [
-      { en: "To change your primary contact information, please contact your GEA account manager.", cn: "要更改主要联系人信息，请联系您的GEA客户经理。" },
+      { en: "To change your primary contact information, please contact your EG account manager.", cn: "要更改主要联系人信息，请联系您的EG客户经理。" },
     ],
   },
 ];
@@ -177,7 +177,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "approval",
     question: { en: "How does the approval workflow work?", cn: "审批工作流如何运作？" },
     answer: {
-      en: "Leave requests, adjustments, and reimbursements follow a two-level approval process: **1)** After submission, you (the client) can approve or reject the item. **2)** Once you approve, it goes to the GEA admin team for final confirmation. Only after both levels of approval will the item be locked and included in payroll.",
+      en: "Leave requests, adjustments, and reimbursements follow a two-level approval process: **1)** After submission, you (the client) can approve or reject the item. **2)** Once you approve, it goes to the EG admin team for final confirmation. Only after both levels of approval will the item be locked and included in payroll.",
       cn: "假期申请、调整项和报销遵循两级审批流程：**1)** 提交后，您（客户）可以批准或驳回。**2)** 您批准后，将提交GEA管理团队最终确认。只有两级审批都通过后，该项才会被锁定并纳入工资单。",
     },
   },
@@ -222,8 +222,8 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "account",
     question: { en: "How do I change my primary contact information?", cn: "如何更改主要联系人信息？" },
     answer: {
-      en: "Primary contact information is managed by your GEA account manager for security reasons. Please contact your GEA representative to make changes.",
-      cn: "出于安全考虑，主要联系人信息由GEA客户经理管理。请联系您的GEA代表进行更改。",
+      en: "Primary contact information is managed by your EG account manager for security reasons. Please contact your EG representative to make changes.",
+      cn: "出于安全考虑，主要联系人信息由EG客户经理管理。请联系您的GEA代表进行更改。",
     },
   },
   {
@@ -231,7 +231,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: "account",
     question: { en: "I forgot my password. How do I reset it?", cn: "我忘记了密码，如何重置？" },
     answer: {
-      en: "Click **Forgot Password** on the login page and enter your email address. You will receive a reset link via email. If you don't receive the email, contact your GEA account manager who can reset your password directly.",
+      en: "Click **Forgot Password** on the login page and enter your email address. You will receive a reset link via email. If you don't receive the email, contact your EG account manager who can reset your password directly.",
       cn: "在登录页面点击**忘记密码**并输入邮箱地址。您将通过邮件收到重置链接。如果没有收到邮件，请联系GEA客户经理直接重置密码。",
     },
   },
@@ -267,7 +267,7 @@ const UPDATE_ENTRIES: UpdateEntry[] = [
       { category: "feature", description: { en: "Self-service onboarding invites now support **resend** functionality.", cn: "自助入职邀请现在支持**重新发送**功能。" } },
       { category: "change", description: { en: "Payslip redesigned: Reimbursements separated from Earnings. New **Total Payout** = Net Pay + Reimbursements.", cn: "工资条重新设计：报销从收入中分离。新增**实发总额** = 净工资 + 报销。" } },
       { category: "change", description: { en: "Invoice line items now show **local currency** amounts. Settlement currency only on Subtotal/Total Due.", cn: "发票明细项现在显示**本地币种**金额。结算币种仅在小计/应付总额显示。" } },
-      { category: "change", description: { en: "Primary Contact information is now read-only. Contact your GEA account manager for changes.", cn: "主要联系人信息现在为只读。如需更改请联系GEA客户经理。" } },
+      { category: "change", description: { en: "Primary Contact information is now read-only. Contact your EG account manager for changes.", cn: "主要联系人信息现在为只读。如需更改请联系GEA客户经理。" } },
       { category: "change", description: { en: "Employee detail page redesigned with unified layout and consistent field display.", cn: "员工详情页重新设计，统一布局和一致的字段显示。" } },
       { category: "change", description: { en: "Onboarding validation: start date must be today or later, salary currency locked to country's currency.", cn: "入职验证：入职日期必须为今天或之后，薪资币种锁定为国家币种。" } },
     ],

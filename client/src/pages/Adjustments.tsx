@@ -773,7 +773,7 @@ export default function Adjustments() {
             <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
               <span className="text-sm text-emerald-800">
                 <CheckCircle2 className="w-4 h-4 inline mr-1" />
-                {pendingApproval.length} adjustment(s) pending GEA approval
+                {pendingApproval.length} adjustment(s) pending EG approval
               </span>
               <Button
                 size="sm"

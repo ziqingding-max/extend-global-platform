@@ -1,10 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# GEA EOR SaaS — 启用 SSL/HTTPS 脚本（三子域名版）
+# Extend Global (EG) — 启用 SSL/HTTPS 脚本（通配符子域名版）
 # =============================================================================
 # 使用前提：
-#   1. 三个域名已解析到服务器 IP
-#   2. 已成功申请 SSL 证书
+#   1. 域名已解析到服务器 IP（包括 *.extendglobal.ai 通配符 A 记录）
+#   2. HTTP 版本已正常运行（docker compose up -d）
 # =============================================================================
 
 set -e
@@ -16,71 +16,102 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 info()  { echo -e "${BLUE}[INFO]${NC} $1"; }
-ok()    { echo -e "${GREEN}[✅ OK]${NC} $1"; }
-warn()  { echo -e "${YELLOW}[⚠️  WARN]${NC} $1"; }
-error() { echo -e "${RED}[❌ ERROR]${NC} $1"; exit 1; }
+ok()    { echo -e "${GREEN}[OK]${NC} $1"; }
+warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
+error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
-# 获取域名
-ADMIN_DOMAIN="${1:-admin.extendglobal.ai}"
-PORTAL_DOMAIN="${2:-app.extendglobal.ai}"
-WORKER_DOMAIN="${3:-worker.extendglobal.ai}"
+# 域名配置
+ADMIN_DOMAIN="admin.extendglobal.ai"
+PORTAL_DOMAIN="app.extendglobal.ai"
+WORKER_DOMAIN="worker.extendglobal.ai"
+WILDCARD_DOMAIN="*.extendglobal.ai"
+BASE_DOMAIN="extendglobal.ai"
 
-if [ -z "$1" ]; then
-    read -p "请输入管理后台域名（默认 admin.extendglobal.ai）: " input
-    ADMIN_DOMAIN=${input:-admin.extendglobal.ai}
-    read -p "请输入客户门户域名（默认 app.extendglobal.ai）: " input
-    PORTAL_DOMAIN=${input:-app.extendglobal.ai}
-    read -p "请输入员工门户域名（默认 worker.extendglobal.ai）: " input
-    WORKER_DOMAIN=${input:-worker.extendglobal.ai}
-fi
+# 证书邮箱
+CERT_EMAIL="${CERT_EMAIL:-admin@extendglobal.ai}"
 
-echo ""
-info "域名配置："
-echo "  管理后台：${ADMIN_DOMAIN}"
-echo "  客户门户：${PORTAL_DOMAIN}"
-echo "  员工门户：${WORKER_DOMAIN}"
-echo ""
-
-PROJECT_DIR="/opt/geaplatform_trae"
+# 项目目录
+PROJECT_DIR="${PROJECT_DIR:-/opt/eg-platform}"
 cd ${PROJECT_DIR}
 
-# 检查证书是否存在
-CERT_DIR=""
-for domain in "${ADMIN_DOMAIN}" "${PORTAL_DOMAIN}" "${WORKER_DOMAIN}"; do
-    if [ -d "certbot/conf/live/${domain}" ]; then
-        CERT_DIR="certbot/conf/live/${domain}"
-        info "找到 ${domain} 的 SSL 证书"
-    fi
-done
+echo ""
+info "=== Extend Global SSL 配置脚本 ==="
+info "管理后台: ${ADMIN_DOMAIN}"
+info "客户门户: ${PORTAL_DOMAIN}"
+info "员工门户: ${WORKER_DOMAIN}"
+info "CP 白标:  ${WILDCARD_DOMAIN}"
+echo ""
 
-# 检查是否有通配符证书或合并证书
-if [ -d "certbot/conf/live/${ADMIN_DOMAIN}" ]; then
-    ADMIN_CERT_DIR="${ADMIN_DOMAIN}"
+# 检查 Docker
+if ! command -v docker &> /dev/null; then
+    error "Docker 未安装"
+fi
+
+# 创建 certbot 目录
+mkdir -p certbot/conf certbot/www
+
+# ─── SSL 证书申请方式选择 ────────────────────────────────────────────────
+echo "请选择 SSL 证书申请方式："
+echo "  1) 仅为固定子域名申请证书（admin/app/worker）— HTTP 验证，全自动"
+echo "  2) 申请通配符证书（*.extendglobal.ai）— DNS 验证，需手动添加 TXT 记录"
+echo ""
+read -p "请输入选项 (1/2): " SSL_MODE
+
+WILDCARD_CERT_DIR=""
+
+if [ "$SSL_MODE" = "2" ]; then
+    # 通配符证书 — DNS 验证
+    info "申请通配符证书（需要手动添加 DNS TXT 记录）..."
+    docker run --rm -it \
+        -v "$(pwd)/certbot/conf:/etc/letsencrypt" \
+        -v "$(pwd)/certbot/www:/var/www/certbot" \
+        certbot/certbot certonly \
+        --manual \
+        --preferred-challenges dns \
+        -d "${BASE_DOMAIN}" \
+        -d "${WILDCARD_DOMAIN}" \
+        --email "${CERT_EMAIL}" \
+        --agree-tos \
+        --no-eff-email
+
+    ADMIN_CERT_DIR="${BASE_DOMAIN}"
+    PORTAL_CERT_DIR="${BASE_DOMAIN}"
+    WORKER_CERT_DIR="${BASE_DOMAIN}"
+    WILDCARD_CERT_DIR="${BASE_DOMAIN}"
 else
-    error "未找到 ${ADMIN_DOMAIN} 的 SSL 证书，请先申请证书"
-fi
+    # 固定子域名证书 — HTTP 验证
+    info "为固定子域名申请证书..."
 
-# 门户和员工域名证书可能与管理后台在同一证书中（SAN 证书）
-PORTAL_CERT_DIR="${PORTAL_DOMAIN}"
-if [ ! -d "certbot/conf/live/${PORTAL_DOMAIN}" ]; then
+    # 停止 nginx 以释放 80 端口
+    docker compose -f docker-compose.prod.yml stop nginx 2>/dev/null || true
+
+    docker run --rm \
+        -v "$(pwd)/certbot/conf:/etc/letsencrypt" \
+        -v "$(pwd)/certbot/www:/var/www/certbot" \
+        -p 80:80 \
+        certbot/certbot certonly \
+        --standalone \
+        -d "${ADMIN_DOMAIN}" \
+        -d "${PORTAL_DOMAIN}" \
+        -d "${WORKER_DOMAIN}" \
+        --email "${CERT_EMAIL}" \
+        --agree-tos \
+        --no-eff-email
+
+    ADMIN_CERT_DIR="${ADMIN_DOMAIN}"
     PORTAL_CERT_DIR="${ADMIN_DOMAIN}"
-    warn "${PORTAL_DOMAIN} 无独立证书，尝试使用 ${ADMIN_DOMAIN} 的证书（SAN 证书）"
-fi
-
-WORKER_CERT_DIR="${WORKER_DOMAIN}"
-if [ ! -d "certbot/conf/live/${WORKER_DOMAIN}" ]; then
     WORKER_CERT_DIR="${ADMIN_DOMAIN}"
-    warn "${WORKER_DOMAIN} 无独立证书，尝试使用 ${ADMIN_DOMAIN} 的证书（SAN 证书）"
 fi
 
+# ─── 生成 HTTPS Nginx 配置 ──────────────────────────────────────────────
 info "正在生成 HTTPS Nginx 配置..."
 
-cat > nginx/conf.d/gea-saas.conf << EOF
+cat > nginx/conf.d/eg-saas.conf << EOF
 # =============================================================================
-# GEA EOR SaaS — Nginx HTTPS 配置（三子域名版）
+# Extend Global (EG) — Nginx HTTPS 配置（通配符子域名版）
 # =============================================================================
 
-upstream gea_app {
+upstream eg_app {
     server app:3000;
     keepalive 32;
 }
@@ -88,7 +119,7 @@ upstream gea_app {
 # ─── HTTP → HTTPS 重定向 ─────────────────────────────────────────────────
 server {
     listen 80;
-    server_name ${ADMIN_DOMAIN} ${PORTAL_DOMAIN} ${WORKER_DOMAIN};
+    server_name ${ADMIN_DOMAIN} ${PORTAL_DOMAIN} ${WORKER_DOMAIN} *.extendglobal.ai;
 
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
@@ -121,7 +152,6 @@ server {
 
     ssl_certificate /etc/letsencrypt/live/${ADMIN_CERT_DIR}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${ADMIN_CERT_DIR}/privkey.pem;
-
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
     ssl_prefer_server_ciphers off;
@@ -132,11 +162,10 @@ server {
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
-
     client_max_body_size 50m;
 
     location /api/ {
-        proxy_pass http://gea_app;
+        proxy_pass http://eg_app;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -151,7 +180,7 @@ server {
     }
 
     location / {
-        proxy_pass http://gea_app;
+        proxy_pass http://eg_app;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -163,7 +192,7 @@ server {
     }
 
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-        proxy_pass http://gea_app;
+        proxy_pass http://eg_app;
         proxy_set_header Host \$host;
         expires 1y;
         add_header Cache-Control "public, immutable";
@@ -178,7 +207,6 @@ server {
 
     ssl_certificate /etc/letsencrypt/live/${PORTAL_CERT_DIR}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${PORTAL_CERT_DIR}/privkey.pem;
-
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
     ssl_prefer_server_ciphers off;
@@ -189,11 +217,10 @@ server {
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
-
     client_max_body_size 50m;
 
     location /api/ {
-        proxy_pass http://gea_app;
+        proxy_pass http://eg_app;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -208,7 +235,7 @@ server {
     }
 
     location / {
-        proxy_pass http://gea_app;
+        proxy_pass http://eg_app;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -220,7 +247,7 @@ server {
     }
 
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-        proxy_pass http://gea_app;
+        proxy_pass http://eg_app;
         proxy_set_header Host \$host;
         expires 1y;
         add_header Cache-Control "public, immutable";
@@ -235,7 +262,6 @@ server {
 
     ssl_certificate /etc/letsencrypt/live/${WORKER_CERT_DIR}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${WORKER_CERT_DIR}/privkey.pem;
-
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
     ssl_prefer_server_ciphers off;
@@ -246,12 +272,10 @@ server {
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
-
     client_max_body_size 50m;
 
-    # Worker API 请求直接代理
     location /api/ {
-        proxy_pass http://gea_app;
+        proxy_pass http://eg_app;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -265,10 +289,8 @@ server {
         proxy_read_timeout 120s;
     }
 
-    # 所有请求直接代理到 Node.js（不做 rewrite）
-    # 前端 SPA 通过 isWorkerDomain() 检测域名后自动路由到 Worker Portal
     location / {
-        proxy_pass http://gea_app;
+        proxy_pass http://eg_app;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -280,13 +302,79 @@ server {
     }
 
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-        proxy_pass http://gea_app;
+        proxy_pass http://eg_app;
         proxy_set_header Host \$host;
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
 }
 EOF
+
+# ─── 如果有通配符证书，添加 CP 白标 HTTPS server 块 ─────────────────────
+if [ -n "${WILDCARD_CERT_DIR}" ]; then
+cat >> nginx/conf.d/eg-saas.conf << 'CPEOF'
+
+# ─── CP 白标通配符 HTTPS ────────────────────────────────────────────────
+# 匹配所有未被上面 server 块捕获的 *.extendglobal.ai 子域名
+# 前端 SPA 通过 isCpDomain() 检测 CP 子域名后加载品牌
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name *.extendglobal.ai;
+CPEOF
+
+cat >> nginx/conf.d/eg-saas.conf << EOF
+
+    ssl_certificate /etc/letsencrypt/live/${WILDCARD_CERT_DIR}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${WILDCARD_CERT_DIR}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    client_max_body_size 50m;
+
+    location /api/ {
+        proxy_pass http://eg_app;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 120s;
+        proxy_read_timeout 120s;
+    }
+
+    location / {
+        proxy_pass http://eg_app;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_cache_bypass \$http_upgrade;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        proxy_pass http://eg_app;
+        proxy_set_header Host \$host;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}
+EOF
+fi
 
 # 重启 Nginx
 info "重启 Nginx 使 HTTPS 配置生效..."
@@ -297,4 +385,7 @@ echo ""
 echo "  管理后台：https://${ADMIN_DOMAIN}"
 echo "  客户门户：https://${PORTAL_DOMAIN}"
 echo "  员工门户：https://${WORKER_DOMAIN}"
+if [ -n "${WILDCARD_CERT_DIR}" ]; then
+echo "  CP 白标：  https://<cp-subdomain>.extendglobal.ai"
+fi
 echo ""

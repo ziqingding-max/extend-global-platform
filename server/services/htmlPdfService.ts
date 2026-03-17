@@ -595,7 +595,7 @@ async function htmlToPdf(html: string): Promise<Buffer> {
 
 // ─── Branding Info (from Billing Entity) ────────────────────────────────────
 export interface BrandingInfo {
-  /** Short display name, e.g. "GEA" or entityName */
+  /** Short display name, e.g. "EG" or entityName */
   shortName: string;
   /** Full legal / trading name, e.g. "Global Employment Advisors" */
   fullName: string;
@@ -613,10 +613,10 @@ export interface BrandingInfo {
 
 /** Default branding used when no billing entity is configured */
 const DEFAULT_BRANDING: BrandingInfo = {
-  shortName: "GEA",
-  fullName: "Global Employment Advisors",
+  shortName: "EG",
+  fullName: "Extend Global",
   logoUrl: null,
-  contactEmail: "support@bestgea.com",
+  contactEmail: "support@extendglobal.ai",
 };
 
 // ─── Page wrapper helpers ───────────────────────────────────────────────────
@@ -845,14 +845,14 @@ export async function generateQuotationPdf(data: QuotationData): Promise<Buffer>
     <h3>About CGL Group</h3>
     <p>CGL Group's core business is international executive search (CGL), with a focus on serving innovative startups and traditional enterprises undergoing transformation in China's growing economy. We provide strategic talent advisory, talent mapping, and help enterprises recruit core executive teams based on our deep understanding of industry talent markets. We also design competitive compensation packages and deliver CEO and executive leadership coaching and onboarding support.</p>
 
-    <h3>About GEA (Global Employment Advisors)</h3>
-    <p>As CGL's overseas business sub-brand, GEA helps Chinese enterprises navigate emerging markets across the full lifecycle — from Access to Implementation, from Development to Reorganization — providing comprehensive, end-to-end human resources services and solutions.</p>
+    <h3>About EG (Global Employment Advisors)</h3>
+    <p>As Extend Global's overseas business sub-brand, EG helps Chinese enterprises navigate emerging markets across the full lifecycle — from Access to Implementation, from Development to Reorganization — providing comprehensive, end-to-end human resources services and solutions.</p>
     <p>We design differentiated solutions tailored not only to different industries — such as new energy, smart manufacturing, food &amp; beverage, healthcare, consumer electronics, and embodied AI — but also to clients within the same industry who have distinct strategic priorities for their overseas expansion.</p>
     <p>From lightweight market entry targeting a single destination to regional hub models with unified settlement centers, we deliver customized solutions that best fit the flexible and diversified needs of Chinese enterprises going global.</p>
   `;
 
   pages += contentPage(headerTitle, 2, 0, `
-    <h2>About GEA (Global Employment Advisors)</h2>
+    <h2>About EG (Global Employment Advisors)</h2>
     <div class="section-card">
       ${companyIntroHtml}
     </div>
@@ -990,7 +990,7 @@ export async function generateQuotationPdf(data: QuotationData): Promise<Buffer>
   `, branding);
 
   // 4. Notes (if any) + Terms & Conditions page
-  const contactEmail = data.createdByEmail ?? branding.contactEmail ?? data.billingEntity?.contactEmail ?? "support@bestgea.com";
+  const contactEmail = data.createdByEmail ?? branding.contactEmail ?? data.billingEntity?.contactEmail ?? "support@extendglobal.ai";
   const contactName = data.createdByName ?? branding.shortName + " account manager";
   const notesHtml = data.notes ? `
     <div class="notes-box" style="margin-bottom:6mm;">

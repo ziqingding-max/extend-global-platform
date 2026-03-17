@@ -969,7 +969,7 @@ export const portalEmployeesRouter = portalRouter({
           })
           .where(eq(onboardingInvites.id, invite.id));
 
-        // Send onboarding completed notification to client HR + GEA admin
+        // Send onboarding completed notification to client HR + EG admin
         notificationService.send({
           type: "employee_onboarding_completed",
           customerId: invite.customerId,

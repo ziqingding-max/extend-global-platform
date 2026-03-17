@@ -78,7 +78,7 @@ export function drawCoverPage(doc: PDFKit.PDFDocument, title: string, subtitle: 
   doc.restore();
 
   // Logo Area (Placeholder)
-  doc.fontSize(24).fillColor(BRAND_COLORS.primary).font("Helvetica-Bold").text("GEA", 50, 50);
+  doc.fontSize(24).fillColor(BRAND_COLORS.primary).font("Helvetica-Bold").text("EG", 50, 50);
   doc.fontSize(10).fillColor(BRAND_COLORS.textMuted).font("Helvetica").text("Global Employment Advisors", 50, 75);
 
   // Title Centered
@@ -112,7 +112,7 @@ export function drawCoverPage(doc: PDFKit.PDFDocument, title: string, subtitle: 
 
 export function drawHeader(doc: PDFKit.PDFDocument, title: string) {
   const topY = 30;
-  doc.fontSize(10).fillColor(BRAND_COLORS.textMuted).text("GEA - Global Employment Advisors", 50, topY);
+  doc.fontSize(10).fillColor(BRAND_COLORS.textMuted).text("Extend Global", 50, topY);
   doc.fontSize(10).text(title, 50, topY, { align: "right", width: doc.page.width - 100 });
   
   // Divider line
