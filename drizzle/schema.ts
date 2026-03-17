@@ -206,6 +206,10 @@ export const channelPartners = sqliteTable(
     cpBankDetails: text("cpBankDetails"), // Free-text bank info shown on CP->Client invoices
     cpInvoicePrefix: text("cpInvoicePrefix", { length: 20 }), // e.g. "CIIC-" for CP invoice numbering
     cpInvoiceSequence: integer("cpInvoiceSequence").default(0).notNull(), // Last used CP invoice sequence
+    // Subdomain for white-label portal access (e.g. "fa" -> fa.extendglobal.com)
+    subdomain: text("subdomain", { length: 63 }), // null for EG-DIRECT internal CP
+    // Internal flag: true means this CP represents EG itself (direct-sign clients)
+    isInternal: integer("isInternal", { mode: "boolean" }).default(false).notNull(),
     // Status
     status: text("status", { enum: ["active", "suspended", "terminated"] }).default("active").notNull(),
     notes: text("notes"),
@@ -217,6 +221,7 @@ export const channelPartners = sqliteTable(
     cpCompanyNameIdx: index("cp_company_name_idx").on(table.companyName),
     cpStatusIdx: index("cp_status_idx").on(table.status),
     cpCountryIdx: index("cp_country_idx").on(table.country),
+    cpSubdomainIdx: uniqueIndex("cp_subdomain_idx").on(table.subdomain),
   })
 );
 
