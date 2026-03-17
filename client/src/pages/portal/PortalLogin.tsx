@@ -2,6 +2,7 @@
  * Portal Login Page
  *
  * Clean, professional login form for client contacts.
+ * Supports CP white-label branding on CP subdomains.
  * Completely separate from admin Manus OAuth login.
  */
 
@@ -15,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Building2, Loader2, Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { useCpBranding } from "@/hooks/useCpBranding";
 
 import { useI18n } from "@/lib/i18n";
 export default function PortalLogin() {
@@ -24,6 +26,7 @@ export default function PortalLogin() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const { branding, isCp } = useCpBranding();
 
   const loginMutation = portalTrpc.auth.login.useMutation({
     onSuccess: () => {
@@ -40,18 +43,23 @@ export default function PortalLogin() {
     loginMutation.mutate({ email: email.trim(), password });
   };
 
+  // Determine branding display
+  const displayName = isCp && branding?.companyName ? branding.companyName : "Extend Global";
+  const logoSrc = isCp && branding?.logoUrl ? branding.logoUrl : "/brand/gea-logo-horizontal-green.png";
+  const logoAlt = isCp && branding?.companyName ? branding.companyName : "Extend Global";
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <img 
-            src="/brand/gea-logo-horizontal-green.png" 
-            alt="GEA - Global Employment Advisors" 
+            src={logoSrc} 
+            alt={logoAlt} 
             className="h-16 object-contain mb-4"
           />
           <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-            {t("portal_login.header.title")}
+            {isCp ? `${displayName} Portal` : t("portal_login.header.title")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             {t("portal_login.header.subtitle")}
@@ -143,7 +151,7 @@ export default function PortalLogin() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          {t("portal_login.footer.powered_by")}
+          {isCp ? `Powered by Extend Global` : t("portal_login.footer.powered_by")}
         </p>
       </div>
     </div>

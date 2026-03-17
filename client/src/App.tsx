@@ -355,6 +355,30 @@ function Router() {
     return <PortalRouter />;
   }
 
+  // On CP subdomain ({cp}.extendglobal.ai) — render CP Portal + white-labeled Portal/Worker
+  if (isCpDomain()) {
+    return (
+      <Switch>
+        {/* CP Portal routes (CP admin) */}
+        <Route path="/cp/:a/:b" component={CpPortalRouter} />
+        <Route path="/cp/:rest*" component={CpPortalRouter} />
+        <Route path="/cp" component={CpPortalRouter} />
+
+        {/* Worker Portal routes (white-labeled under CP) */}
+        <Route path="/worker/:rest*" component={WorkerRouter} />
+        <Route path="/worker" component={WorkerRouter} />
+
+        {/* Client Portal routes (white-labeled under CP) */}
+        <Route path="/portal/:a/:b" component={PortalRouter} />
+        <Route path="/portal/:rest*" component={PortalRouter} />
+        <Route path="/portal" component={PortalRouter} />
+
+        {/* Default: CP Portal dashboard */}
+        <Route>{() => <CpPortalRouter />}</Route>
+      </Switch>
+    );
+  }
+
   // On admin subdomain or dev: path-based routing
   return (
     <Switch>

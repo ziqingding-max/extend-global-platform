@@ -20,7 +20,7 @@ import { countryGuidePdfService } from "../services/countryGuidePdfService";
 import { authenticateAdminRequest } from "./adminAuth";
 import { authenticatePortalRequest } from "../portal/portalAuth";
 import { getDb } from "../db";
-import { invoices } from "../../drizzle/schema";
+import { invoices, channelPartners } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 
 export async function createApp(options: { skipStatic?: boolean } = {}) {
@@ -82,6 +82,51 @@ export async function createApp(options: { skipStatic?: boolean } = {}) {
   // Admin auth routes (login/logout + forgot password)
   registerAuthRoutes(app);
   registerAdminForgotPasswordRoutes(app);
+
+  // ====================================================================
+  // Public CP Branding endpoint — no auth required
+  // Used by Client Portal / Worker Portal on CP subdomains to fetch branding
+  // ====================================================================
+  app.get("/api/public/branding/:subdomain", async (req, res) => {
+    try {
+      const { subdomain } = req.params;
+      if (!subdomain || subdomain.length > 63) {
+        res.status(400).json({ error: "Invalid subdomain" });
+        return;
+      }
+      const db = getDb();
+      if (!db) {
+        res.status(500).json({ error: "Database unavailable" });
+        return;
+      }
+      const [cp] = await db
+        .select({
+          id: channelPartners.id,
+          companyName: channelPartners.companyName,
+          subdomain: channelPartners.subdomain,
+          logoUrl: channelPartners.logoUrl,
+          brandPrimaryColor: channelPartners.brandPrimaryColor,
+          brandSecondaryColor: channelPartners.brandSecondaryColor,
+          faviconUrl: channelPartners.faviconUrl,
+          status: channelPartners.status,
+        })
+        .from(channelPartners)
+        .where(eq(channelPartners.subdomain, subdomain))
+        .limit(1);
+
+      if (!cp || cp.status !== "active") {
+        res.status(404).json({ error: "Channel Partner not found" });
+        return;
+      }
+
+      // Cache for 5 minutes — branding doesn't change often
+      res.setHeader("Cache-Control", "public, max-age=300");
+      res.json(cp);
+    } catch (error) {
+      console.error("Branding fetch error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
 
   // PDF preview endpoint (inline display in browser)
   app.get("/api/invoices/:id/pdf/preview", async (req, res) => {
