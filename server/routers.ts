@@ -32,6 +32,7 @@ import { countryGuideRouter } from "./routers/countryGuideRouter";
 import { salaryBenchmarkRouter } from "./routers/salaryBenchmarkRouter";
 import { contractorsRouter } from "./routers/contractors";
 import { walletRouter } from "./routers/billing/walletRouter";
+import { channelPartnersRouter } from "./routers/channelPartners";
 
 export const appRouter = router({
   system: systemRouter,
@@ -75,6 +76,7 @@ export const appRouter = router({
   salaryBenchmarks: salaryBenchmarkRouter,
   contractors: contractorsRouter,
   wallet: walletRouter,
+  channelPartners: channelPartnersRouter,
 });
 
 export type AppRouter = typeof appRouter;
