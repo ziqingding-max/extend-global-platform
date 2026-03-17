@@ -44,7 +44,8 @@ import {
   Activity,
   Layers,
   PieChart,
-  KeyRound
+  KeyRound,
+  Handshake
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -136,6 +137,13 @@ function useNavGroups(user: any) {
         { label: t("nav.vendors"), icon: Truck, href: "/vendors" },
         { label: t("nav.vendor_bills"), icon: Receipt, href: "/vendor-bills" },
       ].filter(() => hasRole(["admin", "finance_manager"])),
+    },
+    {
+      label: "Channel Partners",
+      icon: Handshake,
+      items: [
+        { label: "Partners", icon: Handshake, href: "/channel-partners" },
+      ].filter(() => hasRole(["admin"])),
     },
     {
       label: "System",
