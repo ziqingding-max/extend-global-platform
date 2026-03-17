@@ -11,25 +11,30 @@
  * - Every data-access procedure uses protectedCpProcedure which injects channelPartnerId
  * - No cross-router access between admin, client portal, and CP portal
  *
- * FUTURE: Additional sub-routers will be added in PR 2.3:
- * - cpPortalClientsRouter (End Client management from CP perspective)
- * - cpPortalPricingRouter (CP→Client pricing configuration)
- * - cpPortalSettingsRouter (CP branding, billing info management)
- * - cpPortalInvoicesRouter (CP-layer invoice viewing)
- * - cpPortalWalletRouter (CP wallet balance and transaction viewing)
+ * SUB-ROUTERS:
+ * - auth: Login, register, password management, branding query (PR 2.2)
+ * - clients: End Client management from CP perspective (PR 2.3)
+ * - pricing: CP→Client pricing configuration (PR 2.3)
+ * - settings: CP branding, billing info, portal user management (PR 2.3)
+ * - invoices: CP-layer invoice viewing (PR 2.3)
+ * - wallet: CP wallet balance and transaction viewing (PR 2.3)
  */
 
 import { cpPortalRouter } from "./cpPortalTrpc";
 import { cpPortalAuthRouter } from "./routers/cpPortalAuthRouter";
+import { cpPortalClientsRouter } from "./routers/cpPortalClientsRouter";
+import { cpPortalPricingRouter } from "./routers/cpPortalPricingRouter";
+import { cpPortalSettingsRouter } from "./routers/cpPortalSettingsRouter";
+import { cpPortalInvoicesRouter } from "./routers/cpPortalInvoicesRouter";
+import { cpPortalWalletRouter } from "./routers/cpPortalWalletRouter";
 
 export const cpPortalAppRouter = cpPortalRouter({
   auth: cpPortalAuthRouter,
-  // Future sub-routers (PR 2.3):
-  // clients: cpPortalClientsRouter,
-  // pricing: cpPortalPricingRouter,
-  // settings: cpPortalSettingsRouter,
-  // invoices: cpPortalInvoicesRouter,
-  // wallet: cpPortalWalletRouter,
+  clients: cpPortalClientsRouter,
+  pricing: cpPortalPricingRouter,
+  settings: cpPortalSettingsRouter,
+  invoices: cpPortalInvoicesRouter,
+  wallet: cpPortalWalletRouter,
 });
 
 export type CpPortalAppRouter = typeof cpPortalAppRouter;
