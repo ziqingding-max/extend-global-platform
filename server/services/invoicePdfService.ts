@@ -7,11 +7,33 @@
 import PDFDocument from "pdfkit";
 import { getInvoiceById, listInvoiceItemsByInvoice, getCustomerById, getBillingEntityById } from "../db";
 import { storageGet } from "../storage";
+import { getDb } from "../db";
+import { channelPartners } from "../../drizzle/schema";
+import { eq } from "drizzle-orm";
 import path from "path";
 import fs from "fs";
 
 interface PdfOptions {
   invoiceId: number;
+}
+
+/**
+ * Resolved branding context for PDF rendering.
+ * For Layer 2 (cp_to_client) invoices, uses CP's own branding.
+ * For all other invoices, uses EG billing entity branding.
+ */
+interface PdfBrandingContext {
+  entityName: string;
+  legalName?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
+  registrationNumber?: string | null;
+  taxId?: string | null;
+  bankDetails?: string | null;
+  logoBuffer: Buffer | null;
 }
 
 import os from "os";
@@ -55,6 +77,83 @@ async function ensureCJKFont(): Promise<string | null> {
 /**
  * Generate a PDF buffer for a given invoice.
  */
+/**
+ * Fetch logo buffer from a URL or storage key.
+ */
+async function fetchLogoBuffer(logoUrl?: string | null, logoFileKey?: string | null): Promise<Buffer | null> {
+  try {
+    let url = logoUrl;
+    if (logoFileKey) {
+      const { url: signedUrl } = await storageGet(logoFileKey);
+      url = signedUrl;
+    }
+    if (url) {
+      const response = await fetch(url);
+      if (response.ok) {
+        return Buffer.from(await response.arrayBuffer());
+      }
+    }
+  } catch (err) {
+    console.warn("[InvoicePDF] Failed to fetch logo:", err);
+  }
+  return null;
+}
+
+/**
+ * Resolve branding context for an invoice.
+ * Layer 2 (cp_to_client) invoices use the CP's own branding.
+ * All other invoices use the EG billing entity branding.
+ */
+async function resolveBrandingContext(
+  invoice: any,
+  billingEntity: any | null
+): Promise<PdfBrandingContext> {
+  // Layer 2 invoices: use CP's own billing info and logo
+  if (invoice.invoiceLayer === "cp_to_client" && invoice.channelPartnerId) {
+    const db = getDb();
+    if (db) {
+      const cp = await db.query.channelPartners.findFirst({
+        where: eq(channelPartners.id, invoice.channelPartnerId),
+      });
+      if (cp) {
+        const logoBuffer = await fetchLogoBuffer(cp.logoUrl, cp.logoFileKey);
+        return {
+          entityName: cp.cpBillingEntityName || cp.companyName,
+          legalName: cp.legalEntityName,
+          address: cp.cpBillingAddress || cp.address,
+          city: cp.city,
+          state: cp.state,
+          postalCode: cp.postalCode,
+          country: cp.country,
+          registrationNumber: cp.registrationNumber,
+          taxId: cp.cpBillingTaxId,
+          bankDetails: cp.cpBankDetails,
+          logoBuffer,
+        };
+      }
+    }
+  }
+
+  // Default: use EG billing entity branding
+  const logoBuffer = await fetchLogoBuffer(
+    billingEntity?.logoUrl,
+    billingEntity?.logoFileKey
+  );
+  return {
+    entityName: billingEntity?.entityName || "GEA - Global Employment Advisors",
+    legalName: billingEntity?.legalName,
+    address: billingEntity?.address,
+    city: billingEntity?.city,
+    state: billingEntity?.state,
+    postalCode: billingEntity?.postalCode,
+    country: billingEntity?.country,
+    registrationNumber: billingEntity?.registrationNumber,
+    taxId: billingEntity?.taxId,
+    bankDetails: billingEntity?.bankDetails,
+    logoBuffer,
+  };
+}
+
 export async function generateInvoicePdf(options: PdfOptions): Promise<Buffer> {
   const invoice = await getInvoiceById(options.invoiceId);
   if (!invoice) throw new Error("Invoice not found");
@@ -65,26 +164,8 @@ export async function generateInvoicePdf(options: PdfOptions): Promise<Buffer> {
     : null;
   const items = await listInvoiceItemsByInvoice(invoice.id);
 
-  // Pre-fetch logo buffer before entering the sync Promise callback
-  // Use signed URL from storageGet for private OSS buckets
-  let logoBuffer: Buffer | null = null;
-  if (billingEntity && (billingEntity.logoFileKey || billingEntity.logoUrl)) {
-    try {
-      let logoUrl = billingEntity.logoUrl;
-      if (billingEntity.logoFileKey) {
-        const { url: signedUrl } = await storageGet(billingEntity.logoFileKey);
-        logoUrl = signedUrl;
-      }
-      if (logoUrl) {
-        const logoResponse = await fetch(logoUrl);
-        if (logoResponse.ok) {
-          logoBuffer = Buffer.from(await logoResponse.arrayBuffer());
-        }
-      }
-    } catch (logoErr) {
-      console.warn("[InvoicePDF] Failed to fetch billing entity logo:", logoErr);
-    }
-  }
+  // Resolve branding context (CP white-label for Layer 2, EG for others)
+  const branding = await resolveBrandingContext(invoice, billingEntity);
 
   // Pre-download CJK font if needed
   const cjkFontPath = await ensureCJKFont();
@@ -129,16 +210,17 @@ export async function generateInvoicePdf(options: PdfOptions): Promise<Buffer> {
     const rightStartY = 50; // Right column always starts at top
 
     // Billing entity logo (left side, above entity name)
-    if (logoBuffer) {
+    // Uses branding context: CP logo for Layer 2, EG billing entity logo for others
+    if (branding.logoBuffer) {
       try {
-        doc.image(logoBuffer, 50, leftY, { width: 80, height: 40, fit: [80, 40] });
+        doc.image(branding.logoBuffer, 50, leftY, { width: 80, height: 40, fit: [80, 40] });
         leftY += 48;
       } catch (logoErr) {
         console.warn("[InvoicePDF] Failed to render logo:", logoErr);
       }
     }
 
-    // Billing entity info (left side)
+    // Billing entity info (left side) — uses branding context for white-label support
     // Helper: calculate actual rendered height of text (accounts for word-wrap)
     function textHeight(text: string, fontSize: number, width: number): number {
       doc.fontSize(fontSize);
@@ -146,40 +228,35 @@ export async function generateInvoicePdf(options: PdfOptions): Promise<Buffer> {
     }
 
     doc.fontSize(16).fillColor("#1a1a1a");
-    if (billingEntity) {
-      smartText(billingEntity.entityName, 50, leftY, { width: 280 }, "bold");
-      leftY += textHeight(billingEntity.entityName, 16, 280) + 2;
-      doc.fontSize(9).fillColor("#666666");
-      if (billingEntity.legalName && billingEntity.legalName !== billingEntity.entityName) {
-        smartText(billingEntity.legalName, 50, leftY, { width: 280 });
-        leftY += textHeight(billingEntity.legalName, 9, 280);
-      }
-      if (billingEntity.address) {
-        smartText(billingEntity.address, 50, leftY, { width: 280 });
-        leftY += textHeight(billingEntity.address, 9, 280);
-      }
-      const cityLine = [billingEntity.city, billingEntity.state, billingEntity.postalCode].filter(Boolean).join(", ");
-      if (cityLine) {
-        smartText(cityLine, 50, leftY, { width: 280 });
-        leftY += textHeight(cityLine, 9, 280);
-      }
-      if (billingEntity.country) {
-        smartText(billingEntity.country, 50, leftY, { width: 280 });
-        leftY += textHeight(billingEntity.country, 9, 280);
-      }
-      if (billingEntity.registrationNumber) {
-        const regText = `Reg: ${billingEntity.registrationNumber}`;
-        smartText(regText, 50, leftY, { width: 280 });
-        leftY += textHeight(regText, 9, 280);
-      }
-      if (billingEntity.taxId) {
-        const taxText = `Tax ID: ${billingEntity.taxId}`;
-        smartText(taxText, 50, leftY, { width: 280 });
-        leftY += textHeight(taxText, 9, 280);
-      }
-    } else {
-      smartText("GEA - Global Employment Advisors", 50, leftY, { width: 280 }, "bold");
-      leftY += 20;
+    smartText(branding.entityName, 50, leftY, { width: 280 }, "bold");
+    leftY += textHeight(branding.entityName, 16, 280) + 2;
+    doc.fontSize(9).fillColor("#666666");
+    if (branding.legalName && branding.legalName !== branding.entityName) {
+      smartText(branding.legalName, 50, leftY, { width: 280 });
+      leftY += textHeight(branding.legalName, 9, 280);
+    }
+    if (branding.address) {
+      smartText(branding.address, 50, leftY, { width: 280 });
+      leftY += textHeight(branding.address, 9, 280);
+    }
+    const cityLine = [branding.city, branding.state, branding.postalCode].filter(Boolean).join(", ");
+    if (cityLine) {
+      smartText(cityLine, 50, leftY, { width: 280 });
+      leftY += textHeight(cityLine, 9, 280);
+    }
+    if (branding.country) {
+      smartText(branding.country, 50, leftY, { width: 280 });
+      leftY += textHeight(branding.country, 9, 280);
+    }
+    if (branding.registrationNumber) {
+      const regText = `Reg: ${branding.registrationNumber}`;
+      smartText(regText, 50, leftY, { width: 280 });
+      leftY += textHeight(regText, 9, 280);
+    }
+    if (branding.taxId) {
+      const taxText = `Tax ID: ${branding.taxId}`;
+      smartText(taxText, 50, leftY, { width: 280 });
+      leftY += textHeight(taxText, 9, 280);
     }
 
     // Invoice title (right side — independent Y tracking)
@@ -433,7 +510,8 @@ export async function generateInvoicePdf(options: PdfOptions): Promise<Buffer> {
     doc.text(`${currency} ${formatNum(finalAmountDue.toFixed(2))}`, totalsValX, tableY, { width: totalsValW, align: "right" });
 
     // ========== BANK DETAILS ==========
-    if (billingEntity && billingEntity.bankDetails) {
+    // Uses branding context: CP bank details for Layer 2, EG billing entity for others
+    if (branding.bankDetails) {
       tableY += 35;
 
       if (tableY > doc.page.height - 120) {
@@ -450,7 +528,7 @@ export async function generateInvoicePdf(options: PdfOptions): Promise<Buffer> {
 
       // Render bank details as plain text preserving line breaks
       doc.fontSize(9).fillColor("#333333");
-      const bankLines = billingEntity.bankDetails.split("\n");
+      const bankLines = branding.bankDetails.split("\n");
       for (const line of bankLines) {
         if (tableY > doc.page.height - 80) {
           doc.addPage();

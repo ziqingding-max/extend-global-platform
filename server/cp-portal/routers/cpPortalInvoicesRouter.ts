@@ -32,6 +32,7 @@ import {
   invoiceItems,
   customers,
 } from "../../../drizzle/schema";
+import { sendCpInvoiceToClient, sendCpInvoiceOverdueReminder } from "../../services/cpEmailService";
 
 // Fields visible to CP portal — excludes internalNotes
 const CP_INVOICE_FIELDS = {
@@ -311,6 +312,139 @@ export const cpPortalInvoicesRouter = cpPortalRouter({
           paid: statusMap["paid"] || 0,
           overdue: statusMap["overdue"] || 0,
         },
+      };
+    }),
+
+  /**
+   * Send a CP→Client invoice to the End Client.
+   * Updates the invoice status from 'draft' to 'sent' and sends a white-labeled email
+   * with the PDF attached to the customer's finance/admin contacts.
+   * Only CP→Client (Layer 2) invoices can be sent by the CP.
+   */
+  sendInvoice: cpFinanceProcedure
+    .input(z.object({ invoiceId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      // Verify invoice belongs to this CP and is a Layer 2 draft
+      const invoice = await db.query.invoices.findFirst({
+        where: and(
+          eq(invoices.id, input.invoiceId),
+          eq(invoices.channelPartnerId, ctx.cpUser.channelPartnerId)
+        ),
+      });
+
+      if (!invoice) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found" });
+      }
+
+      if (invoice.invoiceLayer !== "cp_to_client") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Only CP→Client invoices can be sent from the CP Portal",
+        });
+      }
+
+      if (invoice.status !== "draft") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Invoice is already in '${invoice.status}' status. Only draft invoices can be sent.`,
+        });
+      }
+
+      // Update status to 'sent'
+      const now = new Date();
+      await db
+        .update(invoices)
+        .set({
+          status: "sent",
+          sentDate: now,
+          updatedAt: now,
+        })
+        .where(eq(invoices.id, input.invoiceId));
+
+      // Send the white-labeled email with PDF attachment
+      const result = await sendCpInvoiceToClient({
+        invoiceId: input.invoiceId,
+        channelPartnerId: ctx.cpUser.channelPartnerId,
+        customerId: invoice.customerId,
+        invoiceNumber: invoice.invoiceNumber || `INV-${invoice.id}`,
+        invoiceMonth: invoice.invoiceMonth || undefined,
+        currency: invoice.currency || "USD",
+        totalAmount: invoice.total?.toString() || "0.00",
+      });
+
+      return {
+        success: true,
+        invoiceId: input.invoiceId,
+        newStatus: "sent",
+        emailSent: result.success,
+        recipientCount: result.recipientCount,
+      };
+    }),
+
+  /**
+   * Send an overdue reminder for a CP→Client invoice.
+   * Only invoices with 'sent' or 'overdue' status can receive reminders.
+   */
+  sendOverdueReminder: cpFinanceProcedure
+    .input(z.object({ invoiceId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const invoice = await db.query.invoices.findFirst({
+        where: and(
+          eq(invoices.id, input.invoiceId),
+          eq(invoices.channelPartnerId, ctx.cpUser.channelPartnerId)
+        ),
+      });
+
+      if (!invoice) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found" });
+      }
+
+      if (invoice.invoiceLayer !== "cp_to_client") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Only CP→Client invoices can have reminders sent from CP Portal",
+        });
+      }
+
+      if (invoice.status !== "sent" && invoice.status !== "overdue") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Only sent or overdue invoices can receive reminders",
+        });
+      }
+
+      // Calculate days overdue
+      const dueDate = invoice.dueDate ? new Date(invoice.dueDate) : new Date();
+      const daysOverdue = Math.max(0, Math.floor((Date.now() - dueDate.getTime()) / (1000 * 60 * 60 * 24)));
+
+      // Update status to 'overdue' if still 'sent'
+      if (invoice.status === "sent") {
+        await db
+          .update(invoices)
+          .set({ status: "overdue", updatedAt: new Date() })
+          .where(eq(invoices.id, input.invoiceId));
+      }
+
+      const result = await sendCpInvoiceOverdueReminder({
+        invoiceId: input.invoiceId,
+        channelPartnerId: ctx.cpUser.channelPartnerId,
+        customerId: invoice.customerId,
+        invoiceNumber: invoice.invoiceNumber || `INV-${invoice.id}`,
+        currency: invoice.currency || "USD",
+        totalAmount: invoice.total?.toString() || "0.00",
+        dueDate: invoice.dueDate || "N/A",
+        daysOverdue,
+      });
+
+      return {
+        success: result.success,
+        recipientCount: result.recipientCount,
       };
     }),
 });
