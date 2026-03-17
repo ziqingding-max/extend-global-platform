@@ -23,8 +23,8 @@ const envSchema = z.object({
   EMAIL_SMTP_PORT: z.coerce.number().default(465),
   EMAIL_SMTP_USER: z.string().optional(),
   EMAIL_SMTP_PASS: z.string().optional(),
-  EMAIL_FROM: z.string().default("no-reply@geahr.com"),
-  EMAIL_ADMIN: z.string().default("admin@geahr.com"),
+  EMAIL_FROM: z.string().default("no-reply@extendglobal.ai"),
+  EMAIL_ADMIN: z.string().default("admin@extendglobal.ai"),
 
   // AI - Optional
   DASHSCOPE_API_KEY: z.string().optional(),

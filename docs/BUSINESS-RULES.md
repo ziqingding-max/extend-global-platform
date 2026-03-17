@@ -327,9 +327,9 @@ grossProfit = invoiceTotal - allocatedVendorCosts
 
 The system provides three distinct portals with strict data isolation:
 
-1.  **Admin Portal (`admin.geahr.com`)**: For internal GEA operations staff. Access is controlled by JWT signed with HS256, stored in an HttpOnly cookie. Initial admin user is bootstrapped via environment variables.
-2.  **Client Portal (`app.geahr.com`)**: For customers. Every query is scoped by `customerId`. This is enforced at the tRPC middleware level (`protectedPortalProcedure`). Portal users can only see employees, invoices, adjustments, and leave records belonging to their customer. Authentication is JWT + bcrypt with an invite-based registration flow.
-3.  **Worker Portal (`worker.geahr.com`)**: For employees and contractors. Allows workers to manage their profile, view contracts, download payslips/invoices, track milestones, and complete onboarding tasks. Authentication is JWT + bcrypt with an invite-based registration flow.
+1.  **Admin Portal (`admin.extendglobal.ai`)**: For internal GEA operations staff. Access is controlled by JWT signed with HS256, stored in an HttpOnly cookie. Initial admin user is bootstrapped via environment variables.
+2.  **Client Portal (`app.extendglobal.ai`)**: For customers. Every query is scoped by `customerId`. This is enforced at the tRPC middleware level (`protectedPortalProcedure`). Portal users can only see employees, invoices, adjustments, and leave records belonging to their customer. Authentication is JWT + bcrypt with an invite-based registration flow.
+3.  **Worker Portal (`worker.extendglobal.ai`)**: For employees and contractors. Allows workers to manage their profile, view contracts, download payslips/invoices, track milestones, and complete onboarding tasks. Authentication is JWT + bcrypt with an invite-based registration flow.
 
 Portal users have their own role system: `admin` (full access), `hr_manager` (employees, leave), `finance` (invoices, read-only), `viewer` (read-only all).
 

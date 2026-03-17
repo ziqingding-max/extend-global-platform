@@ -174,7 +174,7 @@ export default function CpPortalLogin() {
         <p className="text-center text-xs text-muted-foreground mt-6">
           Powered by{" "}
           <a
-            href="https://extendglobal.com"
+            href="https://extendglobal.ai"
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary hover:underline"

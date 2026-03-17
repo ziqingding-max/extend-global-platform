@@ -1,16 +1,16 @@
 /**
  * Portal Base Path Utility
  *
- * Detects whether the current hostname is a portal subdomain (app.geahr.com)
+ * Detects whether the current hostname is a portal subdomain (app.extendglobal.ai)
  * and returns the appropriate base path for portal routes.
  *
- * - On app.geahr.com → base path is "" (portal routes at root: /login, /dashboard, etc.)
- * - On admin.geahr.com or any other host → base path is "/portal" (portal routes at /portal/login, etc.)
+ * - On app.extendglobal.ai → base path is "" (portal routes at root: /login, /dashboard, etc.)
+ * - On admin.extendglobal.ai or any other host → base path is "/portal" (portal routes at /portal/login, etc.)
  * - In development (localhost) → base path is "/portal" (path-based routing for convenience)
  */
 
-const PORTAL_SUBDOMAINS = ["app.geahr.com"];
-const WORKER_SUBDOMAINS = ["worker.geahr.com"];
+const PORTAL_SUBDOMAINS = ["app.extendglobal.ai"];
+const WORKER_SUBDOMAINS = ["worker.extendglobal.ai"];
 
 /**
  * Returns true if the current hostname is a worker portal subdomain
@@ -67,10 +67,10 @@ export function getPortalOrigin(): string {
   // If we're already on the portal domain, use current origin
   if (isPortalDomain()) return window.location.origin;
   // If we're on admin domain, construct the portal origin
-  // In production: admin.geahr.com → app.geahr.com
+  // In production: admin.extendglobal.ai → app.extendglobal.ai
   const hostname = window.location.hostname;
-  if (hostname === "admin.geahr.com") {
-    return `${window.location.protocol}//app.geahr.com`;
+  if (hostname === "admin.extendglobal.ai") {
+    return `${window.location.protocol}//app.extendglobal.ai`;
   }
   // Fallback for dev/manus.space: use current origin (path-based routing)
   return window.location.origin;

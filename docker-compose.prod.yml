@@ -22,12 +22,12 @@ services:
       - PORT=3000
       - DATABASE_URL=file:/app/data/production.db
       - JWT_SECRET=${JWT_SECRET}
-      - ADMIN_BOOTSTRAP_EMAIL=${ADMIN_BOOTSTRAP_EMAIL:-simon.ding@geahr.com}
+      - ADMIN_BOOTSTRAP_EMAIL=${ADMIN_BOOTSTRAP_EMAIL:-simon.ding@extendglobal.ai}
       - ADMIN_BOOTSTRAP_NAME=${ADMIN_BOOTSTRAP_NAME:-Simon Ding}
       - ADMIN_BOOTSTRAP_PASSWORD=${ADMIN_BOOTSTRAP_PASSWORD}
-      - ADMIN_APP_URL=${ADMIN_APP_URL:-https://admin.geahr.com}
-      - PORTAL_APP_URL=${PORTAL_APP_URL:-https://app.geahr.com}
-      - WORKER_APP_URL=${WORKER_APP_URL:-https://worker.geahr.com}
+      - ADMIN_APP_URL=${ADMIN_APP_URL:-https://admin.extendglobal.ai}
+      - PORTAL_APP_URL=${PORTAL_APP_URL:-https://app.extendglobal.ai}
+      - WORKER_APP_URL=${WORKER_APP_URL:-https://worker.extendglobal.ai}
       # 阿里云 OSS (马来西亚吉隆坡节点)
       - OSS_ACCESS_KEY_ID=${OSS_ACCESS_KEY_ID}
       - OSS_ACCESS_KEY_SECRET=${OSS_ACCESS_KEY_SECRET}
@@ -39,8 +39,8 @@ services:
       - EMAIL_SMTP_PORT=${EMAIL_SMTP_PORT:-465}
       - EMAIL_SMTP_USER=${EMAIL_SMTP_USER}
       - EMAIL_SMTP_PASS=${EMAIL_SMTP_PASS}
-      - EMAIL_FROM=${EMAIL_FROM:-no-reply@geahr.com}
-      - EMAIL_ADMIN=${EMAIL_ADMIN:-admin@geahr.com}
+      - EMAIL_FROM=${EMAIL_FROM:-no-reply@extendglobal.ai}
+      - EMAIL_ADMIN=${EMAIL_ADMIN:-admin@extendglobal.ai}
       # AI (可选)
       - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY}
     volumes:

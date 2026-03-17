@@ -210,7 +210,7 @@ function PortalFallback() {
  * Completely isolated from admin auth/session
  */
 function PortalRouter() {
-  const base = getPortalBasePath(); // "" on app.geahr.com, "/portal" otherwise
+  const base = getPortalBasePath(); // "" on app.extendglobal.ai, "/portal" otherwise
   return (
     <portalTrpc.Provider client={portalTrpcClient} queryClient={portalQueryClient}>
       <QueryClientProvider client={portalQueryClient}>
@@ -341,16 +341,16 @@ function CpPortalRouter() {
  * Top-level Router — dispatches to Portal, Worker, CP Portal, or Admin based on subdomain or path.
  *
  * Subdomain routing:
- *   - {cp}.extendglobal.com → CP branded domain (CP Portal at /cp, Portal at /portal, Worker at /worker)
- *   - app.extendglobal.com → EG direct (Portal at root, Admin at /admin)
+ *   - {cp}.extendglobal.ai → CP branded domain (CP Portal at /cp, Portal at /portal, Worker at /worker)
+ *   - app.extendglobal.ai → EG direct (Portal at root, Admin at /admin)
  *   - localhost / dev → path-based: /cp/* → CpPortalRouter, /portal/* → PortalRouter, etc.
  */
 function Router() {
-  // On worker subdomain (worker.geahr.com), render worker portal at root level
+  // On worker subdomain (worker.extendglobal.ai), render worker portal at root level
   if (isWorkerDomain()) {
     return <WorkerRouter />;
   }
-  // On portal subdomain (app.geahr.com), render portal at root level
+  // On portal subdomain (app.extendglobal.ai), render portal at root level
   if (isPortalDomain()) {
     return <PortalRouter />;
   }

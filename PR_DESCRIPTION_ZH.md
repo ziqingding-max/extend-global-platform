@@ -47,8 +47,8 @@ git pull origin main
 ```
 
 ### 步骤 2：Nginx 路由配置修复（非常重要）
-**注意**：在您反馈 `worker.geahr.com` 404 后，我发现并修复了原 Nginx 配置中的一个冲突。
-旧配置会将 `worker.geahr.com/` 强制 rewrite 为 `/worker/`，这与前端的 SPA 路由逻辑冲突。新代码中已经修复了 `nginx/conf.d/gea-saas.conf` 和 `enable-ssl.sh`。
+**注意**：在您反馈 `worker.extendglobal.ai` 404 后，我发现并修复了原 Nginx 配置中的一个冲突。
+旧配置会将 `worker.extendglobal.ai/` 强制 rewrite 为 `/worker/`，这与前端的 SPA 路由逻辑冲突。新代码中已经修复了 `nginx/conf.d/gea-saas.conf` 和 `enable-ssl.sh`。
 
 如果您之前已经运行过 `enable-ssl.sh` 并且生成了带有 SSL 的配置文件（通常位于 `/etc/nginx/conf.d/` 或被脚本直接覆盖），您需要：
 1. 重新运行一次 `docker compose up -d --build` 来更新 Nginx 容器内的配置。
@@ -70,10 +70,10 @@ docker logs gea-saas-app | grep "Migration"
 ```
 您应该能看到类似 `[Entrypoint] Applying migration: 0011_worker_portal_refactor.sql` 的成功日志。
 
-### 步骤 5：验证 worker.geahr.com 访问
-在浏览器中访问 `https://worker.geahr.com`。
+### 步骤 5：验证 worker.extendglobal.ai 访问
+在浏览器中访问 `https://worker.extendglobal.ai`。
 - 预期结果：页面成功加载，显示登录界面（不再是 404）。
-- 如果您的 `worker.geahr.com` 域名还没有解析，请先在阿里云域名控制台添加 A 记录指向服务器 IP。
+- 如果您的 `worker.extendglobal.ai` 域名还没有解析，请先在阿里云域名控制台添加 A 记录指向服务器 IP。
 - 如果访问提示“不安全”或无法访问 HTTPS，请运行 `./enable-ssl.sh` 申请并配置证书。
 
 ---

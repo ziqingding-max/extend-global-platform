@@ -23,7 +23,7 @@ const BORDER_LIGHT = "#e5e7eb";
 /**
  * Build the logo <img> tag using an externally hosted URL.
  * The logo PNG is served from the app's static files at /brand/gea-logo-email.png.
- * The base URL comes from ADMIN_APP_URL in .env (e.g. https://app.geahr.com).
+ * The base URL comes from ADMIN_APP_URL in .env (e.g. https://app.extendglobal.ai).
  * This avoids base64 embedding which triggers anti-spam filters on Aliyun DirectMail.
  */
 function getLogoImg(): string {

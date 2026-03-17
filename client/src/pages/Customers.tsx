@@ -580,9 +580,9 @@ function CustomerDetail({ id }: { id: number }) {
   const portalAccessMutation = trpc.customers.generatePortalToken.useMutation({
     onSuccess: (data) => {
       // Open portal in new tab with impersonation token
-      // Use app.geahr.com for portal access, as admin is on admin.geahr.com
+      // Use app.extendglobal.ai for portal access, as admin is on admin.extendglobal.ai
       const hostname = window.location.hostname;
-      const isProduction = hostname.includes('geahr.com') || hostname.includes('manus.space');
+      const isProduction = hostname.includes('extendglobal.ai') || hostname.includes('manus.space');
       let portalBase = window.location.origin;
       
       if (isProduction && hostname.includes("admin")) {
@@ -630,12 +630,12 @@ function CustomerDetail({ id }: { id: number }) {
   }
 
   function getInviteLink(token: string) {
-    // In production, portal is on app.geahr.com; in dev, use /portal/ path prefix
+    // In production, portal is on app.extendglobal.ai; in dev, use /portal/ path prefix
     const hostname = window.location.hostname;
-    const isProduction = hostname.includes('geahr.com') || hostname.includes('manus.space');
+    const isProduction = hostname.includes('extendglobal.ai') || hostname.includes('manus.space');
     if (isProduction) {
       const protocol = window.location.protocol;
-      return `${protocol}//app.geahr.com/register?token=${token}`;
+      return `${protocol}//app.extendglobal.ai/register?token=${token}`;
     }
     return `${window.location.origin}/portal/register?token=${token}`;
   }

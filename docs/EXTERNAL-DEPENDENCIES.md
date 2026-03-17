@@ -122,9 +122,9 @@
 
 | 门户 | 域名 | 认证方式 | 说明 |
 |------|----------|----------|------|
-| Admin Portal | admin.geahr.com | JWT + bcrypt | JWT (HS256) 存储在 HttpOnly Cookie 中。初始管理员通过环境变量引导创建。 |
-| Client Portal | app.geahr.com | JWT + bcrypt + 邀请注册 | 客户通过管理员生成的邀请链接注册，使用密码 + JWT 认证。 |
-| Worker Portal | worker.geahr.com | JWT + bcrypt + 邀请注册 | 员工/合同工通过邀请链接注册，进行身份验证和自助服务。 |
+| Admin Portal | admin.extendglobal.ai | JWT + bcrypt | JWT (HS256) 存储在 HttpOnly Cookie 中。初始管理员通过环境变量引导创建。 |
+| Client Portal | app.extendglobal.ai | JWT + bcrypt + 邀请注册 | 客户通过管理员生成的邀请链接注册，使用密码 + JWT 认证。 |
+| Worker Portal | worker.extendglobal.ai | JWT + bcrypt + 邀请注册 | 员工/合同工通过邀请链接注册，进行身份验证和自助服务。 |
 
 **关键环境变量**:
 - `JWT_SECRET` — 用于签发 JWT 和 Session Cookie 的密钥 (内部别名 `cookieSecret`)

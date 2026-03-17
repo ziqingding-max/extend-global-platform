@@ -13,7 +13,7 @@
 │  ┌──────────────────────┐  ┌──────────────────────┐  ┌────────────────┐  │
 │  │   Admin Portal        │  │   Client Portal       │  │  Worker Portal  │  │
 │  │   (React 19 + Vite)   │  │   (React 19 + Vite)   │  │  (React 19 + Vite)│
-│  │   admin.geahr.com     │  │   app.geahr.com       │  │  worker.geahr.com │
+│  │   admin.extendglobal.ai     │  │   app.extendglobal.ai       │  │  worker.extendglobal.ai │
 │  │                       │  │                       │  │                 │
 │  │  trpc.* hooks         │  │  portalTrpc.* hooks   │  │  workerTrpc.* hooks│
 │  │  → /api/trpc          │  │  → /api/portal        │  │  → /api/worker  │
@@ -60,7 +60,7 @@ The system runs three separate tRPC instances on the same Express server. They s
 
 | Aspect | Admin Portal | Client Portal | Worker Portal |
 |:---|:---|:---|:---|
-| **URL** | `admin.geahr.com` | `app.geahr.com` | `worker.geahr.com` |
+| **URL** | `admin.extendglobal.ai` | `app.extendglobal.ai` | `worker.extendglobal.ai` |
 | **tRPC Mount** | `/api/trpc` | `/api/portal` | `/api/worker` |
 | **tRPC Instance** | `server/_core/trpc.ts` | `server/portal/portalTrpc.ts` | `server/worker/workerTrpc.ts` |
 | **Auth Mechanism** | JWT (HS256) in HttpOnly Cookie | JWT + bcrypt (self-managed) | JWT + bcrypt (self-managed) |
@@ -74,7 +74,7 @@ The system runs three separate tRPC instances on the same Express server. They s
 | **i18n** | Zustand-based i18n store at `client/src/lib/i18n.ts` | (Shared) | (Shared) |
 
 ### Routing Decision
-The `Router` component in `App.tsx` determines which portal to render based on the hostname. On `app.geahr.com` it renders `PortalRouter`, on `worker.geahr.com` it renders `WorkerRouter`. On all other domains (including `localhost`), it uses path-based routing for the Admin portal.
+The `Router` component in `App.tsx` determines which portal to render based on the hostname. On `app.extendglobal.ai` it renders `PortalRouter`, on `worker.extendglobal.ai` it renders `WorkerRouter`. On all other domains (including `localhost`), it uses path-based routing for the Admin portal.
 
 ---
 

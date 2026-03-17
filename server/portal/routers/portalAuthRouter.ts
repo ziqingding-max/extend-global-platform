@@ -343,9 +343,9 @@ export const portalAuthRouter = portalRouter({
         .set({ resetToken, resetExpiresAt })
         .where(eq(customerContacts.id, contact.id));
 
-      // Build reset URL — detect if origin is on geahr.com subdomain
+      // Build reset URL — detect if origin is on extendglobal.ai subdomain
       const origin = input.origin;
-      const isPortalDomain = origin.includes('app.geahr.com');
+      const isPortalDomain = origin.includes('app.extendglobal.ai');
       const resetUrl = isPortalDomain
         ? `${origin}/reset-password?token=${resetToken}`
         : `${origin}/portal/reset-password?token=${resetToken}`;

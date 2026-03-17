@@ -21,17 +21,17 @@ warn()  { echo -e "${YELLOW}[⚠️  WARN]${NC} $1"; }
 error() { echo -e "${RED}[❌ ERROR]${NC} $1"; exit 1; }
 
 # 获取域名
-ADMIN_DOMAIN="${1:-admin.geahr.com}"
-PORTAL_DOMAIN="${2:-app.geahr.com}"
-WORKER_DOMAIN="${3:-worker.geahr.com}"
+ADMIN_DOMAIN="${1:-admin.extendglobal.ai}"
+PORTAL_DOMAIN="${2:-app.extendglobal.ai}"
+WORKER_DOMAIN="${3:-worker.extendglobal.ai}"
 
 if [ -z "$1" ]; then
-    read -p "请输入管理后台域名（默认 admin.geahr.com）: " input
-    ADMIN_DOMAIN=${input:-admin.geahr.com}
-    read -p "请输入客户门户域名（默认 app.geahr.com）: " input
-    PORTAL_DOMAIN=${input:-app.geahr.com}
-    read -p "请输入员工门户域名（默认 worker.geahr.com）: " input
-    WORKER_DOMAIN=${input:-worker.geahr.com}
+    read -p "请输入管理后台域名（默认 admin.extendglobal.ai）: " input
+    ADMIN_DOMAIN=${input:-admin.extendglobal.ai}
+    read -p "请输入客户门户域名（默认 app.extendglobal.ai）: " input
+    PORTAL_DOMAIN=${input:-app.extendglobal.ai}
+    read -p "请输入员工门户域名（默认 worker.extendglobal.ai）: " input
+    WORKER_DOMAIN=${input:-worker.extendglobal.ai}
 fi
 
 echo ""

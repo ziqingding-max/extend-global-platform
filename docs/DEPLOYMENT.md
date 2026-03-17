@@ -78,9 +78,9 @@ graph TD
 | `ADMIN_BOOTSTRAP_EMAIL` | `.env` (Secrets) | 用于首次启动时创建初始管理员账号的邮箱。 |
 | `ADMIN_BOOTSTRAP_PASSWORD`| `.env` (Secrets) | 初始管理员的密码。 |
 | `ADMIN_BOOTSTRAP_NAME`| `.env` | 初始管理员的姓名。 |
-| `ADMIN_APP_URL` | `.env` | 管理后台的公开访问 URL (admin.geahr.com)。 |
-| `PORTAL_APP_URL` | `.env` | 客户门户的公开访问 URL (app.geahr.com)。 |
-| `WORKER_APP_URL` | `.env` | 员工门户的公开访问 URL (worker.geahr.com)。 |
+| `ADMIN_APP_URL` | `.env` | 管理后台的公开访问 URL (admin.extendglobal.ai)。 |
+| `PORTAL_APP_URL` | `.env` | 客户门户的公开访问 URL (app.extendglobal.ai)。 |
+| `WORKER_APP_URL` | `.env` | 员工门户的公开访问 URL (worker.extendglobal.ai)。 |
 | `OSS_ACCESS_KEY_ID` | `.env` (Secrets) | 阿里云 OSS 访问密钥 ID。 |
 | `OSS_ACCESS_KEY_SECRET` | `.env` (Secrets) | 阿里云 OSS 访问密钥 Secret。 |
 | `OSS_REGION` | `.env` | 阿里云 OSS 的区域 (e.g., ap-southeast-3)。 |
@@ -135,6 +135,6 @@ graph TD
 
 系统提供三个独立的前端门户，服务于不同角色的用户：
 
-*   **管理后台 (Admin Portal)**: `admin.geahr.com` - 供内部运营团队使用，管理客户、员工、合同、薪酬、发票等核心业务数据。
-*   **客户门户 (Client Portal)**: `app.geahr.com` - 供客户公司的 HR 或管理员使用，用于员工入职、管理团队、查看发票和报告等自服务功能。
-*   **员工门户 (Worker Portal)**: `worker.geahr.com` - 供签约的员工或承包商使用，提供个人资料管理、合同查看、薪资单/发票下载、工时与里程碑跟踪、以及入职流程引导等功能。
+*   **管理后台 (Admin Portal)**: `admin.extendglobal.ai` - 供内部运营团队使用，管理客户、员工、合同、薪酬、发票等核心业务数据。
+*   **客户门户 (Client Portal)**: `app.extendglobal.ai` - 供客户公司的 HR 或管理员使用，用于员工入职、管理团队、查看发票和报告等自服务功能。
+*   **员工门户 (Worker Portal)**: `worker.extendglobal.ai` - 供签约的员工或承包商使用，提供个人资料管理、合同查看、薪资单/发票下载、工时与里程碑跟踪、以及入职流程引导等功能。

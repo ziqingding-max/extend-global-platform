@@ -607,7 +607,7 @@ export const customersRouter = router({
 
         // Send email notification to the portal user
         try {
-          const loginUrl = process.env.PORTAL_APP_URL ? `${process.env.PORTAL_APP_URL}/login` : "https://app.geahr.com/login";
+          const loginUrl = process.env.PORTAL_APP_URL ? `${process.env.PORTAL_APP_URL}/login` : "https://app.extendglobal.ai/login";
           await sendPortalPasswordChangedEmail({
             to: contact.email,
             contactName: contact.contactName || "User",

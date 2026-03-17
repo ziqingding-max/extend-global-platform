@@ -139,7 +139,7 @@ export default function WorkerLogin() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Powered by GEA Platform
+          Powered by Extend Global
         </p>
       </div>
     </div>

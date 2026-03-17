@@ -513,7 +513,7 @@ export async function sendWeeklyDigest(
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  [GEA Logo]                                    [app.geahr.com]              │
+│  [GEA Logo]                                    [app.extendglobal.ai]              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  Hi [Name],                                                                 │
@@ -553,7 +553,7 @@ export async function sendWeeklyDigest(
 
 - **退订链接**：每封邮件底部包含一键退订链接，点击后自动将 `notification_preferences.viaEmail` 设为 `false`，且 `emailFrequency` 设为 `"never"`。
 - **退订处理路由**：新增 `GET /api/portal/unsubscribe?token=<JWT>` 路由，处理退订请求。
-- **发件人标识**：使用 `noreply@updates.geahr.com` 作为发件人地址，需在 Resend 中完成域名验证。
+- **发件人标识**：使用 `noreply@updates.extendglobal.ai` 作为发件人地址，需在 Resend 中完成域名验证。
 - **物理地址**：邮件底部包含 GEA 公司物理地址（符合 CAN-SPAM 要求）。
 
 ---
@@ -640,7 +640,7 @@ export const portalHelpCenterRouter = portalRouter({
 ### 第四阶段：邮件推送实现（预计 2-3 小时）
 
 1. 安装 `resend` 和 `@react-email/components` 依赖。
-2. 配置 `RESEND_API_KEY` 环境变量，完成 `updates.geahr.com` 域名验证。
+2. 配置 `RESEND_API_KEY` 环境变量，完成 `updates.extendglobal.ai` 域名验证。
 3. 创建 `server/services/emailService.ts` 服务层。
 4. 创建 `server/email-templates/weekly-digest.tsx` 邮件模板（含双语支持）。
 5. 实现退订路由 `GET /api/portal/unsubscribe`。

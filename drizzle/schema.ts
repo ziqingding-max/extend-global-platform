@@ -206,7 +206,7 @@ export const channelPartners = sqliteTable(
     cpBankDetails: text("cpBankDetails"), // Free-text bank info shown on CP->Client invoices
     cpInvoicePrefix: text("cpInvoicePrefix", { length: 20 }), // e.g. "CIIC-" for CP invoice numbering
     cpInvoiceSequence: integer("cpInvoiceSequence").default(0).notNull(), // Last used CP invoice sequence
-    // Subdomain for white-label portal access (e.g. "fa" -> fa.extendglobal.com)
+    // Subdomain for white-label portal access (e.g. "fa" -> fa.extendglobal.ai)
     subdomain: text("subdomain", { length: 63 }), // null for EG-DIRECT internal CP
     // Internal flag: true means this CP represents EG itself (direct-sign clients)
     isInternal: integer("isInternal", { mode: "boolean" }).default(false).notNull(),

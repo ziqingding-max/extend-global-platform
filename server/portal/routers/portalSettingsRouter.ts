@@ -336,7 +336,7 @@ export const portalSettingsRouter = portalRouter({
           .limit(1);
         const companyName = custRows[0]?.companyName || "Your Company";
 
-        const portalOrigin = process.env.PORTAL_APP_URL || "https://app.geahr.com";
+        const portalOrigin = process.env.PORTAL_APP_URL || "https://app.extendglobal.ai";
         const inviteUrl = `${portalOrigin}/register?token=${inviteToken}`;
 
         await sendPortalInviteEmail({
@@ -476,7 +476,7 @@ export const portalSettingsRouter = portalRouter({
           .limit(1);
         const companyName = custRows[0]?.companyName || "Your Company";
 
-        const portalOrigin = process.env.PORTAL_APP_URL || "https://app.geahr.com";
+        const portalOrigin = process.env.PORTAL_APP_URL || "https://app.extendglobal.ai";
         const inviteUrl = `${portalOrigin}/register?token=${inviteToken}`;
 
         await sendPortalInviteEmail({

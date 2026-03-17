@@ -92,7 +92,7 @@ export default function AdminLogin() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="admin@geahr.com"
+                    placeholder="admin@extendglobal.ai"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"

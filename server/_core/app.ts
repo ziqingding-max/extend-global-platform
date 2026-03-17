@@ -254,9 +254,9 @@ export async function createApp(options: { skipStatic?: boolean } = {}) {
       // Set portal cookie
       setPortalCookie(res, token);
       // Redirect to portal dashboard
-      // On app.geahr.com, PortalRouter mounts dashboard at root "/"
+      // On app.extendglobal.ai, PortalRouter mounts dashboard at root "/"
       // On other hosts (dev/manus.space), portal uses path prefix "/portal"
-      const portalBase = req.hostname === "app.geahr.com" ? "" : "/portal";
+      const portalBase = req.hostname === "app.extendglobal.ai" ? "" : "/portal";
       const redirectTarget = portalBase ? `${portalBase}/dashboard` : "/";
       res.redirect(redirectTarget);
     } catch (error) {

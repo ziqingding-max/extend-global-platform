@@ -150,7 +150,7 @@ export async function provisionWorkerUser(input: ProvisionWorkerInput): Promise<
 
   // Send invite email
   if (shouldSendEmail) {
-    const baseUrl = input.baseUrl || process.env.WORKER_PORTAL_URL || "https://worker.geahr.com";
+    const baseUrl = input.baseUrl || process.env.WORKER_PORTAL_URL || "https://worker.extendglobal.ai";
     const inviteUrl = `${baseUrl}/invite/${inviteToken}`;
 
     try {
@@ -217,7 +217,7 @@ export async function resendWorkerInvite(workerUserId: number, baseUrl?: string)
     }
   }
 
-  const url = baseUrl || process.env.WORKER_PORTAL_URL || "https://worker.geahr.com";
+  const url = baseUrl || process.env.WORKER_PORTAL_URL || "https://worker.extendglobal.ai";
   const inviteUrl = `${url}/invite/${inviteToken}`;
 
   await sendWorkerPortalInviteEmail({

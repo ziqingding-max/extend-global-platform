@@ -36,7 +36,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="Due Date" value="{{dueDate}}" />
 </GEA_INFO_CARD>
 <p>The invoice PDF is attached to this email for your records. If you have any questions regarding this invoice, please don't hesitate to reach out to your dedicated account manager.</p>
-<GEA_BUTTON text="View in Client Portal" href="https://app.geahr.com" />
+<GEA_BUTTON text="View in Client Portal" href="https://app.extendglobal.ai" />
 <p>Best regards,<br><strong>GEA Finance Team</strong><br>Global Employment Advisors</p>`,
         inAppMessage: "Invoice #{{invoiceNumber}} has been sent."
       },
@@ -50,7 +50,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="到期日" value="{{dueDate}}" />
 </GEA_INFO_CARD>
 <p>发票 PDF 已附在此邮件中。如您对此发票有任何疑问，请随时联系您的客户经理。</p>
-<GEA_BUTTON text="前往客户门户查看" href="https://app.geahr.com" />
+<GEA_BUTTON text="前往客户门户查看" href="https://app.extendglobal.ai" />
 <p>祝好，<br><strong>GEA 财务团队</strong><br>Global Employment Advisors</p>`,
         inAppMessage: "发票 #{{invoiceNumber}} 已发送。"
       }
@@ -78,7 +78,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 </GEA_INFO_CARD>
 <p>To avoid any disruption to your services, we kindly request that payment be arranged as soon as possible. If payment has already been made, please disregard this notice and accept our thanks.</p>
 <p>Should you have any questions or need to discuss payment arrangements, please contact your account manager or reply to this email.</p>
-<GEA_BUTTON text="View Invoice Details" href="https://app.geahr.com" color="#ef4444" />
+<GEA_BUTTON text="View Invoice Details" href="https://app.extendglobal.ai" color="#ef4444" />
 <p>Best regards,<br><strong>GEA Finance Team</strong><br>Global Employment Advisors</p>`,
         inAppMessage: "Invoice #{{invoiceNumber}} is overdue."
       },
@@ -94,7 +94,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 </GEA_INFO_CARD>
 <p>为避免影响您的服务，请尽快安排付款。如您已完成付款，请忽略此通知。</p>
 <p>如有任何疑问或需要讨论付款安排，请联系您的客户经理或回复此邮件。</p>
-<GEA_BUTTON text="查看发票详情" href="https://app.geahr.com" color="#ef4444" />
+<GEA_BUTTON text="查看发票详情" href="https://app.extendglobal.ai" color="#ef4444" />
 <p>祝好，<br><strong>GEA 财务团队</strong><br>Global Employment Advisors</p>`,
         inAppMessage: "发票 #{{invoiceNumber}} 已逾期。"
       }
@@ -114,7 +114,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
         emailSubject: "Payroll Draft Ready for Review — {{period}}",
         emailBody: `<p>Dear Admin,</p>
 <p>A payroll draft for <strong>{{period}}</strong> has been automatically generated and is ready for your review.</p>
-<GEA_BUTTON text="Review Payroll Draft" href="https://admin.geahr.com" />
+<GEA_BUTTON text="Review Payroll Draft" href="https://admin.extendglobal.ai" />
 <p>— GEA System</p>`,
         inAppMessage: "Payroll draft for {{period}} is ready for review."
       },
@@ -122,7 +122,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
         emailSubject: "工资单草稿已生成 — {{period}}",
         emailBody: `<p>管理员您好，</p>
 <p><strong>{{period}}</strong> 的工资单草稿已自动生成，请前往后台审核。</p>
-<GEA_BUTTON text="审核工资单" href="https://admin.geahr.com" />
+<GEA_BUTTON text="审核工资单" href="https://admin.extendglobal.ai" />
 <p>— GEA 系统</p>`,
         inAppMessage: "{{period}} 的工资单草稿已生成，请审核。"
       }
@@ -150,7 +150,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="Requested Start Date" value="{{startDate}}" />
 </GEA_INFO_CARD>
 <p>Please review this request and begin the onboarding process at your earliest convenience.</p>
-<GEA_BUTTON text="Review in Admin Panel" href="https://admin.geahr.com" />
+<GEA_BUTTON text="Review in Admin Panel" href="https://admin.extendglobal.ai" />
 <p>— GEA System</p>`,
         inAppMessage: "New onboarding request: {{employeeName}} from {{customerName}}."
       },
@@ -166,7 +166,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="期望入职日期" value="{{startDate}}" />
 </GEA_INFO_CARD>
 <p>请尽快审核此申请并启动入职流程。</p>
-<GEA_BUTTON text="前往管理后台审核" href="https://admin.geahr.com" />
+<GEA_BUTTON text="前往管理后台审核" href="https://admin.extendglobal.ai" />
 <p>— GEA 系统</p>`,
         inAppMessage: "收到 {{customerName}} 提交的 {{employeeName}} 入职申请。"
       }
@@ -233,7 +233,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="Period" value="{{period}}" />
 </GEA_INFO_CARD>
 <p>You can view and download the invoice by logging into your portal:</p>
-<GEA_BUTTON text="View Invoice in Portal" href="https://worker.geahr.com" />
+<GEA_BUTTON text="View Invoice in Portal" href="https://worker.extendglobal.ai" />
 <p>If you have any questions, please don't hesitate to contact us.</p>
 <p>Best regards,<br><strong>GEA Operations Team</strong><br>Global Employment Advisors</p>`,
         inAppMessage: "Invoice #{{invoiceNumber}} is ready for review."
@@ -247,7 +247,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="期间" value="{{period}}" />
 </GEA_INFO_CARD>
 <p>请登录门户查看和下载发票：</p>
-<GEA_BUTTON text="前往门户查看发票" href="https://worker.geahr.com" />
+<GEA_BUTTON text="前往门户查看发票" href="https://worker.extendglobal.ai" />
 <p>如有任何疑问，请随时联系我们。</p>
 <p>祝好，<br><strong>GEA 运营团队</strong><br>Global Employment Advisors</p>`,
         inAppMessage: "发票 #{{invoiceNumber}} 已生成，请查看。"
@@ -276,7 +276,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="Status" value="<span style='color:#22c55e;font-weight:bold;'>Sent</span>" />
 </GEA_INFO_CARD>
 <p>Please allow 1–3 business days for the funds to arrive in your account, depending on your bank's processing time.</p>
-<GEA_BUTTON text="View Payment Details" href="https://worker.geahr.com" />
+<GEA_BUTTON text="View Payment Details" href="https://worker.extendglobal.ai" />
 <p>Best regards,<br><strong>GEA Finance Team</strong><br>Global Employment Advisors</p>`,
         inAppMessage: "Payment of {{currency}} {{amount}} has been sent."
       },
@@ -292,7 +292,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="状态" value="<span style='color:#22c55e;font-weight:bold;'>已发送</span>" />
 </GEA_INFO_CARD>
 <p>根据您银行的处理时间，资金预计将在 1-3 个工作日内到账。</p>
-<GEA_BUTTON text="查看付款详情" href="https://worker.geahr.com" />
+<GEA_BUTTON text="查看付款详情" href="https://worker.extendglobal.ai" />
 <p>祝好，<br><strong>GEA 财务团队</strong><br>Global Employment Advisors</p>`,
         inAppMessage: "款项 {{currency}} {{amount}} 已汇出。"
       }
@@ -318,7 +318,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="Status" value="<span style='color:#22c55e;font-weight:bold;'>Active</span>" />
 </GEA_INFO_CARD>
 <p>Statutory leave policies for <strong>{{countryName}}</strong> have been automatically initialized with default entitlements based on local labor regulations. We recommend reviewing and customizing these policies to align with your company's specific requirements.</p>
-<GEA_BUTTON text="Review Leave Policies" href="https://app.geahr.com" />
+<GEA_BUTTON text="Review Leave Policies" href="https://app.extendglobal.ai" />
 <p>If you need assistance configuring leave policies, our team is here to help.</p>
 <p>Best regards,<br><strong>GEA Operations Team</strong><br>Global Employment Advisors</p>`,
         inAppMessage: "New country {{countryName}} activated. Please configure leave policies in Settings."
@@ -333,7 +333,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="状态" value="<span style='color:#22c55e;font-weight:bold;'>已激活</span>" />
 </GEA_INFO_CARD>
 <p><strong>{{countryName}}</strong> 的法定假期政策已根据当地劳动法规自动初始化默认标准。建议您审核并根据贵公司的具体要求进行自定义调整。</p>
-<GEA_BUTTON text="审核假期政策" href="https://app.geahr.com" />
+<GEA_BUTTON text="审核假期政策" href="https://app.extendglobal.ai" />
 <p>如需协助配置假期政策，我们的团队随时为您提供帮助。</p>
 <p>祝好，<br><strong>GEA 运营团队</strong><br>Global Employment Advisors</p>`,
         inAppMessage: "新国家 {{countryName}} 已激活，请在设置中配置假期政策。"
@@ -364,7 +364,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="Requested By" value="{{requestedBy}}" />
 </GEA_INFO_CARD>
 <p>Please review this request carefully and take appropriate action in the Admin panel. Ensure all local labor law requirements are considered before processing.</p>
-<GEA_BUTTON text="Review in Admin Panel" href="https://admin.geahr.com" />
+<GEA_BUTTON text="Review in Admin Panel" href="https://admin.extendglobal.ai" />
 <p>— GEA System</p>`,
         inAppMessage: "Termination request: {{employeeName}} ({{employeeCode}}) from {{customerName}}. Last day: {{requestedEndDate}}."
       },
@@ -382,7 +382,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="申请人" value="{{requestedBy}}" />
 </GEA_INFO_CARD>
 <p>请仔细审核此申请，并在管理后台采取相应操作。处理前请确保已考虑当地劳动法的相关要求。</p>
-<GEA_BUTTON text="前往管理后台审核" href="https://admin.geahr.com" />
+<GEA_BUTTON text="前往管理后台审核" href="https://admin.extendglobal.ai" />
 <p>— GEA 系统</p>`,
         inAppMessage: "终止申请：{{customerName}} 的 {{employeeName}} ({{employeeCode}})，最后工作日：{{requestedEndDate}}。"
       }
@@ -412,7 +412,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="Requested By" value="{{requestedBy}}" />
 </GEA_INFO_CARD>
 <p>Please review this request and take appropriate action in the Admin panel.</p>
-<GEA_BUTTON text="Review in Admin Panel" href="https://admin.geahr.com" />
+<GEA_BUTTON text="Review in Admin Panel" href="https://admin.extendglobal.ai" />
 <p>— GEA System</p>`,
         inAppMessage: "Termination request: {{contractorName}} ({{contractorCode}}) from {{customerName}}. End date: {{requestedEndDate}}."
       },
@@ -430,7 +430,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="申请人" value="{{requestedBy}}" />
 </GEA_INFO_CARD>
 <p>请审核此申请，并在管理后台采取相应操作。</p>
-<GEA_BUTTON text="前往管理后台审核" href="https://admin.geahr.com" />
+<GEA_BUTTON text="前往管理后台审核" href="https://admin.extendglobal.ai" />
 <p>— GEA 系统</p>`,
         inAppMessage: "终止申请：{{customerName}} 的 {{contractorName}} ({{contractorCode}})，结束日期：{{requestedEndDate}}。"
       }
@@ -458,7 +458,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="Start Date" value="{{startDate}}" />
 </GEA_INFO_CARD>
 <p>The employee's information has been submitted and is now being reviewed by the GEA team. You will be notified once the employee is fully activated.</p>
-<GEA_BUTTON text="View in Client Portal" href="https://app.geahr.com" />
+<GEA_BUTTON text="View in Client Portal" href="https://app.extendglobal.ai" />
 <p>Best regards,<br><strong>GEA Operations Team</strong><br>Global Employment Advisors</p>`,
         inAppMessage: "{{employeeName}} has completed onboarding."
       },
@@ -474,7 +474,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="入职日期" value="{{startDate}}" />
 </GEA_INFO_CARD>
 <p>该员工的信息已提交，GEA 团队正在审核中。员工完全激活后我们会通知您。</p>
-<GEA_BUTTON text="前往客户门户查看" href="https://app.geahr.com" />
+<GEA_BUTTON text="前往客户门户查看" href="https://app.extendglobal.ai" />
 <p>祝好，<br><strong>GEA 运营团队</strong><br>Global Employment Advisors</p>`,
         inAppMessage: "{{employeeName}} 已完成入职。"
       }
@@ -502,7 +502,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="Start Date" value="{{startDate}}" />
 </GEA_INFO_CARD>
 <p>Payroll and benefits are now being processed. You can view the employee's details in the Client Portal.</p>
-<GEA_BUTTON text="View Employee" href="https://app.geahr.com" />
+<GEA_BUTTON text="View Employee" href="https://app.extendglobal.ai" />
 <p>Best regards,<br><strong>GEA Operations Team</strong><br>Global Employment Advisors</p>`,
         inAppMessage: "{{employeeName}} ({{employeeCode}}) has been activated."
       },
@@ -518,7 +518,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 <GEA_ROW label="入职日期" value="{{startDate}}" />
 </GEA_INFO_CARD>
 <p>薪资和福利正在处理中。您可以在客户门户中查看该员工的详细信息。</p>
-<GEA_BUTTON text="查看员工" href="https://app.geahr.com" />
+<GEA_BUTTON text="查看员工" href="https://app.extendglobal.ai" />
 <p>祝好，<br><strong>GEA 运营团队</strong><br>Global Employment Advisors</p>`,
         inAppMessage: "{{employeeName}} ({{employeeCode}}) 已激活。"
       }
@@ -547,7 +547,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 </GEA_INFO_CARD>
 <p>{{message}}</p>
 <p>Please log in to the Admin Panel to review and approve these items as soon as possible.</p>
-<GEA_BUTTON text="Go to Admin Panel" href="https://admin.geahr.com" />
+<GEA_BUTTON text="Go to Admin Panel" href="https://admin.extendglobal.ai" />
 <p>\u2014 GEA System</p>`,
         inAppMessage: "{{totalPending}} pending items for {{period}} need approval."
       },
@@ -564,7 +564,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
 </GEA_INFO_CARD>
 <p>{{message}}</p>
 <p>\u8bf7\u5c3d\u5feb\u767b\u5f55\u7ba1\u7406\u540e\u53f0\u5ba1\u6838\u5e76\u5904\u7406\u8fd9\u4e9b\u9879\u76ee\u3002</p>
-<GEA_BUTTON text="\u524d\u5f80\u7ba1\u7406\u540e\u53f0" href="https://admin.geahr.com" />
+<GEA_BUTTON text="\u524d\u5f80\u7ba1\u7406\u540e\u53f0" href="https://admin.extendglobal.ai" />
 <p>\u2014 GEA \u7cfb\u7edf</p>`,
         inAppMessage: "{{period}} \u6709 {{totalPending}} \u4e2a\u5f85\u5ba1\u6279\u9879\u76ee\u3002"
       }
