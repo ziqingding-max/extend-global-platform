@@ -1,5 +1,5 @@
 /**
- * GEA Admin — Analyze / Create Vendor Bill (Full-Page)
+ * EG Admin — Analyze / Create Vendor Bill (Full-Page)
  *
  * Unified full-page layout for both AI-parsed and manual bill creation.
  * Accessed via:
@@ -792,7 +792,7 @@ export default function AnalyzeBill() {
   const pageTitle = isAIMode ? t("vendorBills.analyze.aiTitle") : t("vendorBills.analyze.manualTitle");
 
   return (
-    <Layout breadcrumb={["GEA", t("vendorBills.title"), pageTitle]}>
+    <Layout breadcrumb={["EG", t("vendorBills.title"), pageTitle]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center justify-between">

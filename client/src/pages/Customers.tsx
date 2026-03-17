@@ -1,5 +1,5 @@
 /**
- * GEA Admin — Customer Management
+ * EG Admin — Customer Management
  * List + Detail view with tabs (Info, Pricing, Contacts, Contracts)
  */
 import Layout from "@/components/Layout";
@@ -49,6 +49,7 @@ function CustomerList() {
   const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [cpFilter, setCpFilter] = useState<string>("all");
   const [, setLocation] = useLocation();
   const searchString = useSearch();
   const [createOpen, setCreateOpen] = useState(false);
@@ -73,14 +74,17 @@ function CustomerList() {
       return;
     }
     setPage(1);
-  }, [search, statusFilter]);
+  }, [search, statusFilter, cpFilter]);
 
   const { data, isLoading, refetch } = trpc.customers.list.useQuery({
     search: search || undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
+    channelPartnerId: cpFilter === "all" ? undefined : cpFilter === "direct" ? null : parseInt(cpFilter),
     limit: pageSize,
     offset: (page - 1) * pageSize,
   });
+
+  const { data: cpList } = trpc.channelPartners.list.useQuery({ limit: 200, includeInternal: true });
 
   const { data: billingEntities } = trpc.billingEntities.list.useQuery();
 
@@ -119,7 +123,7 @@ function CustomerList() {
   }
 
   return (
-    <Layout breadcrumb={["GEA", "Customers"]}>
+    <Layout breadcrumb={["EG", "Customers"]}>
       <div className="p-6 space-y-6 page-enter">
         <div className="flex items-center justify-between">
           <div>
@@ -271,6 +275,16 @@ function CustomerList() {
               <SelectItem value="active">{t("status.active")}</SelectItem>
               <SelectItem value="suspended">{t("status.suspended")}</SelectItem>
               <SelectItem value="terminated">{t("status.terminated")}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={cpFilter} onValueChange={setCpFilter}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Channel Partner" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Partners</SelectItem>
+              <SelectItem value="direct">EG Direct</SelectItem>
+              {cpList?.data?.map((cp: any) => (
+                <SelectItem key={cp.id} value={String(cp.id)}>{cp.companyName}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -688,7 +702,7 @@ function CustomerDetail({ id }: { id: number }) {
 
   if (isLoading) {
     return (
-      <Layout breadcrumb={["GEA", "Customers", "Loading..."]}>
+      <Layout breadcrumb={["EG", "Customers", "Loading..."]}>
         <div className="p-6 space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>
       </Layout>
     );
@@ -696,7 +710,7 @@ function CustomerDetail({ id }: { id: number }) {
 
   if (!customer) {
     return (
-      <Layout breadcrumb={["GEA", "Customers", "Not Found"]}>
+      <Layout breadcrumb={["EG", "Customers", "Not Found"]}>
         <div className="p-6 text-center py-20">
           <p className="text-muted-foreground">{t("customers.detail.notFound")}</p>
           <Button variant="outline" className="mt-4" onClick={() => setLocation(`/customers?page=${fromPage}`)}>{t("customers.button.back")}</Button>
@@ -718,7 +732,7 @@ function CustomerDetail({ id }: { id: number }) {
   const availableCountries = countriesData?.map(c => ({ code: c.countryCode, name: c.countryName })) || [];
 
   return (
-    <Layout breadcrumb={["GEA", "Customers", customer.companyName]}>
+    <Layout breadcrumb={["EG", "Customers", customer.companyName]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center gap-4">

@@ -185,7 +185,7 @@ export default function PortalLayout({ children, title }: PortalLayoutProps) {
         {collapsed ? (
           <img 
             src="/brand/gea-logo-icon.png" 
-            alt="GEA" 
+            alt="EG" 
             className="w-8 h-8 flex-shrink-0 object-contain"
           />
         ) : (

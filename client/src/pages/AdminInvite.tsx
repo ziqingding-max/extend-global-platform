@@ -123,7 +123,7 @@ export default function AdminInvite() {
             className="h-16 object-contain mb-4"
           />
           <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-            GEA Admin
+            EG Admin
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             {t("admin_invite.header.title")}

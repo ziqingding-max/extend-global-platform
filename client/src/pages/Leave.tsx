@@ -1,6 +1,6 @@
 
 /*
- * GEA Admin — Time Off & Milestones
+ * EG Admin — Time Off & Milestones
  * Manage employee leave requests and contractor milestones
  */
 import Layout from "@/components/Layout";
@@ -369,7 +369,7 @@ export default function Leave() {
   }, [data, customerFilter, countryFilter, employeeMap, viewTab]);
 
   return (
-    <Layout breadcrumb={["GEA", "Time Off & Milestones"]}>
+    <Layout breadcrumb={["EG", "Time Off & Milestones"]}>
       <div className="p-6 space-y-6 page-enter">
         <div className="flex items-center justify-between">
           <div>

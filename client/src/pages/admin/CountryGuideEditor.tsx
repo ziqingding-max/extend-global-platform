@@ -247,7 +247,7 @@ export default function CountryGuideEditor() {
   return (
     <Layout
       breadcrumb={[
-        "GEA",
+        "EG",
         "System",
         t("nav.countryGuideAdmin"),
         country?.countryName || countryCode,

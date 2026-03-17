@@ -75,7 +75,7 @@ export default function ReleaseTasks() {
   });
 
   return (
-    <Layout breadcrumb={["GEA", "Release Tasks"]}>
+    <Layout breadcrumb={["EG", "Release Tasks"]}>
       <div className="p-6 space-y-6 page-enter">
         <div className="flex items-center justify-between">
           <div>

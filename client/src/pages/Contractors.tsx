@@ -35,6 +35,7 @@ export function ContractorListContent() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [customerFilter, setCustomerFilter] = useState<string>("all");
   const [countryFilter, setCountryFilter] = useState<string>("all");
+  const [cpFilter, setCpFilter] = useState<string>("all");
   const [, setLocation] = useLocation();
   const searchString = useSearch();
 
@@ -59,13 +60,13 @@ export function ContractorListContent() {
       return;
     }
     setPage(1);
-  }, [search, statusFilter, customerFilter, countryFilter]);
+  }, [search, statusFilter, customerFilter, countryFilter, cpFilter]);
 
   const { data, isLoading, refetch } = trpc.contractors.list.useQuery({
     search: search || undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
     customerId: customerFilter !== "all" ? parseInt(customerFilter) : undefined,
-    country: countryFilter !== "all" ? countryFilter : undefined,
+    channelPartnerId: cpFilter === "all" ? undefined : cpFilter === "direct" ? null : parseInt(cpFilter),
     limit: pageSize,
     offset: (page - 1) * pageSize,
   });
@@ -84,6 +85,7 @@ export function ContractorListContent() {
   
   const { data: customers } = trpc.customers.list.useQuery({ limit: 200 });
   const { data: countriesList } = trpc.countries.list.useQuery();
+  const { data: cpList } = trpc.channelPartners.list.useQuery({ limit: 200, includeInternal: true });
 
   const statusColors: Record<string, string> = {
     active: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -128,6 +130,16 @@ export function ContractorListContent() {
             <SelectItem value="active">{t("status.active")}</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
             <SelectItem value="terminated">{t("status.terminated")}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={cpFilter} onValueChange={setCpFilter}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Channel Partner" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Partners</SelectItem>
+            <SelectItem value="direct">EG Direct</SelectItem>
+            {cpList?.data?.map((cp: any) => (
+              <SelectItem key={cp.id} value={String(cp.id)}>{cp.companyName}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

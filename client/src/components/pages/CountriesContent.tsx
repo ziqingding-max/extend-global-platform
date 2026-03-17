@@ -1,5 +1,5 @@
 /*
- * GEA Admin — Country Configuration
+ * EG Admin — Country Configuration
  * All countries are pre-populated. Admin only configures service fees.
  * Country becomes active when any service fee is set.
  */

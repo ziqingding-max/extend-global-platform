@@ -1,5 +1,5 @@
 /*
- * GEA Admin — Payroll Management
+ * EG Admin — Payroll Management
  * List payroll runs + detail view with payroll items, submit/approve/reject workflow
  * Supports filtering by customer or country, auto-fill employees, month picker
  */
@@ -161,7 +161,7 @@ function PayrollList() {
   }, [data, countryFilter, monthFilter, viewTab]);
 
   return (
-    <Layout breadcrumb={["GEA", "Payroll"]}>
+    <Layout breadcrumb={["EG", "Payroll"]}>
       <div className="p-6 space-y-6 page-enter">
         <div className="flex items-center justify-between">
           <div>
@@ -482,7 +482,7 @@ function PayrollDetail({ id }: { id: number }) {
 
   if (isLoading) {
     return (
-      <Layout breadcrumb={["GEA", "Payroll", "Loading..."]}>
+      <Layout breadcrumb={["EG", "Payroll", "Loading..."]}>
         <div className="p-6 space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>
       </Layout>
     );
@@ -490,7 +490,7 @@ function PayrollDetail({ id }: { id: number }) {
 
   if (!run) {
     return (
-      <Layout breadcrumb={["GEA", "Payroll", "Not Found"]}>
+      <Layout breadcrumb={["EG", "Payroll", "Not Found"]}>
         <div className="p-6 text-center py-20">
           <p className="text-muted-foreground">Payroll run not found</p>
           <Button variant="outline" className="mt-4" onClick={() => setLocation("/payroll")}>Back to Payroll</Button>
@@ -583,7 +583,7 @@ function PayrollDetail({ id }: { id: number }) {
   };
 
   return (
-    <Layout breadcrumb={["GEA", "Payroll", `${formatMonthLong(run.payrollMonth)}`]}>
+    <Layout breadcrumb={["EG", "Payroll", `${formatMonthLong(run.payrollMonth)}`]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center gap-4">

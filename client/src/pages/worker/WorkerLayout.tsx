@@ -159,7 +159,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
         <div className="px-4 border-b h-16 flex items-center gap-2">
           <img
             src="/brand/gea-logo-icon-green.png"
-            alt="GEA"
+            alt="EG"
             className="w-8 h-8 flex-shrink-0 object-contain"
           />
           <span className="font-bold text-lg">Worker Portal</span>
@@ -218,7 +218,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
         <div className="flex items-center gap-2">
           <img
             src="/brand/gea-logo-icon-green.png"
-            alt="GEA"
+            alt="EG"
             className="w-7 h-7 flex-shrink-0 object-contain"
           />
           <span className="font-bold text-lg">Worker Portal</span>

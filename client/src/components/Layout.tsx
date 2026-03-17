@@ -1,5 +1,5 @@
 /*
- * GEA Admin — Layout Component
+ * EG Admin — Layout Component
  * Design: Fixed left sidebar (deep slate) + top header + main content area
  * Sidebar: 240px fixed, collapsible to 64px icon-only mode
  * i18n: Supports English/Chinese toggle
@@ -256,7 +256,7 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
         {collapsed ? (
           <img 
             src="/brand/gea-logo-icon.png" 
-            alt="GEA" 
+            alt="EG" 
             className="w-8 h-8 flex-shrink-0 object-contain"
           />
         ) : (

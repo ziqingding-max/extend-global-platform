@@ -52,7 +52,7 @@ export default function CountryGuideList() {
   const totalPublished = stats?.reduce((sum, s) => sum + (Number(s.publishedChapters) || 0), 0) || 0;
 
   return (
-    <Layout breadcrumb={["GEA", "System", t("nav.countryGuideAdmin")]}>
+    <Layout breadcrumb={["EG", "System", t("nav.countryGuideAdmin")]}>
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

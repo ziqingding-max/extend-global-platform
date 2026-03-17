@@ -1,5 +1,5 @@
 /**
- * GEA Admin — Vendor Bills (List + Detail)
+ * EG Admin — Vendor Bills (List + Detail)
  *
  * List view: table of all vendor bills with filters, stats, export.
  * Detail view: bill info, line items, cost allocations, status workflow.
@@ -122,7 +122,7 @@ function VendorBillList() {
   }
 
   return (
-    <Layout breadcrumb={["GEA", t("vendorBills.title")]}>
+    <Layout breadcrumb={["EG", t("vendorBills.title")]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -392,7 +392,7 @@ function VendorBillDetail() {
 
   if (isLoading) {
     return (
-      <Layout breadcrumb={["GEA", t("vendorBills.title"), "..."]}>
+      <Layout breadcrumb={["EG", t("vendorBills.title"), "..."]}>
         <div className="p-6 space-y-4">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-48 w-full" />
@@ -403,7 +403,7 @@ function VendorBillDetail() {
 
   if (!bill) {
     return (
-      <Layout breadcrumb={["GEA", t("vendorBills.title")]}>
+      <Layout breadcrumb={["EG", t("vendorBills.title")]}>
         <div className="p-6 text-center py-16">
           <FileStack className="w-10 h-10 mx-auto mb-3 text-muted-foreground opacity-30" />
           <p className="text-muted-foreground">{t("vendorBills.detail.notFound")}</p>
@@ -431,7 +431,7 @@ function VendorBillDetail() {
   ];
 
   return (
-    <Layout breadcrumb={["GEA", t("vendorBills.title"), bill.billNumber || `#${billId}`]}>
+    <Layout breadcrumb={["EG", t("vendorBills.title"), bill.billNumber || `#${billId}`]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center justify-between">

@@ -1,5 +1,5 @@
 /**
- * GEA Admin — Page Skeleton / Loading States
+ * EG Admin — Page Skeleton / Loading States
  * Provides beautiful loading skeletons for different page types
  */
 import { Skeleton } from "@/components/ui/skeleton";

@@ -1,5 +1,5 @@
 /*
- * GEA Admin — App Router
+ * EG Admin — App Router
  * Design: Corporate Precision — Swiss International Typographic Style meets Enterprise SaaS
  */
 

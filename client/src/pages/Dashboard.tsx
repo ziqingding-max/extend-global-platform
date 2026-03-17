@@ -1,5 +1,5 @@
 /*
- * GEA Admin — Dashboard (Multi-Tab)
+ * EG Admin — Dashboard (Multi-Tab)
  * 5 tabs: Overview, Operations, Finance, HR & Leave, Activity Log
  * Strict role-based tab visibility
  * Interactive Recharts charts for monthly trends and revenue
@@ -1019,7 +1019,7 @@ export default function Dashboard() {
   }, [role, t]);
 
   return (
-    <Layout breadcrumb={["GEA", t("nav.dashboard")]}>
+    <Layout breadcrumb={["EG", t("nav.dashboard")]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div>
