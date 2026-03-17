@@ -12,6 +12,8 @@ import { portalAppRouter } from "../portal/portalRouter";
 import { createPortalContext } from "../portal/portalTrpc";
 import { appWorkerRouter } from "../worker/workerRouter";
 import { createWorkerContext } from "../worker/workerTrpc";
+import { cpPortalAppRouter } from "../cp-portal/cpPortalRouter";
+import { createCpPortalContext } from "../cp-portal/cpPortalTrpc";
 import { serveStatic } from "./serve-static";
 import { generateInvoicePdf } from "../services/invoicePdfService";
 import { countryGuidePdfService } from "../services/countryGuidePdfService";
@@ -288,6 +290,16 @@ export async function createApp(options: { skipStatic?: boolean } = {}) {
     createExpressMiddleware({
       router: appWorkerRouter,
       createContext: createWorkerContext,
+    })
+  );
+
+  // tRPC API — CP Portal (independent JWT auth)
+  // Completely separate router, context, and auth system for Channel Partners
+  app.use(
+    "/api/cp-portal",
+    createExpressMiddleware({
+      router: cpPortalAppRouter,
+      createContext: createCpPortalContext,
     })
   );
   // development mode uses Vite, production mode uses static files
