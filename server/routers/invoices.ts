@@ -152,6 +152,8 @@ export const invoicesRouter = router({
         invoiceType: z.string().optional(),
         invoiceMonth: z.string().optional(),
         excludeCreditNotes: z.boolean().optional(),
+        channelPartnerId: z.number().nullable().optional(),
+        invoiceLayer: z.string().optional(),
         limit: z.number().default(50),
         offset: z.number().default(0),
       })
@@ -164,6 +166,8 @@ export const invoicesRouter = router({
           invoiceType: input.invoiceType,
           invoiceMonth: input.invoiceMonth,
           excludeCreditNotes: input.excludeCreditNotes,
+          channelPartnerId: input.channelPartnerId,
+          invoiceLayer: input.invoiceLayer,
         },
         input.limit,
         input.offset

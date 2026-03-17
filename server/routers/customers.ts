@@ -35,6 +35,7 @@ export const customersRouter = router({
       z.object({
         status: z.string().optional(),
         search: z.string().optional(),
+        channelPartnerId: z.number().nullable().optional(),
         limit: z.number().default(50),
         offset: z.number().default(0),
       })
@@ -46,6 +47,7 @@ export const customersRouter = router({
         pageSize: input.limit,
         search: input.search,
         status: input.status,
+        channelPartnerId: input.channelPartnerId,
       });
     }),
 

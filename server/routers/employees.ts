@@ -49,6 +49,7 @@ export const employeesRouter = router({
         country: z.string().optional(),
         serviceType: z.string().optional(),
         search: z.string().optional(),
+        channelPartnerId: z.number().nullable().optional(),
         limit: z.number().default(50),
         offset: z.number().default(0),
       })
@@ -63,6 +64,7 @@ export const employeesRouter = router({
         country: input.country,
         serviceType: input.serviceType,
         search: input.search,
+        channelPartnerId: input.channelPartnerId,
       });
     }),
 

@@ -1,5 +1,5 @@
 
-import { eq, like, count, desc, and, getTableColumns } from "drizzle-orm";
+import { eq, like, count, desc, and, isNull, getTableColumns } from "drizzle-orm";
 import { 
   customers, InsertCustomer, 
   customerContacts, InsertCustomerContact, 
@@ -29,10 +29,11 @@ export interface ListCustomersParams {
   pageSize?: number;
   search?: string;
   status?: string;
+  channelPartnerId?: number | null; // null = EG-direct only, undefined = all
 }
 
 export async function listCustomers(params: ListCustomersParams = {}) {
-  const { page = 1, pageSize = 50, search, status } = params;
+  const { page = 1, pageSize = 50, search, status, channelPartnerId } = params;
   const db = await getDb();
   if (!db) return { data: [], total: 0 };
   const offset = (page - 1) * pageSize;
@@ -40,6 +41,13 @@ export async function listCustomers(params: ListCustomersParams = {}) {
   const conditions = [];
   if (search) conditions.push(like(customers.companyName, `%${search}%`));
   if (status) conditions.push(eq(customers.status, status as any));
+  if (channelPartnerId !== undefined) {
+    if (channelPartnerId === null) {
+      conditions.push(isNull(customers.channelPartnerId));
+    } else {
+      conditions.push(eq(customers.channelPartnerId, channelPartnerId));
+    }
+  }
   
   const where = conditions.length > 0 ? and(...conditions) : undefined;
   

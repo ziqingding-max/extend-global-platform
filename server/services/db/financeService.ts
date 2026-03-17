@@ -1,5 +1,5 @@
 
-import { eq, like, count, desc, and, inArray, sum, sql } from "drizzle-orm";
+import { eq, like, count, desc, and, inArray, sum, sql, isNull } from "drizzle-orm";
 import { 
   invoices, InsertInvoice,
   invoiceItems, InsertInvoiceItem,
@@ -37,7 +37,7 @@ export async function getInvoiceByNumber(invoiceNumber: string) {
 }
 
 export async function listInvoices(
-  filters: { customerId?: number; status?: string; invoiceType?: string; invoiceMonth?: string; excludeCreditNotes?: boolean } = {},
+  filters: { customerId?: number; status?: string; invoiceType?: string; invoiceMonth?: string; excludeCreditNotes?: boolean; channelPartnerId?: number | null; invoiceLayer?: string } = {},
   limit: number = 50,
   offset: number = 0
 ) {
@@ -50,6 +50,14 @@ export async function listInvoices(
   if (filters.status) conditions.push(eq(invoices.status, filters.status as any));
   if (filters.invoiceType) conditions.push(eq(invoices.invoiceType, filters.invoiceType as any));
   if (filters.invoiceMonth) conditions.push(eq(invoices.invoiceMonth, filters.invoiceMonth));
+  if (filters.channelPartnerId !== undefined) {
+    if (filters.channelPartnerId === null) {
+      conditions.push(isNull(invoices.channelPartnerId));
+    } else {
+      conditions.push(eq(invoices.channelPartnerId, filters.channelPartnerId));
+    }
+  }
+  if (filters.invoiceLayer) conditions.push(eq(invoices.invoiceLayer, filters.invoiceLayer as any));
   
   // Exclude negative invoice types (Credit Notes & Deposit Refunds) if requested
   if (filters.excludeCreditNotes) {
