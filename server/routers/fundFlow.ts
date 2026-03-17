@@ -2,17 +2,20 @@
  * Fund Flow Router
  *
  * Provides endpoints for the four-party fund flow:
- *   - Process client payment (Layer 2 → auto-deduct Layer 1)
- *   - Process manual Layer 1 payment
+ *   - CP manually pays Layer 1 invoice from wallet
+ *   - List outstanding Layer 1 invoices for a CP
  *   - Get CP fund flow summary
- *   - Batch process outstanding Layer 1 invoices
+ *   - Get fund flow overview across all CPs
+ *
+ * IMPORTANT: All wallet deductions are CP-initiated (manual).
+ * The system NEVER auto-deducts from CP wallets.
  */
 import { z } from "zod";
 import { router } from "../_core/trpc";
 import { financeManagerProcedure, userProcedure } from "../procedures";
 import {
-  processClientPayment,
-  processLayer1Payment,
+  payLayer1FromWallet,
+  getLayer1OutstandingForCp,
   getCpFundFlowSummary,
 } from "../services/fundFlowEngine";
 import { getDb } from "../db";
@@ -20,92 +23,72 @@ import {
   invoices,
   cpWalletTransactions,
   channelPartnerWallets,
+  customers,
 } from "../../drizzle/schema";
-import { eq, and, sql, desc, inArray } from "drizzle-orm";
+import { eq, and, sql, desc } from "drizzle-orm";
 import { cpWalletService } from "../services/cpWalletService";
 
 export const fundFlowRouter = router({
   /**
-   * Process a client payment on a Layer 2 invoice.
-   * Triggers the full four-party flow:
-   *   Client pays → CP wallet credited → CP wallet debited for Layer 1 → Layer 1 marked paid
+   * CP manually pays a Layer 1 (EG → CP) invoice from their wallet.
+   * This is the ONLY way to pay Layer 1 invoices.
+   * CP must have sufficient wallet balance and must explicitly initiate this.
    */
-  processClientPayment: financeManagerProcedure
-    .input(
-      z.object({
-        layer2InvoiceId: z.number(),
-        paidAmount: z.string(),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      return processClientPayment(
-        input.layer2InvoiceId,
-        input.paidAmount,
-        ctx.user.id,
-      );
-    }),
-
-  /**
-   * Process a manual Layer 1 payment (CP pays EG directly).
-   */
-  processLayer1Payment: financeManagerProcedure
+  payLayer1: financeManagerProcedure
     .input(
       z.object({
         layer1InvoiceId: z.number(),
-        paidAmount: z.string(),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      return processLayer1Payment(
-        input.layer1InvoiceId,
-        input.paidAmount,
-        ctx.user.id,
-      );
+      return payLayer1FromWallet(input.layer1InvoiceId, ctx.user.id);
     }),
 
   /**
-   * Batch process: Auto-deduct from CP wallet for all outstanding Layer 1 invoices.
-   * Useful for monthly settlement runs.
+   * List outstanding (unpaid) Layer 1 invoices for a CP.
+   * Used in CP Portal "Pay from Wallet" view.
    */
-  batchSettleLayer1: financeManagerProcedure
+  outstandingLayer1: userProcedure
     .input(
       z.object({
         channelPartnerId: z.number(),
-        currency: z.string().default("USD"),
+        currency: z.string().optional(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
+    .query(async ({ input }) => {
+      const outstanding = await getLayer1OutstandingForCp(
+        input.channelPartnerId,
+        input.currency,
+      );
+
+      // Enrich with customer names
       const db = getDb();
-      if (!db) return { settled: 0, failed: 0, errors: [] as string[] };
+      if (db && outstanding.length > 0) {
+        const invoiceIds = outstanding.map((inv) => inv.id);
+        const invoiceRecords = await db
+          .select({
+            id: invoices.id,
+            customerId: invoices.customerId,
+          })
+          .from(invoices)
+          .where(sql`${invoices.id} IN (${sql.join(invoiceIds.map(id => sql`${id}`), sql`, `)})`);
 
-      // Get all outstanding Layer 1 invoices for this CP
-      const outstanding = await db
-        .select()
-        .from(invoices)
-        .where(
-          and(
-            eq(invoices.channelPartnerId, input.channelPartnerId),
-            eq(invoices.invoiceLayer, "eg_to_cp"),
-            sql`${invoices.status} IN ('sent', 'overdue')`,
-            eq(invoices.currency, input.currency),
-          )
-        );
+        const customerIds = Array.from(new Set(invoiceRecords.map((r) => r.customerId)));
+        const customerRecords = await db
+          .select({ id: customers.id, name: customers.companyName })
+          .from(customers)
+          .where(sql`${customers.id} IN (${sql.join(customerIds.map(id => sql`${id}`), sql`, `)})`);
 
-      let settled = 0;
-      let failed = 0;
-      const errors: string[] = [];
+        const customerMap = new Map(customerRecords.map((c) => [c.id, c.name]));
+        const invoiceCustomerMap = new Map(invoiceRecords.map((r) => [r.id, r.customerId]));
 
-      for (const inv of outstanding) {
-        const result = await processLayer1Payment(inv.id, inv.total, ctx.user.id);
-        if (result.success) {
-          settled++;
-        } else {
-          failed++;
-          errors.push(`${inv.invoiceNumber}: ${result.error}`);
+        for (const inv of outstanding) {
+          const customerId = invoiceCustomerMap.get(inv.id);
+          inv.customerName = customerId ? (customerMap.get(customerId) || "Unknown") : "Unknown";
         }
       }
 
-      return { settled, failed, errors };
+      return outstanding;
     }),
 
   /**
@@ -188,7 +171,7 @@ export const fundFlowRouter = router({
         channelPartnerId: w.channelPartnerId,
         currency: w.currency,
         balance: bal,
-        frozenBalance: 0, // Will be enriched below
+        frozenBalance: 0,
       };
     });
 
