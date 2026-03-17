@@ -74,6 +74,37 @@ export const cpPortalSettingsRouter = cpPortalRouter({
     };
   }),
 
+  /**
+   * Update CP organization profile (admin only)
+   */
+  updateProfile: cpAdminProcedure
+    .input(
+      z.object({
+        companyName: z.string().min(1).optional(),
+        primaryContactEmail: z.string().email().optional(),
+        primaryContactPhone: z.string().optional(),
+        primaryContactName: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        postalCode: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const cpId = ctx.cpUser.channelPartnerId;
+      await updateChannelPartner(cpId, input);
+      await logAuditAction({
+        userId: ctx.cpUser.contactId,
+        action: "cp_profile_updated",
+        entityType: "channel_partner",
+        entityId: cpId,
+        changes: JSON.stringify(input),
+        channelPartnerId: cpId,
+        portalSource: "cp_portal",
+      });
+      return { success: true };
+    }),
+
   // =========================================================================
   // Branding Management (cp_admin only)
   // =========================================================================
