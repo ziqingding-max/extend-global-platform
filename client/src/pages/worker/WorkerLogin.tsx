@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { User, Loader2, Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { useCpBranding } from "@/hooks/useCpBranding";
 
 export default function WorkerLogin() {
   const [, setLocation] = useLocation();
@@ -15,6 +16,7 @@ export default function WorkerLogin() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const { branding, isCp } = useCpBranding();
 
   const loginMutation = workerTrpc.auth.login.useMutation({
     onSuccess: (data) => {
@@ -42,12 +44,12 @@ export default function WorkerLogin() {
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <img 
-            src="/brand/gea-logo-horizontal-green.png" 
-            alt="GEA - Global Employment Advisors" 
+            src={isCp && branding?.logoUrl ? branding.logoUrl : "/brand/gea-logo-horizontal-green.png"} 
+            alt={isCp && branding?.companyName ? branding.companyName : "Extend Global"} 
             className="h-16 object-contain mb-4"
           />
           <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-            Worker Portal
+            {isCp && branding?.companyName ? `${branding.companyName} Worker Portal` : "Worker Portal"}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Access your profile, invoices, and milestones
