@@ -134,12 +134,14 @@ docker-compose -f docker-compose.prod.yml ps
 
 现在，您可以打开浏览器，访问以下地址测试：
 1. **Admin 管理后台**：`https://admin.extendglobal.ai`
-2. **Client 客户门户**：`https://portal.extendglobal.ai`
+2. **Client 客户门户（EG直客）**：`https://app.extendglobal.ai`
 3. **Worker 员工门户**：`https://worker.extendglobal.ai`
 
 **测试 CP 白标功能**：
 在 Admin 后台创建一个 Channel Partner，假设子域名设置为 `acme`。
-然后在浏览器访问 `https://acme.extendglobal.ai/portal`，您应该能看到系统自动切换成了该 CP 的 Logo 和颜色！
+然后在浏览器访问：
+- `https://acme.extendglobal.ai/portal` → 应显示 CP “Acme” 的 Logo 和品牌色的客户门户
+- `https://acme.extendglobal.ai/worker` → 应显示 CP “Acme” 的 Logo 和品牌色的员工门户
 
 ---
 
