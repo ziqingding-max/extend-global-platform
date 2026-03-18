@@ -13,6 +13,7 @@ import {
 import {
   FileText, Plus, Download, BarChart3,
   Send, CheckCircle2, CreditCard, AlertTriangle,
+  Layers, ArrowDown, ArrowUp, ArrowLeftRight as ArrowDirect,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -216,6 +217,9 @@ function InvoiceGenerationPanel() {
 /* ========== Main Page Component ========== */
 export default function Invoices() {
   const { t } = useI18n();
+  /* ── Layer Tab State (top-level B2B2B isolation) ── */
+  const [activeLayerTab, setActiveLayerTab] = useState<string>("all");
+
   const {
     isLoading,
     invoices,
@@ -231,6 +235,15 @@ export default function Invoices() {
     selection,
     batch
   } = useInvoices();
+
+  // Sync layer tab with the hook's layer filter
+  const handleLayerTabChange = (value: string) => {
+    setActiveLayerTab(value);
+    filters.setLayer(value === "all" ? "all" : value);
+  };
+
+  // Determine if current layer tab is L2 (read-only for Admin)
+  const isL2ReadOnly = activeLayerTab === "cp_to_client";
 
   const [showManualCreate, setShowManualCreate] = useState(false);
   const [showBatchPaid, setShowBatchPaid] = useState(false);
@@ -316,22 +329,55 @@ export default function Invoices() {
             >
               <Download className="w-4 h-4 mr-1" /> {t("invoices.list.exportCsvButton")}
             </Button>
-            <Button variant="outline" onClick={() => {
-              setCreditNoteForm({ customerId: 0, originalInvoiceId: 0, isFullCredit: true, amount: "", reason: "" });
-              setShowCreditNoteCreate(true);
-            }}>
-              <RefreshCw className="w-4 h-4 mr-2" /> Create Credit Note
-            </Button>
-            <Button onClick={() => {
-              setManualForm({ customerId: 0, billingEntityId: undefined, invoiceType: "manual", invoiceMonth: "", currency: "USD", notes: "", dueDate: "" });
-              setShowManualCreate(true);
-            }}>
-              <Plus className="w-4 h-4 mr-2" /> {t("invoices.list.createInvoiceButton")}
-            </Button>
+            {!isL2ReadOnly && (
+              <>
+                <Button variant="outline" onClick={() => {
+                  setCreditNoteForm({ customerId: 0, originalInvoiceId: 0, isFullCredit: true, amount: "", reason: "" });
+                  setShowCreditNoteCreate(true);
+                }}>
+                  <RefreshCw className="w-4 h-4 mr-2" /> Create Credit Note
+                </Button>
+                <Button onClick={() => {
+                  setManualForm({ customerId: 0, billingEntityId: undefined, invoiceType: "manual", invoiceMonth: "", currency: "USD", notes: "", dueDate: "" });
+                  setShowManualCreate(true);
+                }}>
+                  <Plus className="w-4 h-4 mr-2" /> {t("invoices.list.createInvoiceButton")}
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
-        <InvoiceGenerationPanel />
+        {/* ── Top-Level Layer Tabs (B2B2B Isolation) ── */}
+        <Tabs value={activeLayerTab} onValueChange={handleLayerTabChange} className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="all">
+              <Layers className="w-3.5 h-3.5 mr-1.5" />All Layers
+            </TabsTrigger>
+            <TabsTrigger value="eg_to_cp">
+              <ArrowDown className="w-3.5 h-3.5 mr-1.5" />Layer 1 (EG → CP)
+            </TabsTrigger>
+            <TabsTrigger value="cp_to_client">
+              <ArrowUp className="w-3.5 h-3.5 mr-1.5" />Layer 2 (CP → Client)
+            </TabsTrigger>
+            <TabsTrigger value="eg_to_client">
+              <ArrowDirect className="w-3.5 h-3.5 mr-1.5" />Direct (EG → Client)
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {/* L2 Read-Only Banner */}
+        {isL2ReadOnly && (
+          <Card className="border-amber-200 bg-amber-50/50">
+            <CardContent className="p-3 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500" />
+              <span className="text-sm text-amber-700">Layer 2 invoices are managed by Channel Partners. This view is read-only.</span>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Generation Panel - only show for L1 and Direct, not L2 */}
+        {!isL2ReadOnly && <InvoiceGenerationPanel />}
 
         <Tabs defaultValue="list" className="w-full">
           <TabsList>
@@ -350,7 +396,8 @@ export default function Invoices() {
               layerFilter={filters.layer} setLayerFilter={filters.setLayer}
             />
 
-            {selection.selectedIds.size > 0 && (
+            {/* Batch action bar - hidden in L2 read-only mode */}
+            {!isL2ReadOnly && selection.selectedIds.size > 0 && (
               <Card className="border-primary/30 bg-primary/5">
                 <CardContent className="p-3 flex items-center gap-3">
                   <span className="text-sm font-medium">{t("invoices.list.batch.selectedCount").replace("{count}", String(selection.selectedIds.size))}</span>
@@ -377,9 +424,9 @@ export default function Invoices() {
                 <InvoiceTable 
                   invoices={filtered.slice((pagination.activePage - 1) * pagination.pageSize, pagination.activePage * pagination.pageSize)}
                   isLoading={isLoading}
-                  selectedIds={selection.selectedIds}
-                  toggleSelect={selection.toggleSelect}
-                  toggleSelectAll={() => selection.toggleSelectAll(filtered)}
+                  selectedIds={isL2ReadOnly ? new Set<number>() : selection.selectedIds}
+                  toggleSelect={isL2ReadOnly ? undefined : selection.toggleSelect}
+                  toggleSelectAll={isL2ReadOnly ? undefined : (() => selection.toggleSelectAll(filtered))}
                   customerMap={customerMap}
                   activePage={pagination.activePage}
                   statusColors={statusColors}
