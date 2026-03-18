@@ -109,7 +109,7 @@ export async function suggestReconciliationMatches(
       and(
         eq(invoices.invoiceMonth, monthStart),
         sql`${invoices.status} NOT IN ('cancelled', 'void', 'draft')`,
-        sql`${invoices.invoiceLayer} IN ('eg_to_cp', 'legacy')`,
+        sql`${invoices.invoiceLayer} IN ('eg_to_cp', 'eg_to_client', 'legacy')`,
       )
     );
 

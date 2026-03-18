@@ -1029,6 +1029,7 @@ export const invoices = sqliteTable(
     invoiceLayer: text("invoiceLayer", { enum: [
       "eg_to_cp",        // Layer 1: EG charges CP (consolidated, real A/R)
       "cp_to_client",    // Layer 2: CP charges End Client (draft, system-generated)
+      "eg_to_client",    // EG-DIRECT: EG charges End Client directly (no CP intermediary)
       "legacy",          // Pre-migration invoices (GEA direct-to-customer)
     ] }).default("legacy").notNull(),
     parentInvoiceId: integer("parentInvoiceId"), // For cp_to_client: links back to the eg_to_cp invoice

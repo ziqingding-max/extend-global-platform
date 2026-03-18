@@ -111,8 +111,9 @@ export function InvoiceFilters({
           <SelectTrigger className="w-36"><SelectValue placeholder="Layer" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Layers</SelectItem>
-            <SelectItem value="layer1">Layer 1 (EG→CP)</SelectItem>
-            <SelectItem value="layer2">Layer 2 (CP→Client)</SelectItem>
+            <SelectItem value="eg_to_cp">Layer 1 (EG→CP)</SelectItem>
+            <SelectItem value="cp_to_client">Layer 2 (CP→Client)</SelectItem>
+            <SelectItem value="eg_to_client">Direct (EG→Client)</SelectItem>
           </SelectContent>
         </Select>
       )}

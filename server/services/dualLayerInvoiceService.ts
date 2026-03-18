@@ -4,10 +4,15 @@
  * Orchestrates the generation of dual-layer invoices for the B2B2B model:
  *   Layer 1 (eg_to_cp): EG charges CP at the agreed bottom price
  *   Layer 2 (cp_to_client): CP charges End Client at the marked-up price
+ *   EG-DIRECT (eg_to_client): EG charges End Client directly (no CP intermediary)
  *
  * This service is called from the main invoiceGenerationService.ts after
  * payroll items have been grouped by customer. It determines whether the
- * customer belongs to an external CP and generates the appropriate invoices.
+ * customer belongs to an external CP or the internal EG-DIRECT virtual CP,
+ * and generates the appropriate invoices.
+ *
+ * For external CPs: generates both Layer 1 and Layer 2 invoices.
+ * For EG-DIRECT (isInternal=true): generates a single eg_to_client invoice, no Layer 2.
  *
  * All invoices are generated as DRAFT and require manual review before sending.
  */
@@ -223,7 +228,7 @@ export async function generateDualLayerInvoices(
     billingEntityId,
     invoiceNumber: layer1InvoiceNumber,
     invoiceType,
-    invoiceLayer: "eg_to_cp",
+    invoiceLayer: isInternal ? "eg_to_client" : "eg_to_cp",
     invoiceMonth: payrollMonthStr,
     currency: settlementCurrency,
     exchangeRate: exchangeRate.toString(),
@@ -236,7 +241,9 @@ export async function generateDualLayerInvoices(
     dueDate: layer1DueDate.toISOString().slice(0, 10),
     amountDue: layer1Total.toFixed(2),
     notes: `Payroll Invoice for ${monthLabel}`,
-    internalNotes: `Layer 1 (EG→CP) | CP: ${cp.companyName} | Headcount: ${headcount}`,
+    internalNotes: isInternal
+      ? `EG-DIRECT (EG→Client) | Customer: #${customerId} | Headcount: ${headcount}`
+      : `Layer 1 (EG→CP) | CP: ${cp.companyName} | Headcount: ${headcount}`,
   };
 
   const layer1Insert = await db
