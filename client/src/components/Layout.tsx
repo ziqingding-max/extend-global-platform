@@ -97,6 +97,17 @@ function useNavGroups(user: any): NavGroup[] {
   return useMemo(
     () =>
       [
+        /* ── 1. Partner Hub (B2B2B 第一公民) ── */
+        {
+          label: "Partner Hub",
+          icon: Handshake,
+          items: [
+            { label: "Partners", icon: Handshake, href: "/channel-partners" },
+            { label: "CP Wallets", icon: Landmark, href: "/channel-partners?tab=wallets" },
+            { label: "CP Pricing", icon: DollarSign, href: "/channel-partners?tab=pricing" },
+          ].filter(() => hasRole(["admin"])),
+        },
+        /* ── 2. Overview ── */
         {
           label: "Overview",
           icon: LayoutDashboard,
@@ -106,23 +117,7 @@ function useNavGroups(user: any): NavGroup[] {
             { label: "Reconciliation", icon: ArrowLeftRight, href: "/reports/reconciliation" },
           ].filter(() => hasRole(["admin", "finance_manager", "operations_manager"])),
         },
-        {
-          label: "Sales",
-          icon: TrendingUp,
-          items: [
-            { label: t("nav.crm_pipeline"), icon: Briefcase, href: "/sales-crm" },
-            { label: t("nav.quotations"), icon: FileText, href: "/quotations" },
-            { label: t("nav.countryGuide"), icon: Globe, href: "/admin/country-guide" },
-          ].filter(() => hasRole(["admin", "sales", "customer_manager"])),
-        },
-        {
-          label: "Clients",
-          icon: Users,
-          items: [
-            { label: t("nav.customers"), icon: Building2, href: "/customers" },
-            { label: t("nav.people"), icon: Users, href: "/people" },
-          ].filter(() => hasRole(["admin", "customer_manager", "operations_manager"])),
-        },
+        /* ── 3. Operations (EG 核心交付) ── */
         {
           label: "Operations",
           icon: Layers,
@@ -134,6 +129,7 @@ function useNavGroups(user: any): NavGroup[] {
             { label: "Leave & Milestones", icon: CalendarDays, href: "/leave" },
           ].filter(() => hasRole(["admin", "operations_manager"])),
         },
+        /* ── 4. Finance & Settlement ── */
         {
           label: "Finance",
           icon: PieChart,
@@ -142,6 +138,16 @@ function useNavGroups(user: any): NavGroup[] {
             { label: "Release Tasks", icon: CheckCircle, href: "/admin/release-tasks" },
           ].filter(() => hasRole(["admin", "finance_manager"])),
         },
+        /* ── 5. Client Directory (只读检索池，EG-DIRECT 视角下解锁编辑) ── */
+        {
+          label: "Client Directory",
+          icon: Users,
+          items: [
+            { label: t("nav.customers"), icon: Building2, href: "/customers" },
+            { label: t("nav.people"), icon: Users, href: "/people" },
+          ].filter(() => hasRole(["admin", "customer_manager", "operations_manager"])),
+        },
+        /* ── 6. Vendor ── */
         {
           label: "Vendor",
           icon: Truck,
@@ -150,13 +156,17 @@ function useNavGroups(user: any): NavGroup[] {
             { label: t("nav.vendor_bills"), icon: Receipt, href: "/vendor-bills" },
           ].filter(() => hasRole(["admin", "finance_manager"])),
         },
+        /* ── 7. Sales ── */
         {
-          label: "Partners",
-          icon: Handshake,
+          label: "Sales",
+          icon: TrendingUp,
           items: [
-            { label: "Partners", icon: Handshake, href: "/channel-partners" },
-          ].filter(() => hasRole(["admin"])),
+            { label: t("nav.crm_pipeline"), icon: Briefcase, href: "/sales-crm" },
+            { label: t("nav.quotations"), icon: FileText, href: "/quotations" },
+            { label: t("nav.countryGuide"), icon: Globe, href: "/admin/country-guide" },
+          ].filter(() => hasRole(["admin", "sales", "customer_manager"])),
         },
+        /* ── 8. System ── */
         {
           label: "System",
           icon: Settings,

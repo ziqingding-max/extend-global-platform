@@ -2,10 +2,15 @@
  * Deposit Invoice Service
  * Auto-generates a deposit invoice when an employee transitions to "onboarding" status.
  * Deposit = (baseSalary + estimatedEmployerCost) × customer.depositMultiplier
+ *
+ * Dual-Layer Awareness:
+ *   - External CP customers: invoiceLayer = "cp_to_client" (deposit is CP→Client)
+ *   - EG-DIRECT customers: invoiceLayer = "eg_to_client" (deposit is EG→Client directly)
+ *   - Legacy customers (no CP): invoiceLayer = "legacy"
  */
 import { eq, and } from "drizzle-orm";
 import { getDb, getEmployeeById, getCustomerById, getBillingEntityById } from "../db";
-import { invoices, invoiceItems, InsertInvoice, InsertInvoiceItem } from "../../drizzle/schema";
+import { invoices, invoiceItems, channelPartners, InsertInvoice, InsertInvoiceItem } from "../../drizzle/schema";
 import { generateDepositInvoiceNumber } from "./invoiceNumberService";
 import { getExchangeRate } from "./exchangeRateService";
 
@@ -155,12 +160,29 @@ export async function generateDepositInvoice(
       invoiceMonthStr = new Date().toISOString().substring(0, 7) + "-01";
     }
 
+    // 7.5. Resolve Channel Partner and determine invoiceLayer
+    const cpId = customer.channelPartnerId;
+    let invoiceLayer: "eg_to_cp" | "cp_to_client" | "eg_to_client" | "legacy" = "legacy";
+    if (cpId) {
+      const cpResult = await db
+        .select({ isInternal: channelPartners.isInternal })
+        .from(channelPartners)
+        .where(eq(channelPartners.id, cpId))
+        .limit(1);
+      const isInternal = cpResult.length > 0 && cpResult[0].isInternal;
+      // For EG-DIRECT: deposit is billed directly to client
+      // For external CP: deposit is billed by CP to client (Layer 2)
+      invoiceLayer = isInternal ? "eg_to_client" : "cp_to_client";
+    }
+
     // 8. Create invoice
     const invoiceData: InsertInvoice = {
       customerId: employee.customerId,
+      channelPartnerId: cpId ?? undefined,
       billingEntityId,
       invoiceNumber,
       invoiceType: "deposit",
+      invoiceLayer,
       invoiceMonth: invoiceMonthStr,
       currency: settlementCurrency,
       exchangeRate: exchangeRate.toFixed(6),
