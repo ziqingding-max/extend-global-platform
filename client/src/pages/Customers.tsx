@@ -32,8 +32,10 @@ import {
 import {
   Building2, Plus, Search, ArrowLeft, Mail, Phone, Users, DollarSign,
   ChevronRight, Trash2, UserPlus, FileText, Upload, ExternalLink, X, Pencil,
-  Send, ShieldCheck, ShieldX, Copy, Check, KeyRound, Wallet, ArrowUpRight, ArrowDownLeft, LogIn, Shield, MoreHorizontal, Loader2
+  Send, ShieldCheck, ShieldX, Copy, Check, KeyRound, Wallet, ArrowUpRight, ArrowDownLeft, LogIn, Shield, MoreHorizontal, Loader2,
+  LayoutList, LayoutGrid, ChevronDown, ChevronUp,
 } from "lucide-react";
+import { useMemo } from "react";
 import { formatCurrency } from "@/lib/format";
 import { toast } from "sonner";
 
@@ -44,12 +46,144 @@ const statusColors: Record<string, string> = {
   terminated: "bg-red-50 text-red-700 border-red-200",
 };
 
+/* ========== Grouped Customer Table (by Channel Partner) ========== */
+function GroupedCustomerTable({
+  customers,
+  cpList,
+  collapsedGroups,
+  setCollapsedGroups,
+  onRowClick,
+  statusColors,
+  t,
+}: {
+  customers: any[];
+  cpList: any[];
+  collapsedGroups: Set<string>;
+  setCollapsedGroups: (s: Set<string>) => void;
+  onRowClick: (id: number) => void;
+  statusColors: Record<string, string>;
+  t: (key: string, params?: any) => string;
+}) {
+  // Build CP name map
+  const cpNameMap = useMemo(() => {
+    const map: Record<string, string> = { "direct": "EG Direct (Internal)" };
+    cpList.forEach((cp: any) => {
+      map[String(cp.id)] = cp.companyName + (cp.isInternal ? " (Internal)" : "");
+    });
+    return map;
+  }, [cpList]);
+
+  // Group customers by channelPartnerId
+  const groups = useMemo(() => {
+    const grouped: Record<string, any[]> = {};
+    customers.forEach((c: any) => {
+      const key = c.channelPartnerId ? String(c.channelPartnerId) : "direct";
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(c);
+    });
+    // Sort: EG Direct first, then alphabetically by CP name
+    const sortedKeys = Object.keys(grouped).sort((a, b) => {
+      if (a === "direct") return -1;
+      if (b === "direct") return 1;
+      return (cpNameMap[a] || "").localeCompare(cpNameMap[b] || "");
+    });
+    return sortedKeys.map(key => ({
+      key,
+      name: cpNameMap[key] || `Partner #${key}`,
+      customers: grouped[key],
+    }));
+  }, [customers, cpNameMap]);
+
+  const toggleGroup = (key: string) => {
+    const next = new Set(collapsedGroups);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    setCollapsedGroups(next);
+  };
+
+  if (groups.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Building2 className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
+        <p className="text-sm text-muted-foreground">{t("customers.empty_state.no_customers")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="divide-y">
+      {groups.map(group => (
+        <div key={group.key}>
+          {/* Group Header */}
+          <button
+            className="w-full flex items-center gap-3 px-4 py-3 bg-muted/30 hover:bg-muted/50 transition-colors text-left"
+            onClick={() => toggleGroup(group.key)}
+          >
+            {collapsedGroups.has(group.key) ? (
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            )}
+            <Building2 className="w-4 h-4 text-primary" />
+            <span className="font-medium text-sm">{group.name}</span>
+            <Badge variant="secondary" className="text-xs ml-1">
+              {group.customers.length} {group.customers.length === 1 ? "client" : "clients"}
+            </Badge>
+          </button>
+          {/* Group Body */}
+          {!collapsedGroups.has(group.key) && (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-16 pl-10">ID</TableHead>
+                  <TableHead>{t("customers.table.header.company")}</TableHead>
+                  <TableHead className="min-w-[120px]">{t("customers.table.header.country")}</TableHead>
+                  <TableHead>{t("customers.form.primary_contact")}</TableHead>
+                  <TableHead>{t("customers.table.header.billing")}</TableHead>
+                  <TableHead>{t("customers.table.header.status")}</TableHead>
+                  <TableHead className="w-10"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {group.customers.map((customer: any) => (
+                  <TableRow key={customer.id} className="cursor-pointer hover:bg-muted/50" onClick={() => onRowClick(customer.id)}>
+                    <TableCell className="text-sm text-muted-foreground font-mono pl-10">{customer.id}</TableCell>
+                    <TableCell>
+                      <div className="font-medium text-sm">{customer.companyName}</div>
+                      <div className="text-xs text-muted-foreground">{customer.clientCode || customer.legalEntityName || ''}</div>
+                    </TableCell>
+                    <TableCell className="text-sm">{countryName(customer.country)}</TableCell>
+                    <TableCell>
+                      <div className="text-sm">{customer.primaryContactName || "—"}</div>
+                      <div className="text-xs text-muted-foreground">{customer.primaryContactEmail || ""}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">{t("customers.paymentTerms.netDays", { days: customer.paymentTermDays ?? 30 })}</div>
+                      <div className="text-xs text-muted-foreground">{customer.settlementCurrency}</div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={`text-xs min-w-[72px] justify-center capitalize ${statusColors[customer.status] || ""}`}>{customer.status}</Badge>
+                    </TableCell>
+                    <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ========== Customer List ========== */
 function CustomerList() {
   const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [cpFilter, setCpFilter] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<"grouped" | "flat">("grouped"); // Default: grouped by CP
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [, setLocation] = useLocation();
   const searchString = useSearch();
   const [createOpen, setCreateOpen] = useState(false);
@@ -289,12 +423,49 @@ function CustomerList() {
           </Select>
         </div>
 
+        {/* View Mode Toggle */}
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            {data ? `${data.total} customers` : "Loading..."}
+          </p>
+          <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+            <Button
+              variant={viewMode === "grouped" ? "default" : "ghost"}
+              size="sm"
+              className="h-7 px-3 text-xs"
+              onClick={() => setViewMode("grouped")}
+            >
+              <LayoutGrid className="w-3.5 h-3.5 mr-1.5" />Grouped by Partner
+            </Button>
+            <Button
+              variant={viewMode === "flat" ? "default" : "ghost"}
+              size="sm"
+              className="h-7 px-3 text-xs"
+              onClick={() => setViewMode("flat")}
+            >
+              <LayoutList className="w-3.5 h-3.5 mr-1.5" />Flat List
+            </Button>
+          </div>
+        </div>
+
         {/* Table */}
         <Card>
           <CardContent className="p-0">
             {isLoading ? (
               <div className="p-6 space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-12 w-full" />)}</div>
+            ) : viewMode === "grouped" && cpFilter === "all" ? (
+              /* ── Grouped View: customers organized by Channel Partner ── */
+              <GroupedCustomerTable
+                customers={data?.data || []}
+                cpList={cpList?.data || []}
+                collapsedGroups={collapsedGroups}
+                setCollapsedGroups={setCollapsedGroups}
+                onRowClick={(customerId) => setLocation(`/customers/${customerId}?from_page=${page}`)}
+                statusColors={statusColors}
+                t={t}
+              />
             ) : (
+              /* ── Flat View: traditional table ── */
               <Table>
                 <TableHeader>
                   <TableRow>

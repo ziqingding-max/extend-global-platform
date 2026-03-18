@@ -473,13 +473,9 @@ function InfoTab({ cp, onUpdate }: { cp: any; onUpdate: () => void }) {
       depositMultiplier: cp.depositMultiplier || 2,
       subdomain: cp.subdomain || "",
       notes: cp.notes || "",
-      logoUrl: cp.logoUrl || "",
-      brandPrimaryColor: cp.brandPrimaryColor || "",
-      cpBillingEntityName: cp.cpBillingEntityName || "",
-      cpBillingAddress: cp.cpBillingAddress || "",
-      cpBillingTaxId: cp.cpBillingTaxId || "",
-      cpBankDetails: cp.cpBankDetails || "",
-      cpInvoicePrefix: cp.cpInvoicePrefix || "",
+      // Note: logoUrl, brandPrimaryColor, cpBillingEntityName, cpBillingAddress,
+      // cpBillingTaxId, cpBankDetails, cpInvoicePrefix are managed by CP in their
+      // own Portal Settings. Admin has read-only access.
     });
     setEditing(true);
   }
@@ -529,21 +525,15 @@ function InfoTab({ cp, onUpdate }: { cp: any; onUpdate: () => void }) {
             <div><Label>Credit Limit</Label><Input value={form.creditLimit} onChange={(e) => setForm({ ...form, creditLimit: e.target.value })} /></div>
             <div><Label>Deposit Multiplier</Label><Input type="number" value={form.depositMultiplier} onChange={(e) => setForm({ ...form, depositMultiplier: parseInt(e.target.value) || 2 })} /></div>
 
-            <div className="col-span-2 border-t pt-4"><h4 className="font-medium mb-3">Branding</h4></div>
-            <div><Label>Logo URL</Label><Input value={form.logoUrl} onChange={(e) => setForm({ ...form, logoUrl: e.target.value })} placeholder="https://..." /></div>
-            <div><Label>Primary Color</Label>
-              <div className="flex items-center gap-2">
-                <Input value={form.brandPrimaryColor} onChange={(e) => setForm({ ...form, brandPrimaryColor: e.target.value })} placeholder="#4F46E5" />
-                {form.brandPrimaryColor && <div className="w-8 h-8 rounded border" style={{ backgroundColor: form.brandPrimaryColor }} />}
+            {/* Branding & Billing: Managed by CP in their own Portal */}
+            <div className="col-span-2 border-t pt-4">
+              <div className="flex items-center gap-2 mb-2">
+                <h4 className="font-medium text-muted-foreground">Branding & Billing Info</h4>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-3 text-sm text-muted-foreground">
+                Branding (Logo, Colors) and Billing Info (Entity Name, Tax ID, Bank Details, Invoice Prefix) are managed by the Channel Partner in their own CP Portal Settings. EG Admin has read-only access to these fields.
               </div>
             </div>
-
-            <div className="col-span-2 border-t pt-4"><h4 className="font-medium mb-3">CP Billing Info (for CP→Client Invoices)</h4></div>
-            <div><Label>Billing Entity Name</Label><Input value={form.cpBillingEntityName} onChange={(e) => setForm({ ...form, cpBillingEntityName: e.target.value })} /></div>
-            <div><Label>Tax ID</Label><Input value={form.cpBillingTaxId} onChange={(e) => setForm({ ...form, cpBillingTaxId: e.target.value })} /></div>
-            <div className="col-span-2"><Label>Billing Address</Label><Input value={form.cpBillingAddress} onChange={(e) => setForm({ ...form, cpBillingAddress: e.target.value })} /></div>
-            <div className="col-span-2"><Label>Bank Details</Label><Textarea value={form.cpBankDetails} onChange={(e) => setForm({ ...form, cpBankDetails: e.target.value })} rows={3} /></div>
-            <div><Label>Invoice Prefix</Label><Input value={form.cpInvoicePrefix} onChange={(e) => setForm({ ...form, cpInvoicePrefix: e.target.value })} placeholder="e.g. FA" /></div>
 
             <div className="col-span-2 border-t pt-4"><h4 className="font-medium mb-3">Primary Contact</h4></div>
             <div><Label>Name</Label><Input value={form.primaryContactName} onChange={(e) => setForm({ ...form, primaryContactName: e.target.value })} /></div>
@@ -576,21 +566,21 @@ function InfoTab({ cp, onUpdate }: { cp: any; onUpdate: () => void }) {
           <InfoField label="Credit Limit" value={cp.creditLimit ? `${cp.settlementCurrency} ${cp.creditLimit}` : "—"} />
           <InfoField label="Deposit Multiplier" value={`${cp.depositMultiplier}x`} />
 
-          <div className="col-span-2 border-t pt-4"><h4 className="font-medium text-slate-700">Branding</h4></div>
-          <InfoField label="Logo" value={cp.logoUrl ? <img src={cp.logoUrl} alt="Logo" className="h-10 max-w-[120px] object-contain" /> : "—"} />
+          <div className="col-span-2 border-t pt-4"><h4 className="font-medium text-slate-700">Branding <span className="text-xs font-normal text-muted-foreground">(managed by CP)</span></h4></div>
+          <InfoField label="Logo" value={cp.logoUrl ? <img src={cp.logoUrl} alt="Logo" className="h-10 max-w-[120px] object-contain" /> : <span className="text-muted-foreground italic">Not set by CP yet</span>} />
           <InfoField label="Primary Color" value={cp.brandPrimaryColor ? (
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded border" style={{ backgroundColor: cp.brandPrimaryColor }} />
               <span>{cp.brandPrimaryColor}</span>
             </div>
-          ) : "—"} />
+          ) : <span className="text-muted-foreground italic">Not set by CP yet</span>} />
 
-          <div className="col-span-2 border-t pt-4"><h4 className="font-medium text-slate-700">CP Billing Info</h4></div>
-          <InfoField label="Billing Entity" value={cp.cpBillingEntityName} />
-          <InfoField label="Tax ID" value={cp.cpBillingTaxId} />
-          <InfoField label="Billing Address" value={cp.cpBillingAddress} />
-          <InfoField label="Bank Details" value={cp.cpBankDetails} />
-          <InfoField label="Invoice Prefix" value={cp.cpInvoicePrefix} />
+          <div className="col-span-2 border-t pt-4"><h4 className="font-medium text-slate-700">CP Billing Info <span className="text-xs font-normal text-muted-foreground">(managed by CP)</span></h4></div>
+          <InfoField label="Billing Entity" value={cp.cpBillingEntityName || <span className="text-muted-foreground italic">Not set by CP yet</span>} />
+          <InfoField label="Tax ID" value={cp.cpBillingTaxId || <span className="text-muted-foreground italic">Not set by CP yet</span>} />
+          <InfoField label="Billing Address" value={cp.cpBillingAddress || <span className="text-muted-foreground italic">Not set by CP yet</span>} />
+          <InfoField label="Bank Details" value={cp.cpBankDetails || <span className="text-muted-foreground italic">Not set by CP yet</span>} />
+          <InfoField label="Invoice Prefix" value={cp.cpInvoicePrefix || <span className="text-muted-foreground italic">Not set by CP yet</span>} />
 
           <div className="col-span-2 border-t pt-4"><h4 className="font-medium text-slate-700">Primary Contact</h4></div>
           <InfoField label="Name" value={cp.primaryContactName} />
