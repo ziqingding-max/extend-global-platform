@@ -90,8 +90,8 @@ nano .env.production
 - `DB_PASSWORD=这里写一个复杂的数据库密码`
 - `JWT_SECRET=这里随便乱敲一串长英文字母作为加密密钥`
 - **OSS 配置**（填入您之前提供的密钥）：
-  - `OSS_ACCESS_KEY_ID=LTAI5tDnQSzg7mj7CCF21n1L`
-  - `OSS_ACCESS_KEY_SECRET=Hq0GrL6U6LwtOWiXXDv0AxZCbPT6Tl`
+  - `OSS_ACCESS_KEY_ID=your_oss_access_key_id`
+  - `OSS_ACCESS_KEY_SECRET=your_oss_access_key_secret`
   - `OSS_BUCKET=您的bucket名称`
   - `OSS_REGION=您的oss地域`
 
