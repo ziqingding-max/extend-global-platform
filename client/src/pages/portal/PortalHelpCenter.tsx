@@ -70,7 +70,7 @@ const GUIDE_SECTIONS: GuideSection[] = [
     icon: BookOpen,
     title: { en: "Getting Started", cn: "快速入门" },
     steps: [
-      { en: "1. Log in to the Client Portal using the credentials provided by your EG account manager.", cn: "1. 使用GEA客户经理提供的凭据登录客户门户。" },
+      { en: "1. Log in to the Client Portal using the credentials provided by your EG account manager.", cn: "1. 使用EG客户经理提供的凭据登录客户门户。" },
       { en: "2. Your **Dashboard** shows an overview of your employees, pending approvals, and recent invoices.", cn: "2. **仪表板**显示员工概览、待审批项和最近发票。" },
       { en: "3. Use the sidebar navigation to access different modules: Employees, Payroll, Adjustments, Leave, Reimbursements, Invoices, etc.", cn: "3. 使用侧边栏导航访问不同模块：员工、工资、调整项、假期、报销、发票等。" },
       { en: "4. You can switch between English and Chinese using the language switcher in the top-right corner.", cn: "4. 您可以使用右上角的语言切换器在中英文之间切换。" },
@@ -178,7 +178,7 @@ const FAQ_ITEMS: FAQItem[] = [
     question: { en: "How does the approval workflow work?", cn: "审批工作流如何运作？" },
     answer: {
       en: "Leave requests, adjustments, and reimbursements follow a two-level approval process: **1)** After submission, you (the client) can approve or reject the item. **2)** Once you approve, it goes to the EG admin team for final confirmation. Only after both levels of approval will the item be locked and included in payroll.",
-      cn: "假期申请、调整项和报销遵循两级审批流程：**1)** 提交后，您（客户）可以批准或驳回。**2)** 您批准后，将提交GEA管理团队最终确认。只有两级审批都通过后，该项才会被锁定并纳入工资单。",
+      cn: "假期申请、调整项和报销遵循两级审批流程：**1)** 提交后，您（客户）可以批准或驳回。**2)** 您批准后，将提交EG管理团队最终确认。只有两级审批都通过后，该项才会被锁定并纳入工资单。",
     },
   },
   {
@@ -223,7 +223,7 @@ const FAQ_ITEMS: FAQItem[] = [
     question: { en: "How do I change my primary contact information?", cn: "如何更改主要联系人信息？" },
     answer: {
       en: "Primary contact information is managed by your EG account manager for security reasons. Please contact your EG representative to make changes.",
-      cn: "出于安全考虑，主要联系人信息由EG客户经理管理。请联系您的GEA代表进行更改。",
+      cn: "出于安全考虑，主要联系人信息由EG客户经理管理。请联系您的EG代表进行更改。",
     },
   },
   {
@@ -232,7 +232,7 @@ const FAQ_ITEMS: FAQItem[] = [
     question: { en: "I forgot my password. How do I reset it?", cn: "我忘记了密码，如何重置？" },
     answer: {
       en: "Click **Forgot Password** on the login page and enter your email address. You will receive a reset link via email. If you don't receive the email, contact your EG account manager who can reset your password directly.",
-      cn: "在登录页面点击**忘记密码**并输入邮箱地址。您将通过邮件收到重置链接。如果没有收到邮件，请联系GEA客户经理直接重置密码。",
+      cn: "在登录页面点击**忘记密码**并输入邮箱地址。您将通过邮件收到重置链接。如果没有收到邮件，请联系EG客户经理直接重置密码。",
     },
   },
   {
@@ -267,7 +267,7 @@ const UPDATE_ENTRIES: UpdateEntry[] = [
       { category: "feature", description: { en: "Self-service onboarding invites now support **resend** functionality.", cn: "自助入职邀请现在支持**重新发送**功能。" } },
       { category: "change", description: { en: "Payslip redesigned: Reimbursements separated from Earnings. New **Total Payout** = Net Pay + Reimbursements.", cn: "工资条重新设计：报销从收入中分离。新增**实发总额** = 净工资 + 报销。" } },
       { category: "change", description: { en: "Invoice line items now show **local currency** amounts. Settlement currency only on Subtotal/Total Due.", cn: "发票明细项现在显示**本地币种**金额。结算币种仅在小计/应付总额显示。" } },
-      { category: "change", description: { en: "Primary Contact information is now read-only. Contact your EG account manager for changes.", cn: "主要联系人信息现在为只读。如需更改请联系GEA客户经理。" } },
+      { category: "change", description: { en: "Primary Contact information is now read-only. Contact your EG account manager for changes.", cn: "主要联系人信息现在为只读。如需更改请联系EG客户经理。" } },
       { category: "change", description: { en: "Employee detail page redesigned with unified layout and consistent field display.", cn: "员工详情页重新设计，统一布局和一致的字段显示。" } },
       { category: "change", description: { en: "Onboarding validation: start date must be today or later, salary currency locked to country's currency.", cn: "入职验证：入职日期必须为今天或之后，薪资币种锁定为国家币种。" } },
     ],
