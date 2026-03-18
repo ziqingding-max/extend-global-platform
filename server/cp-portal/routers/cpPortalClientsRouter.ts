@@ -1,17 +1,22 @@
 /**
  * CP Portal Clients Router
  *
- * Manages End Clients from the Channel Partner's perspective.
- * All queries are SCOPED to ctx.cpUser.channelPartnerId — CP can only see their own clients.
+ * Full CRUD management of End Clients from the Channel Partner's perspective.
+ * All queries are SCOPED to ctx.cpUser.channelPartnerId — CP can only see/manage their own clients.
  *
  * Capabilities:
  * - List clients under this CP (with search, pagination)
  * - View client detail (company info, contacts, employees count)
+ * - Create new client (CP has full authority, no EG approval needed)
+ * - Update client info (company details, contacts, payment terms, etc.)
  * - View employees under a specific client
+ * - Manage customer contacts (CRUD)
+ * - Toggle Client Portal access for contacts
  *
- * NOTE: Client creation/editing is done by EG Admin (via admin router).
- * CP Portal has read-only access to clients assigned to them.
- * Future: CP may be able to submit onboarding requests for new clients.
+ * B2B2B Architecture:
+ * - CP is fully responsible for their client relationships
+ * - Commercial contract is between CP and Client (not EG and Client)
+ * - CP manages client Wallet, Deposit, Invoicing independently
  */
 
 import { z } from "zod";
@@ -20,6 +25,7 @@ import { eq, and, like, sql, count, desc, SQL } from "drizzle-orm";
 import {
   protectedCpProcedure,
   cpHrProcedure,
+  cpAdminProcedure,
   cpPortalRouter,
 } from "../cpPortalTrpc";
 import { getDb } from "../../db";
@@ -29,10 +35,36 @@ import {
   customerContacts,
 } from "../../../drizzle/schema";
 
+// ── Helper: Generate client code ──────────────────────────────────────
+async function generateClientCode(db: any): Promise<string> {
+  const result = await db
+    .select({ total: count() })
+    .from(customers);
+  const nextNum = (result[0]?.total ?? 0) + 1;
+  return `CUS-${String(nextNum).padStart(4, "0")}`;
+}
+
+// ── Helper: Verify customer belongs to this CP ────────────────────────
+async function verifyCpOwnership(db: any, customerId: number, cpId: number) {
+  const rows = await db
+    .select({ id: customers.id })
+    .from(customers)
+    .where(
+      and(
+        eq(customers.id, customerId),
+        eq(customers.channelPartnerId, cpId)
+      )
+    )
+    .limit(1);
+  if (rows.length === 0) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Client not found or does not belong to your organization" });
+  }
+}
+
 export const cpPortalClientsRouter = cpPortalRouter({
-  /**
-   * List all clients assigned to this CP
-   */
+  // ════════════════════════════════════════════════════════════════════
+  // LIST — paginated client list scoped to this CP
+  // ════════════════════════════════════════════════════════════════════
   list: protectedCpProcedure
     .input(
       z.object({
@@ -65,6 +97,7 @@ export const cpPortalClientsRouter = cpPortalRouter({
         db
           .select({
             id: customers.id,
+            clientCode: customers.clientCode,
             companyName: customers.companyName,
             legalEntityName: customers.legalEntityName,
             country: customers.country,
@@ -87,15 +120,29 @@ export const cpPortalClientsRouter = cpPortalRouter({
           .where(whereClause),
       ]);
 
+      // Get employee counts for each client
+      const itemsWithCounts = await Promise.all(
+        items.map(async (client) => {
+          const empCount = await db
+            .select({ total: count() })
+            .from(employees)
+            .where(eq(employees.customerId, client.id));
+          return {
+            ...client,
+            employeeCount: empCount[0]?.total ?? 0,
+          };
+        })
+      );
+
       return {
-        items,
+        items: itemsWithCounts,
         total: totalResult[0]?.total ?? 0,
       };
     }),
 
-  /**
-   * Get client detail — includes employee count
-   */
+  // ════════════════════════════════════════════════════════════════════
+  // GET — client detail with employee count
+  // ════════════════════════════════════════════════════════════════════
   get: protectedCpProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ input, ctx }) => {
@@ -106,26 +153,7 @@ export const cpPortalClientsRouter = cpPortalRouter({
 
       // Fetch customer — must belong to this CP
       const customerRows = await db
-        .select({
-          id: customers.id,
-          companyName: customers.companyName,
-          legalEntityName: customers.legalEntityName,
-          registrationNumber: customers.registrationNumber,
-          industry: customers.industry,
-          address: customers.address,
-          city: customers.city,
-          state: customers.state,
-          country: customers.country,
-          postalCode: customers.postalCode,
-          primaryContactEmail: customers.primaryContactEmail,
-          primaryContactName: customers.primaryContactName,
-          primaryContactPhone: customers.primaryContactPhone,
-          paymentTermDays: customers.paymentTermDays,
-          settlementCurrency: customers.settlementCurrency,
-          status: customers.status,
-          language: customers.language,
-          createdAt: customers.createdAt,
-        })
+        .select()
         .from(customers)
         .where(
           and(
@@ -156,9 +184,172 @@ export const cpPortalClientsRouter = cpPortalRouter({
       };
     }),
 
-  /**
-   * List contacts for a specific client (read-only from CP perspective)
-   */
+  // ════════════════════════════════════════════════════════════════════
+  // CREATE — CP creates a new client (no EG approval needed)
+  // ════════════════════════════════════════════════════════════════════
+  create: cpHrProcedure
+    .input(
+      z.object({
+        companyName: z.string().min(1, "Company name is required"),
+        legalEntityName: z.string().optional(),
+        registrationNumber: z.string().optional(),
+        industry: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        country: z.string().min(1, "Country is required"),
+        postalCode: z.string().optional(),
+        primaryContactName: z.string().optional(),
+        primaryContactEmail: z.string().email().optional(),
+        primaryContactPhone: z.string().optional(),
+        paymentTermDays: z.number().min(0).max(365).default(30),
+        settlementCurrency: z.string().default("USD"),
+        language: z.enum(["en", "zh"]).default("en"),
+        depositMultiplier: z.number().min(1).max(3).default(2),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      const cpId = ctx.cpUser.channelPartnerId;
+
+      // Check email uniqueness within this CP's clients
+      if (input.primaryContactEmail) {
+        const existing = await db
+          .select({ id: customers.id, companyName: customers.companyName })
+          .from(customers)
+          .where(
+            and(
+              eq(customers.primaryContactEmail, input.primaryContactEmail),
+              eq(customers.channelPartnerId, cpId)
+            )
+          )
+          .limit(1);
+        if (existing.length > 0) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: `Email "${input.primaryContactEmail}" is already used by client "${existing[0].companyName}"`,
+          });
+        }
+      }
+
+      // Generate client code
+      const clientCode = await generateClientCode(db);
+
+      // Insert customer — automatically scoped to this CP
+      const result = await db.insert(customers).values({
+        ...input,
+        clientCode,
+        channelPartnerId: cpId,
+        status: "active",
+      }).returning({ id: customers.id });
+
+      const customerId = result[0]?.id;
+
+      // Auto-create primary contact record
+      if (customerId && input.primaryContactName) {
+        await db.insert(customerContacts).values({
+          customerId,
+          channelPartnerId: cpId,
+          contactName: input.primaryContactName,
+          email: input.primaryContactEmail || "",
+          phone: input.primaryContactPhone || undefined,
+          role: "Primary Contact",
+          isPrimary: true,
+          hasPortalAccess: false,
+        });
+      }
+
+      return { id: customerId, clientCode };
+    }),
+
+  // ════════════════════════════════════════════════════════════════════
+  // UPDATE — CP updates client info
+  // ════════════════════════════════════════════════════════════════════
+  update: cpHrProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        data: z.object({
+          companyName: z.string().optional(),
+          legalEntityName: z.string().optional(),
+          registrationNumber: z.string().optional(),
+          industry: z.string().optional(),
+          address: z.string().optional(),
+          city: z.string().optional(),
+          state: z.string().optional(),
+          country: z.string().optional(),
+          postalCode: z.string().optional(),
+          primaryContactName: z.string().optional(),
+          primaryContactEmail: z.string().optional(),
+          primaryContactPhone: z.string().optional(),
+          paymentTermDays: z.number().min(0).max(365).optional(),
+          settlementCurrency: z.string().optional(),
+          language: z.enum(["en", "zh"]).optional(),
+          depositMultiplier: z.number().min(1).max(3).optional(),
+          status: z.enum(["active", "suspended", "terminated"]).optional(),
+          notes: z.string().optional(),
+        }),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      const cpId = ctx.cpUser.channelPartnerId;
+
+      // Verify ownership
+      await verifyCpOwnership(db, input.id, cpId);
+
+      // Update customer
+      await db
+        .update(customers)
+        .set(input.data)
+        .where(
+          and(
+            eq(customers.id, input.id),
+            eq(customers.channelPartnerId, cpId)
+          )
+        );
+
+      // Sync primary contact if contact fields changed
+      const primaryChanged =
+        input.data.primaryContactName !== undefined ||
+        input.data.primaryContactEmail !== undefined ||
+        input.data.primaryContactPhone !== undefined;
+
+      if (primaryChanged) {
+        const contacts = await db
+          .select()
+          .from(customerContacts)
+          .where(
+            and(
+              eq(customerContacts.customerId, input.id),
+              eq(customerContacts.isPrimary, true)
+            )
+          )
+          .limit(1);
+
+        if (contacts.length > 0) {
+          const syncData: any = {};
+          if (input.data.primaryContactName !== undefined) syncData.contactName = input.data.primaryContactName;
+          if (input.data.primaryContactEmail !== undefined) syncData.email = input.data.primaryContactEmail;
+          if (input.data.primaryContactPhone !== undefined) syncData.phone = input.data.primaryContactPhone;
+          await db
+            .update(customerContacts)
+            .set(syncData)
+            .where(eq(customerContacts.id, contacts[0].id));
+        }
+      }
+
+      return { success: true };
+    }),
+
+  // ════════════════════════════════════════════════════════════════════
+  // CONTACTS — CRUD for customer contacts
+  // ════════════════════════════════════════════════════════════════════
   listContacts: protectedCpProcedure
     .input(z.object({ customerId: z.number() }))
     .query(async ({ input, ctx }) => {
@@ -166,40 +357,167 @@ export const cpPortalClientsRouter = cpPortalRouter({
       if (!db) return [];
 
       const cpId = ctx.cpUser.channelPartnerId;
-
-      // First verify the customer belongs to this CP
-      const customerCheck = await db
-        .select({ id: customers.id })
-        .from(customers)
-        .where(
-          and(
-            eq(customers.id, input.customerId),
-            eq(customers.channelPartnerId, cpId)
-          )
-        )
-        .limit(1);
-
-      if (customerCheck.length === 0) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Client not found" });
-      }
+      await verifyCpOwnership(db, input.customerId, cpId);
 
       return db
-        .select({
-          id: customerContacts.id,
-          contactName: customerContacts.contactName,
-          email: customerContacts.email,
-          phone: customerContacts.phone,
-          role: customerContacts.role,
-          isPrimary: customerContacts.isPrimary,
-        })
+        .select()
         .from(customerContacts)
         .where(eq(customerContacts.customerId, input.customerId));
     }),
 
-  /**
-   * List employees for a specific client
-   * CP can see employee roster but NOT salary details
-   */
+  createContact: cpHrProcedure
+    .input(
+      z.object({
+        customerId: z.number(),
+        contactName: z.string().min(1),
+        email: z.string().email(),
+        phone: z.string().optional(),
+        role: z.string().optional(),
+        isPrimary: z.boolean().default(false),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      const cpId = ctx.cpUser.channelPartnerId;
+      await verifyCpOwnership(db, input.customerId, cpId);
+
+      // If setting as primary, unset existing primary
+      if (input.isPrimary) {
+        await db
+          .update(customerContacts)
+          .set({ isPrimary: false })
+          .where(
+            and(
+              eq(customerContacts.customerId, input.customerId),
+              eq(customerContacts.isPrimary, true)
+            )
+          );
+      }
+
+      const result = await db.insert(customerContacts).values({
+        ...input,
+        channelPartnerId: cpId,
+        hasPortalAccess: false,
+      }).returning({ id: customerContacts.id });
+
+      return { id: result[0]?.id };
+    }),
+
+  updateContact: cpHrProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        customerId: z.number(),
+        data: z.object({
+          contactName: z.string().optional(),
+          email: z.string().email().optional(),
+          phone: z.string().optional(),
+          role: z.string().optional(),
+          isPrimary: z.boolean().optional(),
+        }),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      const cpId = ctx.cpUser.channelPartnerId;
+      await verifyCpOwnership(db, input.customerId, cpId);
+
+      // If setting as primary, unset existing primary
+      if (input.data.isPrimary) {
+        await db
+          .update(customerContacts)
+          .set({ isPrimary: false })
+          .where(
+            and(
+              eq(customerContacts.customerId, input.customerId),
+              eq(customerContacts.isPrimary, true)
+            )
+          );
+      }
+
+      await db
+        .update(customerContacts)
+        .set(input.data)
+        .where(eq(customerContacts.id, input.id));
+
+      return { success: true };
+    }),
+
+  deleteContact: cpHrProcedure
+    .input(z.object({ id: z.number(), customerId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      const cpId = ctx.cpUser.channelPartnerId;
+      await verifyCpOwnership(db, input.customerId, cpId);
+
+      // Don't allow deleting the primary contact
+      const contact = await db
+        .select({ isPrimary: customerContacts.isPrimary })
+        .from(customerContacts)
+        .where(eq(customerContacts.id, input.id))
+        .limit(1);
+
+      if (contact[0]?.isPrimary) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot delete the primary contact. Set another contact as primary first." });
+      }
+
+      await db.delete(customerContacts).where(eq(customerContacts.id, input.id));
+      return { success: true };
+    }),
+
+  // ════════════════════════════════════════════════════════════════════
+  // TOGGLE PORTAL ACCESS — CP grants/revokes Client Portal login
+  // ════════════════════════════════════════════════════════════════════
+  togglePortalAccess: cpAdminProcedure
+    .input(
+      z.object({
+        contactId: z.number(),
+        customerId: z.number(),
+        hasPortalAccess: z.boolean(),
+        portalRole: z.enum(["admin", "hr_manager", "finance", "viewer"]).optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      const cpId = ctx.cpUser.channelPartnerId;
+      await verifyCpOwnership(db, input.customerId, cpId);
+
+      const updateData: any = {
+        hasPortalAccess: input.hasPortalAccess,
+      };
+
+      if (input.portalRole) {
+        updateData.portalRole = input.portalRole;
+      }
+
+      // If revoking access, clear auth tokens
+      if (!input.hasPortalAccess) {
+        updateData.inviteToken = null;
+        updateData.inviteExpiresAt = null;
+        updateData.resetToken = null;
+        updateData.resetExpiresAt = null;
+      }
+
+      await db
+        .update(customerContacts)
+        .set(updateData)
+        .where(eq(customerContacts.id, input.contactId));
+
+      return { success: true };
+    }),
+
+  // ════════════════════════════════════════════════════════════════════
+  // EMPLOYEES — list employees for a specific client
+  // CP can see employee roster but NOT salary/compensation details
+  // ════════════════════════════════════════════════════════════════════
   listEmployees: cpHrProcedure
     .input(
       z.object({
@@ -218,20 +536,7 @@ export const cpPortalClientsRouter = cpPortalRouter({
       const offset = (input.page - 1) * input.pageSize;
 
       // Verify client belongs to this CP
-      const customerCheck = await db
-        .select({ id: customers.id })
-        .from(customers)
-        .where(
-          and(
-            eq(customers.id, input.customerId),
-            eq(customers.channelPartnerId, cpId)
-          )
-        )
-        .limit(1);
-
-      if (customerCheck.length === 0) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Client not found" });
-      }
+      await verifyCpOwnership(db, input.customerId, cpId);
 
       // Build conditions
       const conditions: SQL[] = [
@@ -241,7 +546,7 @@ export const cpPortalClientsRouter = cpPortalRouter({
 
       if (input.search) {
         conditions.push(
-          sql`(${employees.firstName} LIKE ${'%' + input.search + '%'} OR ${employees.lastName} LIKE ${'%' + input.search + '%'} OR ${employees.email} LIKE ${'%' + input.search + '%'})`
+          sql`(${employees.firstName} LIKE ${"%" + input.search + "%"} OR ${employees.lastName} LIKE ${"%" + input.search + "%"} OR ${employees.email} LIKE ${"%" + input.search + "%"})`
         );
       }
       if (input.status) {
@@ -250,23 +555,40 @@ export const cpPortalClientsRouter = cpPortalRouter({
 
       const whereClause = and(...conditions);
 
-      // CP sees employee roster but NOT salary/compensation details
+      // CP sees employee roster but NOT salary/compensation/bank details
       const [items, totalResult] = await Promise.all([
         db
           .select({
             id: employees.id,
+            employeeCode: employees.employeeCode,
             firstName: employees.firstName,
             lastName: employees.lastName,
             email: employees.email,
+            phone: employees.phone,
+            dateOfBirth: employees.dateOfBirth,
+            gender: employees.gender,
+            nationality: employees.nationality,
+            idNumber: employees.idNumber,
+            idType: employees.idType,
+            address: employees.address,
+            city: employees.city,
+            state: employees.state,
+            country: employees.country,
+            postalCode: employees.postalCode,
             jobTitle: employees.jobTitle,
             department: employees.department,
-            country: employees.country,
-            status: employees.status,
+            serviceType: employees.serviceType,
+            employmentType: employees.employmentType,
             startDate: employees.startDate,
             endDate: employees.endDate,
-            employmentType: employees.employmentType,
+            status: employees.status,
+            requiresVisa: employees.requiresVisa,
+            visaStatus: employees.visaStatus,
+            visaExpiryDate: employees.visaExpiryDate,
+            visaNotes: employees.visaNotes,
             createdAt: employees.createdAt,
-            // NOTE: salary, compensation, bank details are NOT exposed to CP
+            // NOTE: baseSalary, salaryCurrency, estimatedEmployerCost, bankDetails
+            // are NOT exposed to CP — these are EG-managed "hard data"
           })
           .from(employees)
           .where(whereClause)
@@ -285,9 +607,159 @@ export const cpPortalClientsRouter = cpPortalRouter({
       };
     }),
 
-  /**
-   * Dashboard summary — aggregate stats for CP's client portfolio
-   */
+  // ════════════════════════════════════════════════════════════════════
+  // GET EMPLOYEE — single employee detail (non-hard-data fields)
+  // ════════════════════════════════════════════════════════════════════
+  getEmployee: cpHrProcedure
+    .input(z.object({ employeeId: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      const cpId = ctx.cpUser.channelPartnerId;
+
+      const rows = await db
+        .select({
+          id: employees.id,
+          employeeCode: employees.employeeCode,
+          customerId: employees.customerId,
+          firstName: employees.firstName,
+          lastName: employees.lastName,
+          email: employees.email,
+          phone: employees.phone,
+          dateOfBirth: employees.dateOfBirth,
+          gender: employees.gender,
+          nationality: employees.nationality,
+          idNumber: employees.idNumber,
+          idType: employees.idType,
+          address: employees.address,
+          city: employees.city,
+          state: employees.state,
+          country: employees.country,
+          postalCode: employees.postalCode,
+          jobTitle: employees.jobTitle,
+          department: employees.department,
+          serviceType: employees.serviceType,
+          employmentType: employees.employmentType,
+          startDate: employees.startDate,
+          endDate: employees.endDate,
+          status: employees.status,
+          requiresVisa: employees.requiresVisa,
+          visaStatus: employees.visaStatus,
+          visaExpiryDate: employees.visaExpiryDate,
+          visaNotes: employees.visaNotes,
+          createdAt: employees.createdAt,
+          updatedAt: employees.updatedAt,
+          // NOTE: baseSalary, salaryCurrency, estimatedEmployerCost, bankDetails NOT exposed
+        })
+        .from(employees)
+        .where(
+          and(
+            eq(employees.id, input.employeeId),
+            eq(employees.channelPartnerId, cpId)
+          )
+        )
+        .limit(1);
+
+      if (rows.length === 0) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Employee not found" });
+      }
+
+      return rows[0];
+    }),
+
+  // ════════════════════════════════════════════════════════════════════
+  // UPDATE EMPLOYEE (non-hard-data only) — CP assists with profile data
+  //
+  // EDIT LOCK RULE:
+  // - If employee status is NOT "pending_review" or "documents_incomplete",
+  //   CP cannot edit (only EG Super Admin can).
+  // - CP can only edit non-hard-data fields (personal info, address, visa notes).
+  //   Salary, bank details, contracts are EG-managed.
+  // ════════════════════════════════════════════════════════════════════
+  updateEmployee: cpHrProcedure
+    .input(
+      z.object({
+        employeeId: z.number(),
+        data: z.object({
+          // Personal info (non-hard-data, CP can assist)
+          firstName: z.string().optional(),
+          lastName: z.string().optional(),
+          email: z.string().email().optional(),
+          phone: z.string().optional(),
+          dateOfBirth: z.string().optional(),
+          gender: z.enum(["male", "female", "other", "prefer_not_to_say"]).optional(),
+          nationality: z.string().optional(),
+          idNumber: z.string().optional(),
+          idType: z.string().optional(),
+          // Address
+          address: z.string().optional(),
+          city: z.string().optional(),
+          state: z.string().optional(),
+          postalCode: z.string().optional(),
+          // Employment info (non-compensation)
+          department: z.string().optional(),
+          jobTitle: z.string().optional(),
+          // Visa notes (CP can add context)
+          visaNotes: z.string().optional(),
+        }),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      const cpId = ctx.cpUser.channelPartnerId;
+
+      // Fetch employee and verify ownership
+      const empRows = await db
+        .select({
+          id: employees.id,
+          status: employees.status,
+        })
+        .from(employees)
+        .where(
+          and(
+            eq(employees.id, input.employeeId),
+            eq(employees.channelPartnerId, cpId)
+          )
+        )
+        .limit(1);
+
+      if (empRows.length === 0) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Employee not found" });
+      }
+
+      const emp = empRows[0];
+
+      // ── EDIT LOCK RULE ──
+      // CP can only edit when status is "pending_review" or "documents_incomplete"
+      // Once EG starts processing (onboarding, contract_signed, active, etc.), CP is locked out
+      const editableStatuses = ["pending_review", "documents_incomplete"];
+      if (!editableStatuses.includes(emp.status)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `Employee profile is locked (status: ${emp.status}). Only EG Admin can edit after the review process begins.`,
+        });
+      }
+
+      // Apply update — only non-hard-data fields
+      await db
+        .update(employees)
+        .set(input.data)
+        .where(
+          and(
+            eq(employees.id, input.employeeId),
+            eq(employees.channelPartnerId, cpId)
+          )
+        );
+
+      return { success: true };
+    }),
+
+  // ════════════════════════════════════════════════════════════════════
+  // DASHBOARD SUMMARY — aggregate stats for CP's client portfolio
+  // ════════════════════════════════════════════════════════════════════
   summary: protectedCpProcedure.query(async ({ ctx }) => {
     const db = getDb();
     if (!db) return { totalClients: 0, activeClients: 0, totalEmployees: 0, activeEmployees: 0 };
