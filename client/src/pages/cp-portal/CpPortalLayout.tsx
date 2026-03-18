@@ -1,9 +1,9 @@
 /**
- * CP Portal Layout
+ * CP Portal Layout (Glassmorphism Redesign)
  *
- * Sidebar navigation layout for the Channel Partner portal.
+ * Top navigation bar with frosted glass effect.
  * White-labeled with CP's logo and brand colors.
- * Mirrors the PortalLayout design language but with CP-specific navigation.
+ * Aurora gradient background with glass cards.
  */
 import { useState, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
@@ -21,8 +21,6 @@ import {
   LogOut,
   Menu,
   X,
-  ChevronLeft,
-  ChevronRight,
   Loader2,
   Building2,
 } from "lucide-react";
@@ -33,7 +31,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import type { LucideIcon } from "lucide-react";
 
 interface NavItem {
@@ -42,39 +39,14 @@ interface NavItem {
   href: string;
 }
 
-interface NavGroup {
-  label: string;
-  items: NavItem[];
-}
-
-function buildCpNavGroups(): NavGroup[] {
+function buildCpNavItems(): NavItem[] {
   return [
-    {
-      label: "Overview",
-      items: [
-        { label: "Dashboard", icon: LayoutDashboard, href: cpPath("/") },
-      ],
-    },
-    {
-      label: "Management",
-      items: [
-        { label: "Clients", icon: Users, href: cpPath("/clients") },
-        { label: "Pricing", icon: DollarSign, href: cpPath("/pricing") },
-      ],
-    },
-    {
-      label: "Finance",
-      items: [
-        { label: "Invoices", icon: Receipt, href: cpPath("/invoices") },
-        { label: "Wallet", icon: Wallet, href: cpPath("/wallet") },
-      ],
-    },
-    {
-      label: "Configuration",
-      items: [
-        { label: "Settings", icon: Settings, href: cpPath("/settings") },
-      ],
-    },
+    { label: "Dashboard", icon: LayoutDashboard, href: cpPath("/") },
+    { label: "Clients", icon: Users, href: cpPath("/clients") },
+    { label: "Pricing", icon: DollarSign, href: cpPath("/pricing") },
+    { label: "Invoices", icon: Receipt, href: cpPath("/invoices") },
+    { label: "Wallet", icon: Wallet, href: cpPath("/wallet") },
+    { label: "Settings", icon: Settings, href: cpPath("/settings") },
   ];
 }
 
@@ -86,19 +58,21 @@ export default function CpPortalLayout({ children }: CpPortalLayoutProps) {
   const { user, loading, logout } = useCpAuth();
   const { branding } = useBranding();
   const [location] = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const navGroups = useMemo(() => buildCpNavGroups(), []);
+  const navItems = useMemo(() => buildCpNavItems(), []);
 
   const companyName = branding?.companyName || "Partner Portal";
   const logoUrl = branding?.logoUrl;
 
-  // Auth guard — redirect to login if not authenticated
+  // Auth guard
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      <div className="min-h-screen flex items-center justify-center aurora-bg">
+        <div className="glass-card p-8 flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -114,152 +88,135 @@ export default function CpPortalLayout({ children }: CpPortalLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
-      {/* Mobile overlay */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed top-0 left-0 z-50 h-full bg-card border-r border-border transition-all duration-300 flex flex-col",
-          sidebarOpen ? "w-64" : "w-[68px]",
-          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        )}
-      >
-        {/* Logo area */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-border">
-          {sidebarOpen ? (
-            <div className="flex items-center gap-3 min-w-0">
-              {logoUrl ? (
-                <img
-                  src={logoUrl}
-                  alt={companyName}
-                  className="h-8 w-auto object-contain flex-shrink-0"
-                />
-              ) : (
-                <Building2 className="h-8 w-8 text-primary flex-shrink-0" />
-              )}
-              <span className="font-semibold text-sm truncate">{companyName}</span>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center w-full">
-              {logoUrl ? (
-                <img src={logoUrl} alt={companyName} className="h-8 w-8 object-contain" />
-              ) : (
-                <Building2 className="h-6 w-6 text-primary" />
-              )}
-            </div>
-          )}
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="hidden lg:flex items-center justify-center w-6 h-6 rounded hover:bg-muted"
-          >
-            {sidebarOpen ? (
-              <ChevronLeft className="w-4 h-4" />
+    <div className="min-h-screen aurora-bg">
+      {/* ─── Top Navigation Bar ─── */}
+      <header className="sticky top-0 z-50 glass-nav">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          {/* Left: Logo + Company Name */}
+          <div className="flex items-center gap-3">
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={companyName}
+                className="h-8 w-auto object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
+              />
             ) : (
-              <ChevronRight className="w-4 h-4" />
+              <Building2 className="h-7 w-7 text-primary" />
             )}
-          </button>
-        </div>
+            <span className="font-semibold text-sm text-foreground hidden sm:block">
+              {companyName}
+            </span>
+          </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3">
-          {navGroups.map((group) => (
-            <div key={group.label} className="mb-4">
-              {sidebarOpen && (
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-3 mb-2">
-                  {group.label}
-                </p>
-              )}
-              {group.items.map((item) => {
+          {/* Center: Navigation Pills (Desktop) */}
+          <nav className="hidden lg:flex items-center gap-1 glass-pill px-1.5 py-1.5">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.href);
+              return (
+                <Link key={item.href} href={item.href}>
+                  <button
+                    className={cn(
+                      "flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-200",
+                      active
+                        ? "bg-white/90 text-primary shadow-sm"
+                        : "text-muted-foreground hover:text-foreground hover:bg-white/40"
+                    )}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </button>
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Right: User Menu */}
+          <div className="flex items-center gap-3">
+            {/* Mobile hamburger */}
+            <button
+              className="lg:hidden p-2 rounded-lg hover:bg-white/20 transition-colors"
+              onClick={() => setMobileOpen(!mobileOpen)}
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+
+            {/* User avatar dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 p-1.5 rounded-full hover:bg-white/20 transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-bold">
+                    {user.contactName?.charAt(0)?.toUpperCase() || "U"}
+                  </div>
+                  <span className="text-sm font-medium hidden md:block">
+                    {user.contactName}
+                  </span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 glass-dropdown">
+                <div className="px-3 py-2">
+                  <p className="text-sm font-semibold">{user.contactName}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                  <p className="text-[10px] text-muted-foreground/70 mt-0.5">
+                    {user.cpRole}
+                  </p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => (window.location.href = cpPath("/settings"))}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout} className="text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </header>
+
+      {/* ─── Mobile Navigation Drawer ─── */}
+      {mobileOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setMobileOpen(false)}
+          />
+          <div className="fixed top-16 left-0 right-0 z-50 lg:hidden glass-card mx-4 mt-2 rounded-2xl p-3">
+            <nav className="flex flex-col gap-1">
+              {navItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.href);
                 return (
                   <Link key={item.href} href={item.href}>
-                    <div
+                    <button
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors cursor-pointer mb-0.5",
+                        "flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-all",
                         active
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-white/40 hover:text-foreground"
                       )}
                       onClick={() => setMobileOpen(false)}
                     >
-                      <Icon className="w-4 h-4 flex-shrink-0" />
-                      {sidebarOpen && <span className="truncate">{item.label}</span>}
-                    </div>
+                      <Icon className="w-5 h-5" />
+                      <span>{item.label}</span>
+                    </button>
                   </Link>
                 );
               })}
-            </div>
-          ))}
-        </nav>
+            </nav>
+          </div>
+        </>
+      )}
 
-        {/* User menu at bottom */}
-        <div className="border-t border-border p-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                className={cn(
-                  "flex items-center gap-3 w-full px-3 py-2 rounded-md hover:bg-muted transition-colors text-sm",
-                  !sidebarOpen && "justify-center"
-                )}
-              >
-                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold flex-shrink-0">
-                  {user.contactName?.charAt(0)?.toUpperCase() || "U"}
-                </div>
-                {sidebarOpen && (
-                  <div className="min-w-0 text-left">
-                    <p className="text-sm font-medium truncate">{user.contactName}</p>
-                    <p className="text-[10px] text-muted-foreground truncate">
-                      {user.cpRole}
-                    </p>
-                  </div>
-                )}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="px-2 py-1.5">
-                <p className="text-sm font-medium">{user.contactName}</p>
-                <p className="text-xs text-muted-foreground">{user.email}</p>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => (window.location.href = cpPath("/settings"))}>
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={logout} className="text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <main
-        className={cn(
-          "flex-1 transition-all duration-300",
-          sidebarOpen ? "lg:ml-64" : "lg:ml-[68px]"
-        )}
-      >
-        {/* Mobile header */}
-        <div className="lg:hidden h-14 flex items-center px-4 border-b border-border bg-card">
-          <button onClick={() => setMobileOpen(true)} className="mr-3">
-            <Menu className="w-5 h-5" />
-          </button>
-          <span className="font-semibold text-sm">{companyName}</span>
-        </div>
-
-        {/* Page content */}
-        <div className="p-6">{children}</div>
+      {/* ─── Page Content ─── */}
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6">
+        {children}
       </main>
     </div>
   );

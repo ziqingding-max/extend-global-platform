@@ -1,8 +1,8 @@
 /**
- * Admin Login Page
+ * Admin Login Page (Glassmorphism Redesign)
  *
- * Clean, professional login form for admin panel.
- * Uses email/password authentication with JWT.
+ * Centered frosted glass login card on aurora gradient background.
+ * Clean, premium feel with gradient CTA button.
  */
 
 import { useState } from "react";
@@ -10,11 +10,11 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Eye, EyeOff, Lock, Mail, ShieldCheck } from "lucide-react";
+import { Loader2, Eye, EyeOff, Lock, Mail } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
+
 export default function AdminLogin() {
   const { t } = useI18n();
   const [email, setEmail] = useState("");
@@ -43,7 +43,6 @@ export default function AdminLogin() {
         return;
       }
 
-      // Redirect to dashboard
       window.location.href = "/";
     } catch (err) {
       setError(t("adminLogin.error.networkError"));
@@ -53,16 +52,16 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center aurora-bg p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
+        {/* Logo & Brand */}
         <div className="flex flex-col items-center mb-8">
-          <img 
-            src="/brand/gea-logo-horizontal-green.png" 
-            alt="Extend Global" 
-            className="h-16 object-contain mb-4"
+          <img
+            src="/brand/gea-logo-icon.png"
+            alt="Extend Global"
+            className="w-14 h-14 object-contain mb-4"
           />
-          <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
             {t("adminLogin.header.title")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -70,94 +69,107 @@ export default function AdminLogin() {
           </p>
         </div>
 
-        <Card>
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">{t("adminLogin.form.title")}</CardTitle>
-            <CardDescription>
+        {/* Login Card — Frosted Glass */}
+        <div className="glass-card p-8">
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-foreground">
+              {t("adminLogin.form.title")}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
               {t("adminLogin.form.description")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium">
+                {t("adminLogin.form.emailLabel")}
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="admin@extendglobal.ai"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10 glass-input"
+                  required
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium">
+                {t("adminLogin.form.passwordLabel")}
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder={t("adminLogin.form.passwordPlaceholder")}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10 pr-10 glass-input"
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full btn-gradient h-11 text-sm font-semibold"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {t("adminLogin.form.submitButton.loading")}
+                </>
+              ) : (
+                t("adminLogin.form.submitButton.default")
               )}
+            </Button>
+          </form>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">{t("adminLogin.form.emailLabel")}</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="admin@extendglobal.ai"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    required
-                    autoFocus
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">{t("adminLogin.form.passwordLabel")}</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder={t("adminLogin.form.passwordPlaceholder")}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10"
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
+          <div className="mt-5 text-center">
+            <Link href="/forgot-password">
               <Button
-                type="submit"
-                className="w-full"
-                disabled={loading}
+                variant="link"
+                className="text-sm text-muted-foreground hover:text-primary p-0 h-auto"
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {t("adminLogin.form.submitButton.loading")}
-                  </>
-                ) : (
-                  t("adminLogin.form.submitButton.default")
-                )}
+                Forgot your password?
               </Button>
-            </form>
+            </Link>
+          </div>
 
-            <div className="mt-4 text-center">
-              <Link href="/forgot-password">
-                <Button variant="link" className="text-sm text-muted-foreground hover:text-primary p-0 h-auto">
-                  Forgot your password?
-                </Button>
-              </Link>
-            </div>
+          <div className="mt-3 text-center">
+            <p className="text-xs text-muted-foreground">
+              {t("adminLogin.footer.contactAdmin")}
+            </p>
+          </div>
+        </div>
 
-            <div className="mt-4 text-center">
-              <p className="text-xs text-muted-foreground">
-                {t("adminLogin.footer.contactAdmin")}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <p className="text-center text-xs text-muted-foreground mt-6">
+        <p className="text-center text-xs text-muted-foreground/60 mt-6">
           {t("adminLogin.footer.poweredBy")}
         </p>
       </div>
