@@ -222,6 +222,16 @@ function CustomerList() {
     return parseInt(cpFilter);
   })();
 
+  /**
+   * EG-DIRECT Permission Unlock:
+   * In B2B2B, Admin is read-only for Client data by default.
+   * When Context Switcher is set to EG-DIRECT, Admin gains full CP-level
+   * management rights (create/edit/manage clients, wallets, pricing, etc.)
+   * because EG is acting as its own CP for direct-sign customers.
+   */
+  const isDirectContext = cpContext.mode === "direct";
+  const canManageClients = isDirectContext; // Only EG-DIRECT unlocks write access
+
   const { data, isLoading, refetch } = trpc.customers.list.useQuery({
     search: search || undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
@@ -278,7 +288,9 @@ function CustomerList() {
           </div>
           <Dialog open={createOpen} onOpenChange={(open) => { setCreateOpen(open); if (!open) setFormErrors({}); }}>
             <DialogTrigger asChild>
-              <Button><Plus className="w-4 h-4 mr-2" />{t("customers.button.add")}</Button>
+              <Button disabled={!canManageClients} title={!canManageClients ? "Switch to EG-DIRECT context to create customers. In B2B2B mode, clients are managed by their Channel Partner." : undefined}>
+                <Plus className="w-4 h-4 mr-2" />{t("customers.button.add")}
+              </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
               <DialogHeader><DialogTitle>{t("customers.dialog.new_customer.title")}</DialogTitle></DialogHeader>
@@ -963,7 +975,7 @@ function CustomerDetail({ id }: { id: number }) {
         {activeTab === "info" && (
           <div className="space-y-4">
             <div className="flex justify-end">
-              <Button variant="outline" size="sm" onClick={openEditDialog}>
+              <Button variant="outline" size="sm" onClick={openEditDialog} disabled={!canManageClients} title={!canManageClients ? "Switch to EG-DIRECT context to edit customers." : undefined}>
                 <Pencil className="w-4 h-4 mr-2" />Edit Customer
               </Button>
             </div>

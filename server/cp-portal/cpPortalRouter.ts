@@ -22,6 +22,7 @@
  * - quotations: CP quotation creation and management (Task Group E)
  * - operations: Read-only operations overview — payroll, leave, adjustments (Task Group E)
  * - dashboard: Profit analytics and KPI dashboard (Task Group E)
+ * - releaseTasks: Deposit release task management for CP (Task Group D fix)
  */
 
 import { cpPortalRouter } from "./cpPortalTrpc";
@@ -35,6 +36,7 @@ import { cpPortalClientDepositsRouter } from "./routers/cpPortalClientDepositsRo
 import { cpPortalQuotationsRouter } from "./routers/cpPortalQuotationsRouter";
 import { cpPortalOperationsRouter } from "./routers/cpPortalOperationsRouter";
 import { cpPortalDashboardRouter } from "./routers/cpPortalDashboardRouter";
+import { cpPortalReleaseTasksRouter } from "./routers/cpPortalReleaseTasksRouter";
 
 export const cpPortalAppRouter = cpPortalRouter({
   auth: cpPortalAuthRouter,
@@ -47,6 +49,7 @@ export const cpPortalAppRouter = cpPortalRouter({
   quotations: cpPortalQuotationsRouter,
   operations: cpPortalOperationsRouter,
   dashboard: cpPortalDashboardRouter,
+  releaseTasks: cpPortalReleaseTasksRouter,
 });
 
 export type CpPortalAppRouter = typeof cpPortalAppRouter;

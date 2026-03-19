@@ -114,3 +114,52 @@
 - [x] All new routers registered in `cpPortalRouter.ts`.
 - [x] All new pages registered in `App.tsx` with lazy loading.
 - [x] Navigation items added to `CpPortalLayout.tsx`.
+
+---
+
+# Task Group B-fix: Context Switcher 遗漏修复 Checklist
+
+## Bf1. tRPC Header Injection
+- [x] `main.tsx` — Admin tRPC `httpBatchLink` now injects `x-cp-context-id` header from cpContextStore.
+- [x] Header value format: `all`, `direct`, or numeric CP ID string.
+
+## Bf2. Backend Middleware Adaptation
+- [x] `procedures.ts` — `adminProcedure` parses `x-cp-context-id` from request headers.
+- [x] Injects `cpContext: { mode, cpId }` into tRPC context for downstream use.
+- [x] Graceful fallback: if header is missing, defaults to `{ mode: "all", cpId: null }`.
+
+## Bf3. EG-DIRECT Permission Unlock
+- [x] `Customers.tsx` — when `cpContext.mode === "direct"`, create/edit buttons are unlocked.
+- [x] `isDirectMode` flag controls button visibility for direct-managed clients.
+
+## Bf4. CpWallets Standalone Page
+- [x] `CpWallets.tsx` — dedicated Admin page for all CP wallet management.
+- [x] Shows prepaid balance and frozen deposit for each CP.
+- [x] Top-up, manual adjustment, and frozen release actions.
+- [x] Route registered at `/cp-wallets` in `App.tsx`.
+- [x] `Layout.tsx` Partner Hub nav updated to link to `/cp-wallets` (was `/channel-partners?tab=wallets`).
+
+---
+
+# Task Group D-fix: Release Tasks + depositRefundService 修复 Checklist
+
+## Df1. CP Portal Release Tasks
+- [x] `cpPortalReleaseTasksRouter.ts` — list, approve, summary endpoints.
+- [x] Lists `deposit_refund` and `credit_note` invoices scoped to CP.
+- [x] Pending/History tab filtering.
+- [x] Approve with disposition: `to_wallet` (credit main wallet) or `to_bank` (mark as bank refund).
+- [x] Delegates to shared `approveCreditNote` service for actual wallet operations.
+- [x] `cpFinanceProcedure` required for approve action (role-based access).
+
+## Df2. Release Tasks Frontend
+- [x] `CpPortalReleaseTasks.tsx` — summary cards, pending/history table, approval dialog.
+- [x] Radio group for disposition selection with clear UX guidance.
+- [x] Bank refund warning notice.
+- [x] Registered in `App.tsx` at `/cp/release-tasks`.
+- [x] Navigation item "Releases" added to `CpPortalLayout.tsx`.
+
+## Df3. depositRefundService Fix
+- [x] `depositRefundService.ts` — now inherits `invoiceLayer` from original deposit invoice.
+- [x] Also inherits `channelPartnerId` (falls back to customer's CP if deposit has none).
+- [x] Ensures deposit_refund invoices appear in correct L1/L2/Direct tab in Admin.
+- [x] Ensures deposit_refund invoices are visible in CP Portal queries.

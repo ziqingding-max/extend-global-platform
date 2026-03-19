@@ -105,7 +105,7 @@ function useNavGroups(user: any): NavGroup[] {
           icon: Handshake,
           items: [
             { label: "Partners", icon: Handshake, href: "/channel-partners" },
-            { label: "CP Wallets", icon: Landmark, href: "/channel-partners?tab=wallets" },
+            { label: "CP Wallets", icon: Landmark, href: "/cp-wallets" },
             { label: "CP Pricing", icon: DollarSign, href: "/channel-partners?tab=pricing" },
           ].filter(() => hasRole(["admin"])),
         },
