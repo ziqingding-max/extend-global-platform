@@ -15,9 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Eye, EyeOff, Lock, ShieldCheck, CheckCircle2, XCircle } from "lucide-react";
 
-import { useI18n } from "@/lib/i18n";
 export default function AdminInvite() {
-  const { t } = useI18n();
   const [, setLocation] = useLocation();
   const searchString = useSearch();
   const params = new URLSearchParams(searchString);
@@ -40,7 +38,7 @@ export default function AdminInvite() {
       window.location.href = "/";
     },
     onError: (err) => {
-      setError(err.message || t("admin_invite.error.activation_failed"));
+      setError(err.message || "Activation failed");
     },
   });
 
@@ -49,12 +47,12 @@ export default function AdminInvite() {
     setError("");
 
     if (password.length < 8) {
-      setError(t("admin_invite.error.password_length"));
+      setError("Password must be at least 8 characters long");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError(t("admin_invite.error.password_mismatch"));
+      setError("Passwords do not match");
       return;
     }
 
@@ -68,12 +66,12 @@ export default function AdminInvite() {
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
             <XCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <h2 className="text-lg font-semibold mb-2">{t("admin_invite.invalid_link.title")}</h2>
+            <h2 className="text-lg font-semibold mb-2">Invalid Link</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              {t("admin_invite.invalid_link.description")}
+              The invite link is invalid or missing.
             </p>
             <Button variant="outline" onClick={() => setLocation("/login")}>
-              {t("admin_invite.invalid_link.go_to_login")}
+              Go to Login
             </Button>
           </CardContent>
         </Card>
@@ -97,12 +95,12 @@ export default function AdminInvite() {
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
             <XCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <h2 className="text-lg font-semibold mb-2">{t("admin_invite.invalid_token.title")}</h2>
+            <h2 className="text-lg font-semibold mb-2">Invalid Token</h2>
             <p className="text-sm text-muted-foreground mb-4">
               {verifyQuery.data.reason}
             </p>
             <Button variant="outline" onClick={() => setLocation("/login")}>
-              {t("admin_invite.invalid_link.go_to_login")}
+              Go to Login
             </Button>
           </CardContent>
         </Card>
@@ -126,21 +124,21 @@ export default function AdminInvite() {
             EG Admin
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {t("admin_invite.header.title")}
+            Admin Invite
           </p>
         </div>
 
         <Card>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">{t("admin_invite.welcome.title", { name: inviteData?.name || "User" })}</CardTitle>
+            <CardTitle className="text-xl">Welcome{inviteData?.name ? `, ${inviteData.name}` : " User"}</CardTitle>
             <CardDescription>
-              {t("admin_invite.welcome.description")}
+              Please set your password to activate your account.
             </CardDescription>
           </CardHeader>
           <CardContent>
             {inviteData?.email && (
               <div className="mb-4 p-3 rounded-lg bg-muted/50 border">
-                <p className="text-sm text-muted-foreground">{t("admin_invite.form.email_label")}</p>
+                <p className="text-sm text-muted-foreground">Email</p>
                 <p className="font-medium">{inviteData.email}</p>
               </div>
             )}
@@ -153,13 +151,13 @@ export default function AdminInvite() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="password">{t("admin_invite.form.password_label")}</Label>
+                <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder={t("admin_invite.form.password_placeholder")}
+                    placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10"
@@ -178,13 +176,13 @@ export default function AdminInvite() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">{t("admin_invite.form.confirm_password_label")}</Label>
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
                     type={showPassword ? "text" : "password"}
-                    placeholder={t("admin_invite.form.confirm_password_placeholder")}
+                    placeholder="Confirm your password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="pl-10"
@@ -202,10 +200,10 @@ export default function AdminInvite() {
                 {acceptMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {t("admin_invite.button.activating")}
+                    Activating...
                   </>
                 ) : (
-                  t("admin_invite.button.activate_account")
+                  "Activate Account"
                 )}
               </Button>
             </form>
@@ -213,7 +211,7 @@ export default function AdminInvite() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          {t("admin_invite.footer.powered_by")}
+          Powered by Extend Global
         </p>
       </div>
     </div>

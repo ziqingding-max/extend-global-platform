@@ -1,6 +1,5 @@
 import Layout from "@/components/Layout";
 import { trpc } from "@/lib/trpc";
-import { useI18n } from "@/lib/i18n";
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,6 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 
 export default function Quotations() {
-  const { t } = useI18n();
   const [page, setPage] = useState(1);
   const limit = 20;
   const [search, setSearch] = useState("");
@@ -52,7 +50,7 @@ export default function Quotations() {
 
   const updateStatusMutation = trpc.quotations.updateStatus.useMutation({
       onSuccess: () => {
-          toast.success(t("common.updated") || "Updated");
+          toast.success("Updated");
           refetch();
           setStatusConfirm(null);
       },
@@ -86,18 +84,18 @@ export default function Quotations() {
   };
 
   return (
-    <Layout breadcrumb={["EG", t("nav.sales"), t("nav.quotations")]}>
+    <Layout breadcrumb={["EG", "Sales", "Quotations"]}>
       <div className="p-6 space-y-6 page-enter">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t("quotations.title")}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{t("quotations.subtitle")}</p>
+            <h1 className="text-2xl font-bold tracking-tight">Quotations</h1>
+            <p className="text-sm text-muted-foreground mt-1">Manage your sales quotations</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="relative w-64">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                    placeholder={t("common.search") || "Search..."}
+                    placeholder="Search..."
                     className="pl-8"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -105,7 +103,7 @@ export default function Quotations() {
             </div>
             <Link href="/quotations/new">
                 <Button>
-                <Plus className="w-4 h-4 mr-2" />{t("quotations.createButton")}
+                <Plus className="w-4 h-4 mr-2" />Create Quotation
                 </Button>
             </Link>
           </div>
@@ -125,18 +123,18 @@ export default function Quotations() {
             ) : !data || data.items.length === 0 ? (
               <div className="p-12 text-center text-muted-foreground">
                 <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p>{t("common.no_data")}</p>
+                <p>No data available</p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[160px]">{t("quotations.table.number")}</TableHead>
-                    <TableHead className="min-w-[140px]">{t("quotations.table.customer")}</TableHead>
-                    <TableHead className="w-[120px]">{t("quotations.table.total")}</TableHead>
-                    <TableHead className="w-[120px]">{t("quotations.table.validUntil")}</TableHead>
-                    <TableHead className="w-[130px]">{t("quotations.table.status")}</TableHead>
-                    <TableHead className="text-right w-[100px]">{t("quotations.table.actions")}</TableHead>
+                    <TableHead className="w-[160px]">Number</TableHead>
+                    <TableHead className="min-w-[140px]">Customer</TableHead>
+                    <TableHead className="w-[120px]">Total</TableHead>
+                    <TableHead className="w-[120px]">Valid Until</TableHead>
+                    <TableHead className="w-[130px]">Status</TableHead>
+                    <TableHead className="text-right w-[100px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -166,16 +164,16 @@ export default function Quotations() {
                           };
                           const nextActions: { value: string; label: string }[] = [];
                           if (q.status === "draft") {
-                            nextActions.push({ value: "sent", label: t("quotations.status.sent") });
+                            nextActions.push({ value: "sent", label: "Sent" });
                           }
                           if (q.status === "sent" || q.status === "draft") {
-                            nextActions.push({ value: "accepted", label: t("quotations.status.accepted") });
-                            nextActions.push({ value: "rejected", label: t("quotations.status.rejected") });
+                            nextActions.push({ value: "accepted", label: "Accepted" });
+                            nextActions.push({ value: "rejected", label: "Rejected" });
                           }
                           if (isTerminal || nextActions.length === 0) {
                             return (
                               <Badge variant="outline" className={`text-xs ${statusColorMap[q.status] || ""}`}>
-                                {t(`quotations.status.${q.status}`)}
+                                {q.status.charAt(0).toUpperCase() + q.status.slice(1)}
                               </Badge>
                             );
                           }
@@ -183,7 +181,7 @@ export default function Quotations() {
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <button className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border cursor-pointer hover:opacity-80 transition-opacity ${statusColorMap[q.status] || ""}`}>
-                                  {t(`quotations.status.${q.status}`)}
+                                  {q.status.charAt(0).toUpperCase() + q.status.slice(1)}
                                   <ChevronDown className="w-3 h-3" />
                                 </button>
                               </DropdownMenuTrigger>
@@ -205,12 +203,12 @@ export default function Quotations() {
                         <div className="flex justify-end gap-2">
                           {q.status === 'draft' && (
                               <Link href={`/quotations/edit/${q.id}`}>
-                                <Button variant="ghost" size="icon" title={t("common.edit") || "Edit"}>
+                                <Button variant="ghost" size="icon" title="Edit">
                                     <Edit className="w-4 h-4" />
                                 </Button>
                               </Link>
                           )}
-                          <Button variant="ghost" size="icon" onClick={() => downloadMutation.mutate(q.id)} title={t("quotations.actions.download")}>
+                          <Button variant="ghost" size="icon" onClick={() => downloadMutation.mutate(q.id)} title="Download">
                             {downloadMutation.isPending && downloadMutation.variables === q.id ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
@@ -230,14 +228,14 @@ export default function Quotations() {
         <AlertDialog open={!!statusConfirm} onOpenChange={(open) => !open && setStatusConfirm(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>{t("common.confirm") || "Confirm Action"}</AlertDialogTitle>
+                    <AlertDialogTitle>Confirm Action</AlertDialogTitle>
                     <AlertDialogDescription>
-                        {t("quotations.status.confirm_change") || "Are you sure you want to change the status of this quotation?"}
+                        Are you sure you want to change the status of this quotation?
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-                    <AlertDialogAction onClick={confirmStatusChange}>{t("common.confirm")}</AlertDialogAction>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={confirmStatusChange}>Confirm</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

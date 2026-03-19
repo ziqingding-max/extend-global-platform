@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import {
@@ -45,7 +44,6 @@ const initialFormData = {
 };
 
 export default function ContractorCreateDialog({ onSuccess }: { onSuccess?: () => void }) {
-  const { t } = useI18n();
   const [createOpen, setCreateOpen] = useState(false);
   const [formData, setFormData] = useState({ ...initialFormData });
 
@@ -69,12 +67,12 @@ export default function ContractorCreateDialog({ onSuccess }: { onSuccess?: () =
       <DialogTrigger asChild>
         <Button>
           <Plus className="w-4 h-4 mr-2" />
-          {t("contractors.actions.addContractor")}
+          Add Contractor
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t("contractors.actions.addContractor")}</DialogTitle>
+          <DialogTitle>Add Contractor</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
            {/* Basic Info */}
@@ -248,7 +246,7 @@ export default function ContractorCreateDialog({ onSuccess }: { onSuccess?: () =
            </div>
            
            <div className="flex justify-end gap-3 pt-2">
-             <Button variant="outline" onClick={() => setCreateOpen(false)}>{t("common.cancel")}</Button>
+             <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
              <Button onClick={() => {
                const submitData: any = {
                  ...formData,

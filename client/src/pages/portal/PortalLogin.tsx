@@ -16,10 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useCpBranding } from "@/hooks/useCpBranding";
 
-import { useI18n } from "@/lib/i18n";
-
 export default function PortalLogin() {
-  const { t } = useI18n();
   const [, setLocation] = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +29,7 @@ export default function PortalLogin() {
       setLocation(portalPath("/"));
     },
     onError: (err) => {
-      setError(err.message || t("portal_login.alert.login_failed"));
+      setError(err.message || "Login failed. Please try again.");
     },
   });
 
@@ -57,10 +54,10 @@ export default function PortalLogin() {
             className={isCp ? "h-14 object-contain mb-4" : "w-14 h-14 object-contain mb-4"}
           />
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            {isCp ? `${displayName} Portal` : t("portal_login.header.title")}
+            {isCp ? `${displayName} Portal` : "Portal Login"}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {t("portal_login.header.subtitle")}
+            {"Access your portal account to manage your services."}
           </p>
         </div>
 
@@ -68,10 +65,10 @@ export default function PortalLogin() {
         <div className="glass-card p-8">
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-foreground">
-              {t("portal_login.form.title")}
+              {"Sign In"}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {t("portal_login.form.description")}
+              {"Enter your email and password to access your account."}
             </p>
           </div>
 
@@ -84,14 +81,14 @@ export default function PortalLogin() {
 
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">
-                {t("portal_login.form.email_label")}
+                {"Email Address"}
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder={t("portal_login.form.email_placeholder")}
+                  placeholder={"you@example.com"}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 glass-input"
@@ -104,13 +101,13 @@ export default function PortalLogin() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-sm font-medium">
-                  {t("portal_login.form.password_label")}
+                  {"Password"}
                 </Label>
                 <Link
                   href={portalPath("/forgot-password")}
                   className="text-xs text-primary hover:underline"
                 >
-                  {t("portal_login.form.forgot_password_link")}
+                  {"Forgot Password?"}
                 </Link>
               </div>
               <div className="relative">
@@ -118,7 +115,7 @@ export default function PortalLogin() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder={t("portal_login.form.password_placeholder")}
+                  placeholder={"Enter your password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10 glass-input"
@@ -146,23 +143,23 @@ export default function PortalLogin() {
               {loginMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {t("portal_login.form.signing_in_button")}
+                  {"Signing in..."}
                 </>
               ) : (
-                t("portal_login.form.sign_in_button")
+                "Sign In"
               )}
             </Button>
           </form>
 
           <div className="mt-5 text-center">
             <p className="text-xs text-muted-foreground">
-              {t("portal_login.help.no_account")}
+              {"Don't have an account? Contact your administrator."}
             </p>
           </div>
         </div>
 
         <p className="text-center text-xs text-muted-foreground/60 mt-6">
-          {isCp ? `Powered by Extend Global` : t("portal_login.footer.powered_by")}
+          {isCp ? `Powered by Extend Global` : "Powered by Extend Global"}
         </p>
       </div>
     </div>

@@ -39,8 +39,6 @@ import { MonthPicker } from "@/components/DatePicker";
 import CurrencySelect from "@/components/CurrencySelect";
 import PortalPayrollCycleIndicator from "@/components/PortalPayrollCycleIndicator";
 
-import { useI18n } from "@/lib/i18n";
-
 const statusColors: Record<string, string> = {
   submitted: "bg-yellow-100 text-yellow-800 border-yellow-200",
   client_approved: "bg-emerald-100 text-emerald-800 border-emerald-200",
@@ -73,29 +71,28 @@ const emptyForm: ReimbursementForm = {
 };
 
 export default function PortalReimbursements() {
-  const { t } = useI18n();
   const { user } = usePortalAuth();
   const isHrOrAdmin = user && ["admin", "hr_manager"].includes(user.portalRole);
 
   const statusLabels: Record<string, string> = {
-    submitted: t("portal_reimbursements.status.pending_review"),
-    client_approved: t("portal_reimbursements.status.approved"),
-    client_rejected: t("portal_reimbursements.status.rejected"),
-    admin_approved: t("portal_reimbursements.status.confirmed"),
-    admin_rejected: t("portal_reimbursements.status.admin_rejected"),
-    locked: t("portal_reimbursements.status.locked"),
+    submitted: "Pending Review",
+    client_approved: "Approved",
+    client_rejected: "Rejected",
+    admin_approved: "Confirmed",
+    admin_rejected: "Admin Rejected",
+    locked: "Locked",
   };
 
   const categoryOptions = [
-    { value: "travel", label: t("portal_reimbursements.category.travel") },
-    { value: "equipment", label: t("portal_reimbursements.category.equipment") },
-    { value: "meals", label: t("portal_reimbursements.category.meals") },
-    { value: "transportation", label: t("portal_reimbursements.category.transportation") },
-    { value: "medical", label: t("portal_reimbursements.category.medical") },
-    { value: "education", label: t("portal_reimbursements.category.education") },
-    { value: "office_supplies", label: t("portal_reimbursements.category.office_supplies") },
-    { value: "communication", label: t("portal_reimbursements.category.communication") },
-    { value: "other", label: t("portal_reimbursements.category.other") },
+    { value: "travel", label: "Travel" },
+    { value: "equipment", label: "Equipment" },
+    { value: "meals", label: "Meals" },
+    { value: "transportation", label: "Transportation" },
+    { value: "medical", label: "Medical" },
+    { value: "education", label: "Education" },
+    { value: "office_supplies", label: "Office Supplies" },
+    { value: "communication", label: "Communication" },
+    { value: "other", label: "Other" },
   ];
 
   const [statusFilter, setStatusFilter] = useState("all");
@@ -122,7 +119,7 @@ export default function PortalReimbursements() {
 
   const createMutation = portalTrpc.reimbursements.create.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_reimbursements.toast.claim_submitted"));
+      toast.success("Claim submitted successfully");
       setShowCreate(false);
       setForm({ ...emptyForm });
       utils.reimbursements.list.invalidate();
@@ -132,7 +129,7 @@ export default function PortalReimbursements() {
 
   const updateMutation = portalTrpc.reimbursements.update.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_reimbursements.toast.updated"));
+      toast.success("Reimbursement updated successfully");
       setEditingId(null);
       setForm({ ...emptyForm });
       utils.reimbursements.list.invalidate();
@@ -142,7 +139,7 @@ export default function PortalReimbursements() {
 
   const deleteMutation = portalTrpc.reimbursements.delete.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_reimbursements.toast.deleted"));
+      toast.success("Reimbursement deleted successfully");
       setDeleteId(null);
       utils.reimbursements.list.invalidate();
     },
@@ -151,7 +148,7 @@ export default function PortalReimbursements() {
 
   const approveMutation = portalTrpc.reimbursements.approve.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_reimbursements.toast.approved"));
+      toast.success("Reimbursement approved");
       utils.reimbursements.list.invalidate();
     },
     onError: (err: any) => toast.error(err.message),
@@ -159,7 +156,7 @@ export default function PortalReimbursements() {
 
   const rejectMutation = portalTrpc.reimbursements.reject.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_reimbursements.toast.rejected"));
+      toast.success("Reimbursement rejected");
       setRejectId(null);
       setRejectReason("");
       utils.reimbursements.list.invalidate();
@@ -171,7 +168,7 @@ export default function PortalReimbursements() {
     onSuccess: (data) => {
       setForm((prev) => ({ ...prev, receiptFileUrl: data.url, receiptFileKey: data.fileKey }));
       setUploadingReceipt(false);
-      toast.success(t("portal_reimbursements.toast.receipt_uploaded"));
+      toast.success("Receipt uploaded successfully");
     },
     onError: (err: any) => {
       setUploadingReceipt(false);
@@ -187,7 +184,7 @@ export default function PortalReimbursements() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 20 * 1024 * 1024) {
-      toast.error(t("portal_reimbursements.toast.error.file_size_limit"));
+      toast.error("File size exceeds 20MB limit");
       return;
     }
     setUploadingReceipt(true);
@@ -205,11 +202,11 @@ export default function PortalReimbursements() {
 
   function handleCreate() {
     if (!form.employeeId || !form.category || !form.amount || !form.effectiveMonth) {
-      toast.error(t("portal_reimbursements.toast.error.required_fields"));
+      toast.error("Please fill in all required fields");
       return;
     }
     if (!form.receiptFileUrl) {
-      toast.error(t("portal_reimbursements.toast.error.receipt_required"));
+      toast.error("Receipt is required");
       return;
     }
     createMutation.mutate({
@@ -252,13 +249,13 @@ export default function PortalReimbursements() {
   const isFormOpen = showCreate || editingId !== null;
 
   return (
-    <PortalLayout title={t("portal_reimbursements.title")}>
+    <PortalLayout title="Reimbursements">
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">{t("portal_reimbursements.title")}</h2>
+            <h2 className="text-2xl font-bold tracking-tight">Reimbursements</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {t("portal_reimbursements.description")}
+              Dedicated page for expense reimbursement claims.
             </p>
           </div>
           <div className="flex gap-2">
@@ -268,21 +265,21 @@ export default function PortalReimbursements() {
               disabled={items.length === 0}
               onClick={() => {
                 exportToCsv(items, [
-                  { header: t("portal_reimbursements.table.header.employee"), accessor: (r: any) => r.employeeName || "" },
-                  { header: t("portal_reimbursements.table.header.description"), accessor: (r: any) => r.description || "" },
-                  { header: t("portal_reimbursements.table.header.category"), accessor: (r: any) => r.category || "" },
-                  { header: t("portal_reimbursements.table.header.amount"), accessor: (r: any) => r.amount || 0 },
-                  { header: t("portal_reimbursements.table.header.currency"), accessor: (r: any) => r.currency || "" },
+                  { header: "Employee", accessor: (r: any) => r.employeeName || "" },
+                  { header: "Description", accessor: (r: any) => r.description || "" },
+                  { header: "Category", accessor: (r: any) => r.category || "" },
+                  { header: "Amount", accessor: (r: any) => r.amount || 0 },
+                  { header: "Currency", accessor: (r: any) => r.currency || "" },
                   { header: "Expense Date", accessor: (r: any) => r.expenseDate ? new Date(r.expenseDate).toLocaleDateString() : "" },
-                  { header: t("portal_reimbursements.table.header.status"), accessor: (r: any) => r.status || "" },
+                  { header: "Status", accessor: (r: any) => r.status || "" },
                 ], `reimbursements-${new Date().toISOString().slice(0, 10)}.csv`);
               }}
             >
-              <Download className="w-4 h-4 mr-1" /> {t("portal_reimbursements.button.export_csv")}
+              <Download className="w-4 h-4 mr-1" /> Export CSV
             </Button>
             {isHrOrAdmin && (
               <Button onClick={() => { setForm({ ...emptyForm }); setShowCreate(true); }}>
-                <Plus className="w-4 h-4 mr-2" /> {t("portal_reimbursements.button.new_reimbursement")}
+                <Plus className="w-4 h-4 mr-2" /> New Reimbursement
               </Button>
             )}
           </div>
@@ -292,16 +289,16 @@ export default function PortalReimbursements() {
         <div className="flex gap-3">
           <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder={t("portal_reimbursements.filters.all_statuses")} />
+              <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("portal_reimbursements.filters.all_statuses")}</SelectItem>
-              <SelectItem value="submitted">{t("portal_reimbursements.status.pending_review")}</SelectItem>
-              <SelectItem value="client_approved">{t("portal_reimbursements.status.approved")}</SelectItem>
-              <SelectItem value="client_rejected">{t("portal_reimbursements.status.rejected")}</SelectItem>
-              <SelectItem value="admin_approved">{t("portal_reimbursements.status.confirmed")}</SelectItem>
-              <SelectItem value="admin_rejected">{t("portal_reimbursements.status.admin_rejected")}</SelectItem>
-              <SelectItem value="locked">{t("portal_reimbursements.status.locked")}</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="submitted">Pending Review</SelectItem>
+              <SelectItem value="client_approved">Approved</SelectItem>
+              <SelectItem value="client_rejected">Rejected</SelectItem>
+              <SelectItem value="admin_approved">Confirmed</SelectItem>
+              <SelectItem value="admin_rejected">Admin Rejected</SelectItem>
+              <SelectItem value="locked">Locked</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -318,20 +315,20 @@ export default function PortalReimbursements() {
             ) : items.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                 <FileText className="w-10 h-10 mb-3" />
-                <p className="text-lg font-medium">{t("portal_reimbursements.empty.title")}</p>
-                <p className="text-sm mt-1">{t("portal_reimbursements.empty.hint")}</p>
+                <p className="text-lg font-medium">No reimbursements found</p>
+                <p className="text-sm mt-1">You have no reimbursement claims at this time.</p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("portal_reimbursements.table.header.employee")}</TableHead>
-                    <TableHead>{t("portal_reimbursements.table.header.category")}</TableHead>
-                    <TableHead>{t("portal_reimbursements.form.label.effective_month")}</TableHead>
-                    <TableHead className="text-right">{t("portal_reimbursements.table.header.amount")}</TableHead>
-                    <TableHead>{t("portal_reimbursements.table.header.status")}</TableHead>
-                    <TableHead>{t("portal_reimbursements.form.label.receipt")}</TableHead>
-                    <TableHead className="text-right">{t("portal_reimbursements.table.header.actions")}</TableHead>
+                    <TableHead>Employee</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Effective Month</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Receipt</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -447,7 +444,7 @@ export default function PortalReimbursements() {
       }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingId ? t("portal_reimbursements.dialog.edit.title") : t("portal_reimbursements.dialog.create.title")}</DialogTitle>
+            <DialogTitle>{editingId ? "Edit Reimbursement" : "Create Reimbursement"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             {/* Payroll Cycle Indicator — matches Admin experience */}
@@ -455,13 +452,13 @@ export default function PortalReimbursements() {
             {!editingId && (
               <>
                 <div className="space-y-2">
-                  <Label>{t("portal_reimbursements.table.header.employee")} <span className="text-destructive">*</span></Label>
+                  <Label>Employee <span className="text-destructive">*</span></Label>
                   <Select value={form.employeeId ? String(form.employeeId) : ""} onValueChange={(v) => {
                     const empId = Number(v);
                     const selectedEmp = employees.find((e: any) => e.id === empId);
                     setForm((f) => ({ ...f, employeeId: empId, currency: selectedEmp?.salaryCurrency || f.currency }));
                   }}>
-                    <SelectTrigger><SelectValue placeholder={t("portal_reimbursements.placeholder.select_employee")} /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Select Employee" /></SelectTrigger>
                     <SelectContent>
                       {employees.map((emp: any) => (
                         <SelectItem key={emp.id} value={String(emp.id)}>
@@ -473,9 +470,9 @@ export default function PortalReimbursements() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("portal_reimbursements.table.header.category")} <span className="text-destructive">*</span></Label>
+                    <Label>Category <span className="text-destructive">*</span></Label>
                     <Select value={form.category} onValueChange={(v) => setForm((f) => ({ ...f, category: v }))}>
-                      <SelectTrigger><SelectValue placeholder={t("portal_reimbursements.placeholder.select_category")} /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
                       <SelectContent>
                         {categoryOptions.map((c) => (
                           <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
@@ -484,11 +481,11 @@ export default function PortalReimbursements() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("portal_reimbursements.form.label.effective_month")} <span className="text-destructive">*</span></Label>
+                    <Label>Effective Month <span className="text-destructive">*</span></Label>
                     <MonthPicker
                       value={form.effectiveMonth}
                       onChange={(v) => setForm((f) => ({ ...f, effectiveMonth: v }))}
-                      placeholder={t("portal_reimbursements.placeholder.select_month")}
+                      placeholder="Select Month"
                     />
                   </div>
                 </div>
@@ -496,25 +493,25 @@ export default function PortalReimbursements() {
             )}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t("portal_reimbursements.table.header.amount")} <span className="text-destructive">*</span></Label>
+                <Label>Amount <span className="text-destructive">*</span></Label>
                 <Input type="number" step="0.01" value={form.amount} onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))} placeholder="0.00" />
               </div>
               <div className="space-y-2">
-                <Label>{t("portal_reimbursements.table.header.currency")}</Label>
+                <Label>Currency</Label>
                 <Input value={form.currency} readOnly disabled className="bg-muted" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>{t("portal_reimbursements.table.header.description")}</Label>
-              <Textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder={t("portal_reimbursements.placeholder.describe_expense")} rows={2} />
+              <Label>Description</Label>
+              <Textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Describe the expense" rows={2} />
             </div>
             <div className="space-y-2">
-              <Label>{t("portal_reimbursements.form.label.receipt")} <span className="text-destructive">*</span></Label>
+              <Label>Receipt <span className="text-destructive">*</span></Label>
               {form.receiptFileUrl ? (
                 <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/30">
                   <Receipt className="w-4 h-4 text-emerald-600" />
                   <a href={form.receiptFileUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate flex-1">
-                    {t("portal_reimbursements.button.view_receipt")}
+                    View Receipt
                   </a>
                   <Button variant="ghost" size="sm" onClick={() => setForm((f) => ({ ...f, receiptFileUrl: "", receiptFileKey: "" }))}>
                     <Trash2 className="w-3 h-3" />
@@ -526,7 +523,7 @@ export default function PortalReimbursements() {
                   <Button variant="outline" size="sm" disabled={uploadingReceipt} asChild>
                     <span>
                       {uploadingReceipt ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
-                      {uploadingReceipt ? t("portal_reimbursements.button.uploading") : t("portal_reimbursements.button.upload_receipt")}
+                      {uploadingReceipt ? "Uploading..." : "Upload Receipt"}
                     </span>
                   </Button>
                 </label>
@@ -535,14 +532,14 @@ export default function PortalReimbursements() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setShowCreate(false); setEditingId(null); setForm({ ...emptyForm }); }}>
-              {t("common.cancel")}
+              Cancel
             </Button>
             <Button
               onClick={editingId ? handleUpdate : handleCreate}
               disabled={createMutation.isPending || updateMutation.isPending}
             >
               {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {editingId ? t("portal_reimbursements.button.save_changes") : t("portal_reimbursements.button.submit_claim")}
+              {editingId ? "Save Changes" : "Submit Claim"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -552,19 +549,19 @@ export default function PortalReimbursements() {
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("portal_reimbursements.delete_dialog.title")}</AlertDialogTitle>
+            <AlertDialogTitle>Delete Reimbursement</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("portal_reimbursements.delete_dialog.description")}
+              Are you sure you want to delete this reimbursement claim? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteId && deleteMutation.mutate({ id: deleteId })}
             >
               {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              {t("common.delete")}
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -574,28 +571,28 @@ export default function PortalReimbursements() {
       <Dialog open={rejectId !== null} onOpenChange={(open) => { if (!open) { setRejectId(null); setRejectReason(""); } }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{t("portal_reimbursements.reject_dialog.title")}</DialogTitle>
+            <DialogTitle>Reject Reimbursement</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label>{t("portal_reimbursements.reject_dialog.label.reason")}</Label>
+              <Label>Reason</Label>
               <Textarea
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                placeholder={t("portal_reimbursements.placeholder.reject_reason")}
+                placeholder="Enter rejection reason"
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setRejectId(null); setRejectReason(""); }}>{t("common.cancel")}</Button>
+            <Button variant="outline" onClick={() => { setRejectId(null); setRejectReason(""); }}>Cancel</Button>
             <Button
               variant="destructive"
               onClick={() => rejectId && rejectMutation.mutate({ id: rejectId, reason: rejectReason || undefined })}
               disabled={rejectMutation.isPending}
             >
               {rejectMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {t("common.reject")}
+              Reject
             </Button>
           </DialogFooter>
         </DialogContent>

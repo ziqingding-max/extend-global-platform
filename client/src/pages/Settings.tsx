@@ -56,10 +56,8 @@ async function copyToClipboard(text: string): Promise<void> {
 import AuditLogsSection from "./AuditLogs";
 import CountriesContent from "@/components/pages/CountriesContent";
 import NotificationSettingsSection from "@/components/pages/NotificationSettingsSection";
-import { useI18n } from "@/lib/i18n";
 
 export default function Settings() {
-  const { t, lang } = useI18n();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
 
@@ -67,39 +65,39 @@ export default function Settings() {
     <Layout breadcrumb={["EG", "Settings"]}>
       <div className="p-6 space-y-6 page-enter">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t("settings.title")}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {t("settings.description")}
+            Manage system configurations, exchange rates, user access, and more.
           </p>
         </div>
 
         <Tabs defaultValue="countries" className="w-full">
           <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="countries" className="gap-1.5">
-              <Globe className="w-3.5 h-3.5" />{t("nav.countries")}
+              <Globe className="w-3.5 h-3.5" />Countries
             </TabsTrigger>
             <TabsTrigger value="payroll" className="gap-1.5">
-              <CalendarClock className="w-3.5 h-3.5" />{t("settings.tabs.payrollConfig")}
+              <CalendarClock className="w-3.5 h-3.5" />Payroll Configuration
             </TabsTrigger>
             <TabsTrigger value="exchange-rates" className="gap-1.5">
-              <ArrowLeftRight className="w-3.5 h-3.5" />{t("settings.tabs.exchangeRates")}
+              <ArrowLeftRight className="w-3.5 h-3.5" />Exchange Rates
             </TabsTrigger>
             <TabsTrigger value="billing-entities" className="gap-1.5">
-              <Landmark className="w-3.5 h-3.5" />{t("settings.tabs.billingEntities")}
+              <Landmark className="w-3.5 h-3.5" />Billing Entities
             </TabsTrigger>
             {isAdmin && (
               <TabsTrigger value="notifications" className="gap-1.5">
-                <Bell className="w-3.5 h-3.5" />{lang === "zh" ? "通知设置" : "Notifications"}
+                <Bell className="w-3.5 h-3.5" />Notifications
               </TabsTrigger>
             )}
             {isAdmin && (
               <TabsTrigger value="users" className="gap-1.5">
-                <UserCog className="w-3.5 h-3.5" />{t("settings.tabs.userManagement")}
+                <UserCog className="w-3.5 h-3.5" />User Management
               </TabsTrigger>
             )}
             {isAdmin && (
               <TabsTrigger value="audit-logs" className="gap-1.5">
-                <ClipboardList className="w-3.5 h-3.5" />{t("settings.tabs.auditLogs")}
+                <ClipboardList className="w-3.5 h-3.5" />Audit Logs
               </TabsTrigger>
             )}
           </TabsList>
@@ -148,13 +146,12 @@ export default function Settings() {
    PAYROLL CONFIGURATION
    ══════════════════════════════════════════════════════════════════════════════ */
 function PayrollConfigSection() {
-  const { t } = useI18n();
   const { data: configs, isLoading, refetch } = trpc.systemSettings.list.useQuery();
   const { data: cronJobs, isLoading: cronLoading, refetch: refetchCron } = trpc.systemSettings.listCronJobs.useQuery();
 
   const updateMutation = trpc.systemSettings.update.useMutation({
     onSuccess: () => {
-      toast.success(t("settings.payroll.toast.updateSuccess"));
+      toast.success("Payroll settings updated successfully.");
       refetch();
     },
     onError: (err: any) => toast.error(err.message),
@@ -269,18 +266,18 @@ function PayrollConfigSection() {
           <div className="space-y-2">
             <h4 className="text-sm font-semibold flex items-center gap-2">
               <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-              {t("settings.payroll.cutoff.title")}
+              Payroll Cutoff
             </h4>
             <p className="text-xs text-muted-foreground mb-2">
-              {t("settings.payroll.cutoff.description")} This is the deadline for clients and employees to submit data. Admin users are NOT restricted by this cutoff.
+              This is the deadline for clients and employees to submit data. Admin users are NOT restricted by this cutoff.
             </p>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label className="text-xs">{t("settings.payroll.cutoff.dayLabel")}</Label>
+                <Label className="text-xs">Cutoff Day of Month</Label>
                 <Input type="number" min={1} max={28} value={cutoffDay} onChange={(e) => setCutoffDay(e.target.value)} />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">{t("settings.payroll.cutoff.timeLabel")}</Label>
+                <Label className="text-xs">Cutoff Time (Beijing)</Label>
                 <Input type="time" value={cutoffTime} onChange={(e) => setCutoffTime(e.target.value)} />
               </div>
             </div>
@@ -292,13 +289,13 @@ function PayrollConfigSection() {
           <div className="space-y-2">
             <h4 className="text-sm font-semibold flex items-center gap-2">
               <CheckCircle2 className="w-3.5 h-3.5 text-muted-foreground" />
-              {t("settings.payroll.activation.title")}
+              Mid-Month Activation Cutoff
             </h4>
             <p className="text-xs text-muted-foreground mb-2">
-              {t("settings.payroll.activation.midMonthCutoffDescription")} Employees activated after this day will receive a Sign-on Bonus in the following month.
+              Employees activated after this day will receive a Sign-on Bonus in the following month.
             </p>
             <div className="max-w-xs space-y-1">
-              <Label className="text-xs">{t("settings.payroll.activation.midMonthCutoffLabel")}</Label>
+              <Label className="text-xs">Mid-Month Cutoff Day</Label>
               <Input type="number" min={1} max={28} value={midMonthCutoff} onChange={(e) => setMidMonthCutoff(e.target.value)} />
             </div>
           </div>
@@ -434,7 +431,6 @@ function PayrollConfigSection() {
    All rates are USD → XXX direction with global markup
    ══════════════════════════════════════════════════════════════════════════════ */
 function ExchangeRatesSection() {
-  const { t } = useI18n();
   const [showCreate, setShowCreate] = useState(false);
   const [showMarkupEdit, setShowMarkupEdit] = useState(false);
   const [markupInput, setMarkupInput] = useState("");
@@ -505,7 +501,7 @@ function ExchangeRatesSection() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold">{t("settings.tabs.exchangeRates")}</h2>
+          <h2 className="text-lg font-semibold">Exchange Rates</h2>
           <p className="text-muted-foreground text-sm mt-0.5">
             All rates are USD → Local Currency. Markup protects against FX risk.
           </p>
@@ -541,7 +537,7 @@ function ExchangeRatesSection() {
                 <AlertTriangle className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <div className="font-medium">{t("settings.exchangeRates.globalMarkup")}</div>
+                <div className="font-medium">Global Markup Percentage</div>
                 <div className="text-xs text-muted-foreground">
                   Applied to all rates. Ensures you collect more USD than you pay in local currency.
                 </div>
@@ -587,9 +583,9 @@ function ExchangeRatesSection() {
                   <th className="text-right p-3 font-medium">Raw Rate</th>
                   <th className="text-right p-3 font-medium">Rate with Markup</th>
                   <th className="text-center p-3 font-medium">Markup %</th>
-                  <th className="text-left p-3 font-medium">{t("settings.exchangeRates.table.effectiveDate")}</th>
-                  <th className="text-left p-3 font-medium">{t("settings.exchangeRates.table.source")}</th>
-                  <th className="text-right p-3 font-medium">{t("settings.userManagement.table.actions")}</th>
+                  <th className="text-left p-3 font-medium">Effective Date</th>
+                  <th className="text-left p-3 font-medium">Source</th>
+                  <th className="text-right p-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -638,16 +634,16 @@ function ExchangeRatesSection() {
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("settings.exchangeRates.addDialog.title")}</DialogTitle>
+            <DialogTitle>Add New Exchange Rate</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">{t("settings.exchangeRates.addDialog.description")}</p>
+          <p className="text-sm text-muted-foreground">Manually add a new exchange rate for USD to a target currency.</p>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>{t("settings.exchangeRates.addDialog.fromCurrencyLabel")}</Label>
+              <Label>From Currency</Label>
               <Input value="USD" disabled className="bg-muted font-mono" />
             </div>
             <div className="space-y-2">
-              <Label>{t("settings.exchangeRates.addDialog.toCurrencyLabel")}</Label>
+              <Label>To Currency</Label>
               <Input
                 value={form.toCurrency}
                 onChange={e => setForm(f => ({ ...f, toCurrency: e.target.value }))}
@@ -657,12 +653,12 @@ function ExchangeRatesSection() {
               />
             </div>
             <div className="space-y-2">
-              <Label>{t("settings.exchangeRates.addDialog.rateLabel")}</Label>
+              <Label>Rate (USD to Target)</Label>
               <Input type="number" step="0.000001" value={form.rate} onChange={e => setForm(f => ({ ...f, rate: e.target.value }))} placeholder="0.920000" />
-              <p className="text-xs text-muted-foreground">{t("settings.exchangeRates.addDialog.rateDescription")}</p>
+              <p className="text-xs text-muted-foreground">e.g., 0.92 means 1 USD = 0.92 EUR</p>
             </div>
             <div className="space-y-2">
-              <Label>{t("settings.exchangeRates.table.effectiveDate")}</Label>
+              <Label>Effective Date</Label>
               <DatePicker value={form.effectiveDate} onChange={(date) => setForm(f => ({ ...f, effectiveDate: date }))} placeholder="Select date" />
             </div>
           </div>
@@ -679,14 +675,14 @@ function ExchangeRatesSection() {
       <Dialog open={showMarkupEdit} onOpenChange={setShowMarkupEdit}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>{t("settings.exchangeRates.markupDialog.title")}</DialogTitle>
+            <DialogTitle>Adjust Global Markup</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
             This markup is applied to all exchange rates to hedge FX risk.
             New rates fetched from ECB will use this value.
           </p>
           <div className="space-y-2">
-            <Label>{t("settings.exchangeRates.markupDialog.label")}</Label>
+            <Label>Markup Percentage (%)</Label>
             <Input
               type="number"
               step="0.1"
@@ -730,7 +726,6 @@ import { Copy, UserPlus, Send, KeyRound } from "lucide-react";
 import { ALL_ROLES } from "@shared/roles";
 
 function UserManagementSection() {
-  const { t } = useI18n();
   const [editUser, setEditUser] = useState<any>(null);
   const [selectedRoles, setSelectedRoles] = useState<RoleValue[]>([]);
   const [showInvite, setShowInvite] = useState(false);
@@ -783,7 +778,7 @@ function UserManagementSection() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">{t("settings.tabs.userManagement")}</h2>
+        <h2 className="text-lg font-semibold">User Management</h2>
         <p className="text-muted-foreground text-sm mt-0.5">
           Manage system users, assign roles, and control access permissions. Only administrators can access this section.
         </p>
@@ -796,7 +791,7 @@ function UserManagementSection() {
             <Shield className="w-4 h-4 text-primary" />
             Role Permissions
           </CardTitle>
-          <CardDescription>{t("settings.userManagement.permissions.description")}</CardDescription>
+          <CardDescription>Understand the permissions associated with each user role.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -804,31 +799,31 @@ function UserManagementSection() {
               <div className="font-medium text-sm flex items-center gap-1.5 mb-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-red-600" /> Admin
               </div>
-              <p className="text-xs text-muted-foreground">{t("settings.userManagement.permissions.admin.description")}</p>
+              <p className="text-xs text-muted-foreground">Full access to all system features and settings.</p>
             </div>
             <div className="p-3 rounded-lg border bg-blue-50/50 dark:bg-blue-950/20">
               <div className="font-medium text-sm flex items-center gap-1.5 mb-1">
                 <Users className="w-3.5 h-3.5 text-blue-600" /> Customer Manager
               </div>
-              <p className="text-xs text-muted-foreground">{t("settings.userManagement.permissions.customerManager.description")}</p>
+              <p className="text-xs text-muted-foreground">Manages client accounts, contracts, and employee data.</p>
             </div>
             <div className="p-3 rounded-lg border bg-green-50/50 dark:bg-green-950/20">
               <div className="font-medium text-sm flex items-center gap-1.5 mb-1">
                 <UserCog className="w-3.5 h-3.5 text-green-600" /> Operations Manager
               </div>
-              <p className="text-xs text-muted-foreground">{t("settings.userManagement.permissions.operationsManager.description")}</p>
+              <p className="text-xs text-muted-foreground">Oversees payroll processing, leave management, and general operations.</p>
             </div>
             <div className="p-3 rounded-lg border bg-purple-50/50 dark:bg-purple-950/20">
               <div className="font-medium text-sm flex items-center gap-1.5 mb-1">
                 <ArrowLeftRight className="w-3.5 h-3.5 text-purple-600" /> Finance Manager
               </div>
-              <p className="text-xs text-muted-foreground">{t("settings.userManagement.permissions.financeManager.description")}</p>
+              <p className="text-xs text-muted-foreground">Manages billing, invoices, and financial reporting.</p>
             </div>
             <div className="p-3 rounded-lg border bg-gray-50/50 dark:bg-gray-950/20">
               <div className="font-medium text-sm flex items-center gap-1.5 mb-1">
                 <User className="w-3.5 h-3.5 text-gray-600" /> User (Read-Only)
               </div>
-              <p className="text-xs text-muted-foreground">{t("settings.userManagement.permissions.user.description")}</p>
+              <p className="text-xs text-muted-foreground">Can view data but cannot make any modifications.</p>
             </div>
           </div>
         </CardContent>
@@ -853,12 +848,12 @@ function UserManagementSection() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="text-left p-3 font-medium">{t("settings.userManagement.table.user")}</th>
+                  <th className="text-left p-3 font-medium">User</th>
                   <th className="text-left p-3 font-medium">Email</th>
                   <th className="text-left p-3 font-medium">Role</th>
-                  <th className="text-center p-3 font-medium">{t("settings.userManagement.table.status")}</th>
-                  <th className="text-left p-3 font-medium">{t("settings.userManagement.table.lastLogin")}</th>
-                  <th className="text-right p-3 font-medium">{t("settings.userManagement.table.actions")}</th>
+                  <th className="text-center p-3 font-medium">Status</th>
+                  <th className="text-left p-3 font-medium">Last Login</th>
+                  <th className="text-right p-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -931,7 +926,7 @@ function UserManagementSection() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label className="text-muted-foreground text-sm">{t("settings.userManagement.table.user")}</Label>
+              <Label className="text-muted-foreground text-sm">User</Label>
               <p className="font-medium">{editUser?.name || "Unnamed"} ({editUser?.email})</p>
             </div>
             <div className="space-y-3">
@@ -1016,25 +1011,23 @@ function UserManagementSection() {
                 <CheckCircle2 className="w-5 h-5" />
                 <span className="font-medium">Password Reset Successfully!</span>
               </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  A temporary password has been generated for <strong>{resetPasswordResult.userName}</strong> ({resetPasswordResult.userEmail}).
-                  Share it securely with the user. They will be required to change it on next login.
-                </p>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">{t("settings.userManagement.resetPasswordResult.passwordLabel")}</Label>
-                  <div className="flex items-center gap-2">
-                    <Input value={resetPasswordResult.temporaryPassword} readOnly className="font-mono text-sm" />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        copyToClipboard(resetPasswordResult.temporaryPassword).then(() => toast.success("Password copied to clipboard"));
-                      }}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                  </div>
+              <p className="text-sm text-muted-foreground">
+                A temporary password has been generated for <strong>{resetPasswordResult.userName}</strong> ({resetPasswordResult.userEmail}).
+                Share it securely with the user. They will be required to change it on next login.
+              </p>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Temporary Password</Label>
+                <div className="flex items-center gap-2">
+                  <Input value={resetPasswordResult.temporaryPassword} readOnly className="font-mono text-sm" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      copyToClipboard(resetPasswordResult.temporaryPassword).then(() => toast.success("Password copied to clipboard"));
+                    }}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
               <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
@@ -1043,7 +1036,7 @@ function UserManagementSection() {
                 </p>
               </div>
               <DialogFooter>
-                <Button onClick={() => { setResetPasswordUser(null); setResetPasswordResult(null); }}>{t("settings.userManagement.inviteResult.doneButton")}</Button>
+                <Button onClick={() => { setResetPasswordUser(null); setResetPasswordResult(null); }}>Done</Button>
               </DialogFooter>
             </div>
           ) : (
@@ -1076,7 +1069,7 @@ function UserManagementSection() {
       <Dialog open={showInvite} onOpenChange={(open) => { if (!open) { setShowInvite(false); setInviteResult(null); } }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{t("settings.userManagement.inviteDialog.title")}</DialogTitle>
+            <DialogTitle>Invite New User</DialogTitle>
           </DialogHeader>
 
           {inviteResult ? (
@@ -1101,7 +1094,7 @@ function UserManagementSection() {
                 </Button>
               </div>
               <DialogFooter>
-                <Button onClick={() => { setShowInvite(false); setInviteResult(null); }}>{t("settings.userManagement.inviteResult.doneButton")}</Button>
+                <Button onClick={() => { setShowInvite(false); setInviteResult(null); }}>Done</Button>
               </DialogFooter>
             </div>
           ) : (
@@ -1187,4 +1180,3 @@ function UserManagementSection() {
     </div>
   );
 }
-

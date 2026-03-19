@@ -1,4 +1,3 @@
-
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -7,7 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { FileText, ChevronRight } from "lucide-react";
 import { useLocation } from "wouter";
-import { useI18n } from "@/lib/i18n";
 import { formatDate, formatMonth, formatAmount } from "@/lib/format";
 
 interface InvoiceTableProps {
@@ -37,7 +35,6 @@ export function InvoiceTable({
   typeLabelKeys,
   isHistory = false
 }: InvoiceTableProps) {
-  const { t } = useI18n();
   const [, setLocation] = useLocation();
 
   const handleRowClick = (id: number) => {
@@ -56,19 +53,19 @@ export function InvoiceTable({
               />
             </TableHead>
           )}
-          <TableHead>{t("invoices.list.table.header.invoiceNumber")}</TableHead>
-          {!isHistory && <TableHead>{t("invoices.list.filter.typeLabel")}</TableHead>}
-          <TableHead>{t("invoices.list.table.header.customer")}</TableHead>
-          {isHistory && <TableHead>{t("invoices.list.filter.typeLabel")}</TableHead>}
-          <TableHead>{isHistory ? t("invoices.history.table.header.period") : t("invoices.list.table.header.month")}</TableHead>
-          <TableHead className={isHistory ? "text-right" : ""}>{t("invoices.list.table.header.total")}</TableHead>
+          <TableHead>Invoice Number</TableHead>
+          {!isHistory && <TableHead>Type</TableHead>}
+          <TableHead>Customer</TableHead>
+          {isHistory && <TableHead>Type</TableHead>}
+          <TableHead>{isHistory ? "Period" : "Month"}</TableHead>
+          <TableHead className={isHistory ? "text-right" : ""}>Total</TableHead>
           {isHistory ? (
-            <TableHead className="text-right">{t("invoices.history.table.header.paidAmount")}</TableHead>
+            <TableHead className="text-right">Paid Amount</TableHead>
           ) : (
-            <TableHead>{t("invoices.list.table.header.dueDate")}</TableHead>
+            <TableHead>Due Date</TableHead>
           )}
-          <TableHead>{t("invoices.list.filter.statusLabel")}</TableHead>
-          {isHistory && <TableHead>{t("invoices.history.table.header.paidDate")}</TableHead>}
+          <TableHead>Status</TableHead>
+          {isHistory && <TableHead>Paid Date</TableHead>}
           <TableHead className="w-10"></TableHead>
         </TableRow>
       </TableHeader>
@@ -98,7 +95,7 @@ export function InvoiceTable({
               
               {!isHistory && (
                 <TableCell>
-                  <Badge variant="outline" className="text-xs">{(typeLabelKeys[inv.invoiceType] ? t(typeLabelKeys[inv.invoiceType]) : inv.invoiceType)}</Badge>
+                  <Badge variant="outline" className="text-xs">{(typeLabelKeys[inv.invoiceType] ? typeLabelKeys[inv.invoiceType] : inv.invoiceType)}</Badge>
                 </TableCell>
               )}
               
@@ -106,7 +103,7 @@ export function InvoiceTable({
               
               {isHistory && (
                 <TableCell>
-                  <Badge variant="outline" className="text-xs">{(typeLabelKeys[inv.invoiceType] ? t(typeLabelKeys[inv.invoiceType]) : inv.invoiceType)}</Badge>
+                  <Badge variant="outline" className="text-xs">{(typeLabelKeys[inv.invoiceType] ? typeLabelKeys[inv.invoiceType] : inv.invoiceType)}</Badge>
                 </TableCell>
               )}
 
@@ -123,11 +120,11 @@ export function InvoiceTable({
                   {inv.paidAmount ? `${inv.currency} ${formatAmount(inv.paidAmount)}` : "—"}
                 </TableCell>
               ) : (
-                <TableCell className="text-sm">{["credit_note", "deposit_refund"].includes(inv.invoiceType) ? t("common.na") : (inv.dueDate ? formatDate(inv.dueDate) : "")}</TableCell>
+                <TableCell className="text-sm">{["credit_note", "deposit_refund"].includes(inv.invoiceType) ? "N/A" : (inv.dueDate ? formatDate(inv.dueDate) : "")}</TableCell>
               )}
 
               <TableCell>
-                <Badge variant="outline" className={`text-xs ${statusColors[inv.status] || ""}`}>{(statusLabelKeys[inv.status] ? t(statusLabelKeys[inv.status]) : inv.status)}</Badge>
+                <Badge variant="outline" className={`text-xs ${statusColors[inv.status] || ""}`}>{(statusLabelKeys[inv.status] ? statusLabelKeys[inv.status] : inv.status)}</Badge>
               </TableCell>
 
               {isHistory && (
@@ -143,7 +140,7 @@ export function InvoiceTable({
           <TableRow>
             <TableCell colSpan={isHistory ? 9 : 9} className="text-center py-12">
               <FileText className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-              <p className="text-sm text-muted-foreground">{isHistory ? t("invoices.history.table.empty") : t("invoices.list.table.empty")}</p>
+              <p className="text-sm text-muted-foreground">{isHistory ? "No invoice history found" : "No invoices found"}</p>
             </TableCell>
           </TableRow>
         )}

@@ -2,14 +2,12 @@ import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import Layout from "@/components/Layout";
 import { trpc } from "@/lib/trpc";
-import { useI18n } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Loader2, Globe, Search, CheckCircle2, FileEdit, Archive } from "lucide-react";
 
 export default function CountryGuideList() {
-  const { t } = useI18n();
   const [, setLocation] = useLocation();
   const [search, setSearch] = useState("");
   const { data: countries, isLoading: countriesLoading } = trpc.countries.list.useQuery();
@@ -52,13 +50,13 @@ export default function CountryGuideList() {
   const totalPublished = stats?.reduce((sum, s) => sum + (Number(s.publishedChapters) || 0), 0) || 0;
 
   return (
-    <Layout breadcrumb={["EG", "System", t("nav.countryGuideAdmin")]}>
+    <Layout breadcrumb={["EG", "System", "Country Guide Admin"]}>
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">{t("country_guide_admin.title")}</h1>
-            <p className="text-muted-foreground">{t("country_guide_admin.subtitle")}</p>
+            <h1 className="text-2xl font-bold">Country Guide Admin</h1>
+            <p className="text-muted-foreground">Manage country guides and chapters</p>
           </div>
         </div>
 

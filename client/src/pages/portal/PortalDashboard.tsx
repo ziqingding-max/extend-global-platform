@@ -34,7 +34,6 @@ import {
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 
-import { useI18n } from "@/lib/i18n";
 // ─── Glass KPI Card ─────────────────────────────────────────────────────────
 
 function StatCard({
@@ -52,7 +51,6 @@ function StatCard({
   href?: string;
   accent?: "default" | "green" | "amber" | "red" | "blue";
 }) {
-  const { t } = useI18n();
   const accentStyles = {
     default: "bg-gray-500/10 text-gray-600",
     green: "bg-emerald-500/15 text-emerald-600",
@@ -95,14 +93,13 @@ function StatCard({
 // ─── Pending Tasks ───────────────────────────────────────────────────────────
 
 function PendingTasksCard({ tasks }: { tasks: Array<{ type: string; count: number; label: string; href: string }> }) {
-  const { t } = useI18n();
   const totalPending = tasks.reduce((sum, t) => sum + t.count, 0);
 
   return (
     <div className="glass-card p-6 h-full">
       <div className="flex items-center gap-2 mb-4">
         <Clock className="w-4 h-4 text-muted-foreground" />
-        <h3 className="text-base font-semibold">{t("portal_dashboard.action_items.title")}</h3>
+        <h3 className="text-base font-semibold">Action Items</h3>
         {totalPending > 0 && (
           <Badge variant="destructive" className="ml-auto text-xs">{totalPending}</Badge>
         )}
@@ -110,8 +107,8 @@ function PendingTasksCard({ tasks }: { tasks: Array<{ type: string; count: numbe
       {totalPending === 0 ? (
         <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
           <CheckCircle2 className="w-8 h-8 mb-2 text-green-500" />
-          <p className="text-sm font-medium">{t("portal_dashboard.action_items.all_caught_up")}</p>
-          <p className="text-xs mt-1">{t("portal_dashboard.action_items.no_pending_actions")}</p>
+          <p className="text-sm font-medium">All caught up</p>
+          <p className="text-xs mt-1">No pending actions</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -161,7 +158,6 @@ function PendingTasksCard({ tasks }: { tasks: Array<{ type: string; count: numbe
 // ─── Employee Map ────────────────────────────────────────────────────────────
 
 function EmployeeMapCard() {
-  const { t } = useI18n();
   const { data: countryData, isLoading } = portalTrpc.dashboard.employeesByCountry.useQuery();
 
   if (isLoading) {
@@ -169,7 +165,7 @@ function EmployeeMapCard() {
       <div className="glass-card p-6">
         <div className="flex items-center gap-2 mb-4">
           <Globe className="w-4 h-4 text-muted-foreground" />
-          <h3 className="text-base font-semibold">{t("portal_dashboard.global_workforce.title")}</h3>
+          <h3 className="text-base font-semibold">Global Workforce</h3>
         </div>
         <Skeleton className="h-[250px] w-full rounded-lg" />
       </div>
@@ -186,13 +182,13 @@ function EmployeeMapCard() {
     <div className="glass-card p-6">
       <div className="flex items-center gap-2 mb-4">
         <Globe className="w-4 h-4 text-muted-foreground" />
-        <h3 className="text-base font-semibold">{t("portal_dashboard.global_workforce.title")}</h3>
+        <h3 className="text-base font-semibold">Global Workforce</h3>
       </div>
       {mapData.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
           <MapPin className="w-8 h-8 mb-2" />
-          <p className="text-sm font-medium">{t("portal_dashboard.global_workforce.no_employees_yet")}</p>
-          <p className="text-xs mt-1">{t("portal_dashboard.global_workforce.start_onboarding")}</p>
+          <p className="text-sm font-medium">No employees yet</p>
+          <p className="text-xs mt-1">Start onboarding</p>
         </div>
       ) : (
         <WorldMap data={mapData} />
@@ -210,7 +206,6 @@ const payrollChartConfig: ChartConfig = {
 };
 
 function PayrollTrendCard() {
-  const { t } = useI18n();
   const { data: trendData, isLoading } = portalTrpc.dashboard.payrollTrend.useQuery();
 
   const chartData = useMemo(() => {
@@ -227,15 +222,15 @@ function PayrollTrendCard() {
     <div className="glass-card p-6">
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="w-4 h-4 text-muted-foreground" />
-        <h3 className="text-base font-semibold">{t("portal_dashboard.payroll_trend.title")}</h3>
+        <h3 className="text-base font-semibold">Payroll Trend</h3>
       </div>
       {isLoading ? (
         <Skeleton className="h-[280px] w-full rounded-lg" />
       ) : chartData.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
           <DollarSign className="w-8 h-8 mb-2" />
-          <p className="text-sm font-medium">{t("portal_dashboard.payroll_trend.no_payroll_data_yet")}</p>
-          <p className="text-xs mt-1">{t("portal_dashboard.payroll_trend.first_approved_run")}</p>
+          <p className="text-sm font-medium">No payroll data yet</p>
+          <p className="text-xs mt-1">First approved run</p>
         </div>
       ) : (
         <ChartContainer config={payrollChartConfig} className="h-[280px] w-full">
@@ -273,17 +268,23 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 function EmployeeStatusCard() {
-  const { t } = useI18n();
   const { data: statusData, isLoading } = portalTrpc.dashboard.employeeStatusDistribution.useQuery();
 
   const chartData = useMemo(() => {
     if (!statusData) return [];
     return statusData.map((d) => ({
-      name: t(`portal_dashboard.status.${d.status}`) || formatStatusLabel(d.status),
+      name: d.status === "active" ? "Active"
+        : d.status === "onboarding" ? "Onboarding"
+        : d.status === "pending_review" ? "Pending Review"
+        : d.status === "documents_incomplete" ? "Documents Incomplete"
+        : d.status === "offboarding" ? "Offboarding"
+        : d.status === "terminated" ? "Terminated"
+        : d.status === "inactive" ? "Inactive"
+        : formatStatusLabel(d.status),
       value: d.count,
       color: STATUS_COLORS[d.status] || "#6b7280",
     }));
-  }, [statusData, t]);
+  }, [statusData]);
 
   const totalEmployees = chartData.reduce((sum, d) => sum + d.value, 0);
 
@@ -291,14 +292,14 @@ function EmployeeStatusCard() {
     <div className="glass-card p-6 h-full">
       <div className="flex items-center gap-2 mb-4">
         <Users className="w-4 h-4 text-muted-foreground" />
-        <h3 className="text-base font-semibold">{t("portal_dashboard.employee_status.title")}</h3>
+        <h3 className="text-base font-semibold">Employee Status</h3>
       </div>
       {isLoading ? (
         <Skeleton className="h-[200px] w-full rounded-lg" />
       ) : chartData.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
           <Users className="w-8 h-8 mb-2" />
-          <p className="text-sm font-medium">{t("portal_dashboard.global_workforce.no_employees_yet")}</p>
+          <p className="text-sm font-medium">No employees yet</p>
         </div>
       ) : (
         <div className="flex flex-col items-center">
@@ -323,7 +324,7 @@ function EmployeeStatusCard() {
           </div>
           <div className="text-center -mt-[110px] mb-[50px]">
             <p className="text-2xl font-bold">{totalEmployees}</p>
-            <p className="text-xs text-muted-foreground">{t("portal_dashboard.employee_status.total")}</p>
+            <p className="text-xs text-muted-foreground">Total Employees</p>
           </div>
           <div className="w-full space-y-1.5 mt-2">
             {chartData.map((item) => (
@@ -345,7 +346,6 @@ function EmployeeStatusCard() {
 // ─── Recent Activity ─────────────────────────────────────────────────────────
 
 function RecentActivityCard() {
-  const { t } = useI18n();
   const { data: activities, isLoading } = portalTrpc.dashboard.recentActivity.useQuery();
 
   const typeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -375,7 +375,7 @@ function RecentActivityCard() {
     <div className="glass-card p-6">
       <div className="flex items-center gap-2 mb-4">
         <Activity className="w-4 h-4 text-muted-foreground" />
-        <h3 className="text-base font-semibold">{t("portal_dashboard.recent_activity.title")}</h3>
+        <h3 className="text-base font-semibold">Recent Activity</h3>
       </div>
       {isLoading ? (
         <div className="space-y-3">
@@ -392,7 +392,7 @@ function RecentActivityCard() {
       ) : !activities || activities.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
           <Activity className="w-8 h-8 mb-2" />
-          <p className="text-sm font-medium">{t("portal_dashboard.recent_activity.no_recent_activity")}</p>
+          <p className="text-sm font-medium">No recent activity</p>
         </div>
       ) : (
         <div className="space-y-1">
@@ -426,20 +426,19 @@ function RecentActivityCard() {
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 
 export default function PortalDashboard() {
-  const { t } = useI18n();
   const { user } = usePortalAuth();
   const { data: stats, isLoading } = portalTrpc.dashboard.stats.useQuery();
 
   return (
-    <PortalLayout title={t("portal_dashboard.header.title")}>
+    <PortalLayout title="Portal Dashboard">
       <div className="p-6 space-y-6 animate-page-in">
         {/* Welcome */}
         <div>
           <h2 className="text-2xl font-bold tracking-tight">
-            {t("portal_dashboard.welcome")}, {user?.contactName?.split(" ")[0] || "User"}
+            Welcome, {user?.contactName?.split(" ")[0] || "User"}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            {t("portal_dashboard.overview")}
+            Overview of your portal dashboard
           </p>
         </div>
 
@@ -457,34 +456,34 @@ export default function PortalDashboard() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
-              title={t("portal_dashboard.kpi.active_employees")}
+              title="Active Employees"
               value={stats?.activeEmployees ?? 0}
               icon={Users}
               accent="green"
-              description={t("portal_dashboard.kpi.active_employees_desc")}
+              description="Number of active employees"
               href={portalPath("/employees")}
             />
             <StatCard
-              title={t("portal_dashboard.kpi.countries")}
+              title="Countries"
               value={stats?.activeCountries ?? 0}
               icon={Globe}
               accent="blue"
-              description={t("portal_dashboard.kpi.active_locations_desc")}
+              description="Number of active locations"
             />
             <StatCard
-              title={t("portal_dashboard.kpi.pending_onboarding")}
+              title="Pending Onboarding"
               value={stats?.pendingOnboarding ?? 0}
               icon={UserPlus}
               accent="amber"
-              description={t("portal_dashboard.kpi.pending_onboarding_desc")}
+              description="Employees currently onboarding"
               href={portalPath("/onboarding")}
             />
             <StatCard
-              title={t("portal_dashboard.kpi.unpaid_invoices")}
+              title="Unpaid Invoices"
               value={(stats?.unpaidInvoices ?? 0) + (stats?.overdueInvoices ?? 0)}
               icon={Receipt}
               accent={(stats?.overdueInvoices ?? 0) > 0 ? "red" : "default"}
-              description={stats?.overdueInvoices ? `${stats.overdueInvoices} ${t("portal_dashboard.kpi.overdue")}` : t("portal_dashboard.kpi.awaiting_payment")}
+              description={stats?.overdueInvoices ? `${stats.overdueInvoices} Overdue` : "Awaiting payment"}
               href={portalPath("/invoices")}
             />
           </div>
@@ -498,37 +497,37 @@ export default function PortalDashboard() {
                 {
                   type: "invoices",
                   count: (stats?.unpaidInvoices ?? 0) + (stats?.overdueInvoices ?? 0),
-                  label: t("portal_dashboard.pending_tasks.unpaid_invoices"),
+                  label: "Unpaid Invoices",
                   href: portalPath("/invoices"),
                 },
                 {
                   type: "onboarding",
                   count: stats?.pendingOnboarding ?? 0,
-                  label: t("portal_dashboard.pending_tasks.onboarding_in_progress"),
+                  label: "Onboarding In Progress",
                   href: portalPath("/onboarding"),
                 },
                 {
                   type: "leave",
                   count: stats?.pendingLeave ?? 0,
-                  label: t("portal_dashboard.pending_tasks.leave_requests"),
+                  label: "Leave Requests",
                   href: portalPath("/leave"),
                 },
                 {
                   type: "adjustments",
                   count: stats?.pendingAdjustments ?? 0,
-                  label: t("portal_dashboard.pending_tasks.pending_adjustments"),
+                  label: "Pending Adjustments",
                   href: portalPath("/adjustments"),
                 },
                 {
                   type: "reimbursements",
                   count: stats?.pendingReimbursements ?? 0,
-                  label: t("portal_dashboard.pending_tasks.pending_reimbursements"),
+                  label: "Pending Reimbursements",
                   href: portalPath("/reimbursements"),
                 },
                 {
                   type: "leave_policy_setup",
                   count: stats?.unconfiguredLeavePolicyCountries ?? 0,
-                  label: t("portal_dashboard.pending_tasks.leave_policy_setup"),
+                  label: "Leave Policy Setup",
                   href: portalPath("/settings"),
                 },
               ]}

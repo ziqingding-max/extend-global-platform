@@ -4,7 +4,6 @@
  * Design: Top navigation bar with company name + pill tabs + user avatar
  * Aurora gradient background + frosted glass cards
  * Supports CP white-label branding (logo, colors)
- * i18n: EN/ZH language switching
  */
 
 import { useState, useMemo, useEffect } from "react";
@@ -12,7 +11,6 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { useCpBranding } from "@/hooks/useCpBranding";
-import { useI18n } from "@/lib/i18n";
 import { portalPath, getPortalBasePath } from "@/lib/portalBasePath";
 import {
   LayoutDashboard,
@@ -29,7 +27,6 @@ import {
   Building2,
   Loader2,
   DollarSign,
-  Globe,
   HelpCircle,
   Calculator,
   BookOpen,
@@ -76,51 +73,51 @@ interface NavGroup {
 function buildPortalNavGroups(): NavGroup[] {
   return [
     {
-      labelKey: "nav.overview",
+      labelKey: "Overview",
       icon: LayoutDashboard,
       items: [
-        { labelKey: "nav.dashboard", icon: LayoutDashboard, href: portalPath("/") },
+        { labelKey: "Dashboard", icon: LayoutDashboard, href: portalPath("/") },
       ],
     },
     {
-      labelKey: "nav.people",
+      labelKey: "People",
       icon: Users,
       items: [
-        { labelKey: "nav.onboarding", icon: UserPlus, href: portalPath("/onboarding") },
-        { labelKey: "nav.people", icon: Users, href: portalPath("/people") },
+        { labelKey: "Onboarding", icon: UserPlus, href: portalPath("/onboarding") },
+        { labelKey: "People", icon: Users, href: portalPath("/people") },
       ],
     },
     {
-      labelKey: "nav.operations",
+      labelKey: "Operations",
       icon: DollarSign,
       items: [
-        { labelKey: "nav.payroll", icon: DollarSign, href: portalPath("/payroll") },
-        { labelKey: "nav.adjustments", icon: ArrowUpDown, href: portalPath("/adjustments") },
-        { labelKey: "nav.reimbursements", icon: Receipt, href: portalPath("/reimbursements") },
-        { labelKey: "nav.leave", icon: CalendarDays, href: portalPath("/leave") },
+        { labelKey: "Payroll", icon: DollarSign, href: portalPath("/payroll") },
+        { labelKey: "Adjustments", icon: ArrowUpDown, href: portalPath("/adjustments") },
+        { labelKey: "Reimbursements", icon: Receipt, href: portalPath("/reimbursements") },
+        { labelKey: "Leave", icon: CalendarDays, href: portalPath("/leave") },
       ],
     },
     {
-      labelKey: "nav.finance",
+      labelKey: "Finance",
       icon: Wallet,
       items: [
-        { labelKey: "nav.invoices", icon: Receipt, href: portalPath("/invoices") },
-        { labelKey: "nav.wallet", icon: Wallet, href: portalPath("/wallet") },
+        { labelKey: "Invoices", icon: Receipt, href: portalPath("/invoices") },
+        { labelKey: "Wallet", icon: Wallet, href: portalPath("/wallet") },
       ],
     },
     {
-      labelKey: "nav.toolkit",
+      labelKey: "Toolkit",
       icon: Calculator,
       items: [
-        { labelKey: "nav.costSimulator", icon: Calculator, href: portalPath("/cost-simulator") },
-        { labelKey: "nav.countryGuide", icon: BookOpen, href: portalPath("/country-guide") },
+        { labelKey: "Cost Simulator", icon: Calculator, href: portalPath("/cost-simulator") },
+        { labelKey: "Country Guide", icon: BookOpen, href: portalPath("/country-guide") },
       ],
     },
     {
-      labelKey: "nav.resources",
+      labelKey: "Resources",
       icon: HelpCircle,
       items: [
-        { labelKey: "nav.knowledgeBase", icon: HelpCircle, href: portalPath("/knowledge-base") },
+        { labelKey: "Knowledge Base", icon: HelpCircle, href: portalPath("/knowledge-base") },
       ],
     },
   ];
@@ -130,11 +127,9 @@ function buildPortalNavGroups(): NavGroup[] {
 function PortalNavPill({
   group,
   isActive,
-  t,
 }: {
   group: NavGroup;
   isActive: boolean;
-  t: (key: string) => string;
 }) {
   const [location] = useLocation();
   const [open, setOpen] = useState(false);
@@ -153,7 +148,7 @@ function PortalNavPill({
           )}
         >
           <group.icon className="w-3.5 h-3.5" />
-          <span>{t(group.labelKey)}</span>
+          <span>{group.labelKey}</span>
         </div>
       </Link>
     );
@@ -169,7 +164,7 @@ function PortalNavPill({
           )}
         >
           <group.icon className="w-3.5 h-3.5" />
-          <span>{t(group.labelKey)}</span>
+          <span>{group.labelKey}</span>
           <ChevronDown
             className={cn(
               "w-3 h-3 transition-transform duration-200",
@@ -197,7 +192,7 @@ function PortalNavPill({
                   )}
                 >
                   <item.icon className="w-4 h-4 flex-shrink-0 opacity-70" />
-                  <span>{t(item.labelKey)}</span>
+                  <span>{item.labelKey}</span>
                 </div>
               </Link>
             </DropdownMenuItem>
@@ -213,12 +208,10 @@ function PortalMobileNav({
   navGroups,
   open,
   onClose,
-  t,
 }: {
   navGroups: NavGroup[];
   open: boolean;
   onClose: () => void;
-  t: (key: string) => string;
 }) {
   const [location] = useLocation();
   const dashboardHref = portalPath("/");
@@ -246,7 +239,7 @@ function PortalMobileNav({
             <div key={group.labelKey}>
               <div className="px-2 mb-1.5">
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-                  {t(group.labelKey)}
+                  {group.labelKey}
                 </span>
               </div>
               <div className="space-y-0.5">
@@ -266,7 +259,7 @@ function PortalMobileNav({
                         )}
                       >
                         <item.icon className="w-4 h-4 flex-shrink-0" />
-                        <span className="truncate">{t(item.labelKey)}</span>
+                        <span className="truncate">{item.labelKey}</span>
                       </div>
                     </Link>
                   );
@@ -279,7 +272,7 @@ function PortalMobileNav({
           <div>
             <div className="px-2 mb-1.5">
               <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-                {t("nav.settings")}
+                Settings
               </span>
             </div>
             <Link href={portalPath("/settings")}>
@@ -293,7 +286,7 @@ function PortalMobileNav({
                 )}
               >
                 <Settings className="w-4 h-4 flex-shrink-0" />
-                <span>{t("nav.settings")}</span>
+                <span>Settings</span>
               </div>
             </Link>
           </div>
@@ -316,7 +309,6 @@ export default function PortalLayout({ children, title }: PortalLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, loading, logout } = usePortalAuth();
   const { branding, isCp } = useCpBranding();
-  const { t, locale, setLocale } = useI18n();
 
   // Change Password state
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
@@ -422,7 +414,6 @@ export default function PortalLayout({ children, title }: PortalLayoutProps) {
                   key={group.labelKey}
                   group={group}
                   isActive={isActive}
-                  t={t}
                 />
               );
             })}
@@ -436,7 +427,7 @@ export default function PortalLayout({ children, title }: PortalLayoutProps) {
                 )}
               >
                 <Settings className="w-3.5 h-3.5" />
-                <span>{t("nav.settings")}</span>
+                <span>Settings</span>
               </div>
             </Link>
           </nav>
@@ -446,15 +437,6 @@ export default function PortalLayout({ children, title }: PortalLayoutProps) {
 
           {/* Right side actions */}
           <div className="flex items-center gap-1.5">
-            {/* Language Toggle */}
-            <button
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-white/30 transition-all duration-200"
-              onClick={() => setLocale(locale === "en" ? "zh" : "en")}
-              title={locale === "en" ? "切换到中文" : "Switch to English"}
-            >
-              <Globe className="w-3.5 h-3.5" />
-              <span>{locale === "en" ? "EN" : "中"}</span>
-            </button>
 
             {/* User Menu */}
             <DropdownMenu>
@@ -489,7 +471,7 @@ export default function PortalLayout({ children, title }: PortalLayoutProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-destructive" onClick={logout}>
                   <LogOut className="w-4 h-4 mr-2" />
-                  {t("nav.signOut")}
+                  Sign Out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -510,7 +492,6 @@ export default function PortalLayout({ children, title }: PortalLayoutProps) {
         navGroups={navGroups}
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
-        t={t}
       />
 
       {/* ═══ Main Content ═══ */}

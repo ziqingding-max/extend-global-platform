@@ -13,10 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Eye, EyeOff, Lock, Mail } from "lucide-react";
 
-import { useI18n } from "@/lib/i18n";
-
 export default function AdminLogin() {
-  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -39,13 +36,13 @@ export default function AdminLogin() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || t("adminLogin.error.loginFailed"));
+        setError(data.error || "Login failed");
         return;
       }
 
       window.location.href = "/";
     } catch (err) {
-      setError(t("adminLogin.error.networkError"));
+      setError("Network error occurred");
     } finally {
       setLoading(false);
     }
@@ -62,10 +59,10 @@ export default function AdminLogin() {
             className="w-14 h-14 object-contain mb-4"
           />
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            {t("adminLogin.header.title")}
+            Admin Login
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {t("adminLogin.header.subtitle")}
+            Please sign in to your admin account
           </p>
         </div>
 
@@ -73,10 +70,10 @@ export default function AdminLogin() {
         <div className="glass-card p-8">
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-foreground">
-              {t("adminLogin.form.title")}
+              Admin Login
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {t("adminLogin.form.description")}
+              Enter your credentials to access the admin panel
             </p>
           </div>
 
@@ -89,7 +86,7 @@ export default function AdminLogin() {
 
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">
-                {t("adminLogin.form.emailLabel")}
+                Email
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -108,14 +105,14 @@ export default function AdminLogin() {
 
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium">
-                {t("adminLogin.form.passwordLabel")}
+                Password
               </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder={t("adminLogin.form.passwordPlaceholder")}
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10 glass-input"
@@ -143,10 +140,10 @@ export default function AdminLogin() {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {t("adminLogin.form.submitButton.loading")}
+                  Signing in...
                 </>
               ) : (
-                t("adminLogin.form.submitButton.default")
+                "Sign In"
               )}
             </Button>
           </form>
@@ -164,13 +161,13 @@ export default function AdminLogin() {
 
           <div className="mt-3 text-center">
             <p className="text-xs text-muted-foreground">
-              {t("adminLogin.footer.contactAdmin")}
+              Contact your administrator for assistance
             </p>
           </div>
         </div>
 
         <p className="text-center text-xs text-muted-foreground/60 mt-6">
-          {t("adminLogin.footer.poweredBy")}
+          Powered by Extend Global
         </p>
       </div>
     </div>

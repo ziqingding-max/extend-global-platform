@@ -40,7 +40,6 @@ import { useMemo } from "react";
 import { formatCurrency } from "@/lib/format";
 import { toast } from "sonner";
 
-import { useI18n } from "@/lib/i18n";
 const statusColors: Record<string, string> = {
   active: "bg-emerald-50 text-emerald-700 border-emerald-200",
   suspended: "bg-amber-50 text-amber-700 border-amber-200",
@@ -55,7 +54,6 @@ function GroupedCustomerTable({
   setCollapsedGroups,
   onRowClick,
   statusColors,
-  t,
 }: {
   customers: any[];
   cpList: any[];
@@ -63,7 +61,6 @@ function GroupedCustomerTable({
   setCollapsedGroups: (s: Set<string>) => void;
   onRowClick: (id: number) => void;
   statusColors: Record<string, string>;
-  t: (key: string, params?: any) => string;
 }) {
   // Build CP name map
   const cpNameMap = useMemo(() => {
@@ -106,7 +103,7 @@ function GroupedCustomerTable({
     return (
       <div className="text-center py-12">
         <Building2 className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-        <p className="text-sm text-muted-foreground">{t("customers.empty_state.no_customers")}</p>
+        <p className="text-sm text-muted-foreground">No customers found.</p>
       </div>
     );
   }
@@ -137,11 +134,11 @@ function GroupedCustomerTable({
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-16 pl-10">ID</TableHead>
-                  <TableHead>{t("customers.table.header.company")}</TableHead>
-                  <TableHead className="min-w-[120px]">{t("customers.table.header.country")}</TableHead>
-                  <TableHead>{t("customers.form.primary_contact")}</TableHead>
-                  <TableHead>{t("customers.table.header.billing")}</TableHead>
-                  <TableHead>{t("customers.table.header.status")}</TableHead>
+                  <TableHead>Company</TableHead>
+                  <TableHead className="min-w-[120px]">Country</TableHead>
+                  <TableHead>Primary Contact</TableHead>
+                  <TableHead>Billing</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -159,7 +156,7 @@ function GroupedCustomerTable({
                       <div className="text-xs text-muted-foreground">{customer.primaryContactEmail || ""}</div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm">{t("customers.paymentTerms.netDays", { days: customer.paymentTermDays ?? 30 })}</div>
+                      <div className="text-sm">Net {customer.paymentTermDays ?? 30} days</div>
                       <div className="text-xs text-muted-foreground">{customer.settlementCurrency}</div>
                     </TableCell>
                     <TableCell>
@@ -179,7 +176,6 @@ function GroupedCustomerTable({
 
 /* ========== Customer List ========== */
 function CustomerList() {
-  const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [cpFilter, setCpFilter] = useState<string>("all");
@@ -246,7 +242,7 @@ function CustomerList() {
 
   const createMutation = trpc.customers.create.useMutation({
     onSuccess: () => {
-      toast.success(t("customers.toast.create_success"));
+      toast.success("Customer created successfully!");
       setCreateOpen(false);
       refetch();
       setFormData(defaultForm);
@@ -271,7 +267,7 @@ function CustomerList() {
     if (!formData.country) errors.country = true;
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
-      toast.error(t("customers.toast.required_fields"));
+      toast.error("Please fill in all required fields.");
       return;
     }
     setFormErrors({});
@@ -283,81 +279,81 @@ function CustomerList() {
       <div className="p-6 space-y-6 page-enter">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t("customers.title")}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{t("customers.description")}</p>
+            <h1 className="text-2xl font-bold tracking-tight">Customers</h1>
+            <p className="text-sm text-muted-foreground mt-1">Manage your client accounts and their details.</p>
           </div>
           <Dialog open={createOpen} onOpenChange={(open) => { setCreateOpen(open); if (!open) setFormErrors({}); }}>
             <DialogTrigger asChild>
               <Button disabled={!canManageClients} title={!canManageClients ? "Switch to EG-DIRECT context to create customers. In B2B2B mode, clients are managed by their Channel Partner." : undefined}>
-                <Plus className="w-4 h-4 mr-2" />{t("customers.button.add")}
+                <Plus className="w-4 h-4 mr-2" />Add Customer
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>{t("customers.dialog.new_customer.title")}</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>New Customer</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className={formErrors.companyName ? "text-destructive" : ""}>{t("customers.form.company_name")}</Label>
+                    <Label className={formErrors.companyName ? "text-destructive" : ""}>Company Name</Label>
                     <Input className={formErrors.companyName ? "border-destructive ring-destructive" : ""} value={formData.companyName} onChange={(e) => { setFormData({ ...formData, companyName: e.target.value }); if (e.target.value.trim()) setFormErrors(prev => ({ ...prev, companyName: false })); }} placeholder="Acme Corp" />
-                    {formErrors.companyName && <p className="text-xs text-destructive">{t("customers.validation.companyNameRequired")}</p>}
+                    {formErrors.companyName && <p className="text-xs text-destructive">Company Name is required.</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("customers.form.legal_entity_name")}</Label>
+                    <Label>Legal Entity Name</Label>
                     <Input value={formData.legalEntityName} onChange={(e) => setFormData({ ...formData, legalEntityName: e.target.value })} placeholder="Acme Corp Pte Ltd" />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("customers.form.registration_no")}</Label>
+                    <Label>Registration Number</Label>
                     <Input value={formData.registrationNumber} onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("customers.form.industry")}</Label>
+                    <Label>Industry</Label>
                     <Input value={formData.industry} onChange={(e) => setFormData({ ...formData, industry: e.target.value })} placeholder="Technology" />
                   </div>
                   <div className="space-y-2">
-                    <Label className={formErrors.country ? "text-destructive" : ""}>{t("customers.form.country")}</Label>
+                    <Label className={formErrors.country ? "text-destructive" : ""}>Country</Label>
                     <div className={formErrors.country ? "[&>button]:border-destructive [&>button]:ring-destructive" : ""}>
                       <CountrySelect value={formData.country} onValueChange={(v) => { setFormData({ ...formData, country: v }); setFormErrors(prev => ({ ...prev, country: false })); }} />
                     </div>
-                    {formErrors.country && <p className="text-xs text-destructive">{t("customers.validation.countryRequired")}</p>}
+                    {formErrors.country && <p className="text-xs text-destructive">Country is required.</p>}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("customers.form.address")}</Label>
+                    <Label>Address</Label>
                     <Input value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("customers.form.city")}</Label>
+                    <Label>City</Label>
                     <Input value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("customers.form.primary_contact")}</Label>
+                    <Label>Primary Contact Name</Label>
                     <Input value={formData.primaryContactName} onChange={(e) => setFormData({ ...formData, primaryContactName: e.target.value })} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("customers.form.email")}</Label>
+                    <Label>Email</Label>
                     <Input type="email" value={formData.primaryContactEmail} onChange={(e) => setFormData({ ...formData, primaryContactEmail: e.target.value })} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("customers.form.phone")}</Label>
+                    <Label>Phone</Label>
                     <Input value={formData.primaryContactPhone} onChange={(e) => setFormData({ ...formData, primaryContactPhone: e.target.value })} />
                   </div>
                 </div>
                 <div className="grid grid-cols-[1fr_1.5fr_1fr_1fr] gap-4">
                   <div className="space-y-2">
-                    <Label>{t("customers.form.payment_terms")}</Label>
+                    <Label>Payment Terms</Label>
                     <div className="flex gap-2">
                       <Select value={[7, 15, 30].includes(formData.paymentTermDays) ? formData.paymentTermDays.toString() : "custom"} onValueChange={(v) => { if (v !== "custom") setFormData({ ...formData, paymentTermDays: parseInt(v) }); }}>
                         <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="7">{t("customers.paymentTerms.net7")}</SelectItem>
-                          <SelectItem value="15">{t("customers.paymentTerms.net15")}</SelectItem>
-                          <SelectItem value="30">{t("customers.paymentTerms.net30")}</SelectItem>
-                          <SelectItem value="custom">{t("common.custom")}</SelectItem>
+                          <SelectItem value="7">Net 7 days</SelectItem>
+                          <SelectItem value="15">Net 15 days</SelectItem>
+                          <SelectItem value="30">Net 30 days</SelectItem>
+                          <SelectItem value="custom">Custom</SelectItem>
                         </SelectContent>
                       </Select>
                       {![7, 15, 30].includes(formData.paymentTermDays) && (
@@ -366,15 +362,15 @@ function CustomerList() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("customers.form.settlement_currency")}</Label>
+                    <Label>Settlement Currency</Label>
                     <CurrencySelect value={formData.settlementCurrency} onValueChange={(v) => setFormData({ ...formData, settlementCurrency: v })} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("customers.form.invoice_language")}</Label>
+                    <Label>Invoice Language</Label>
                     <Select value={formData.language} onValueChange={(v) => setFormData({ ...formData, language: v as any })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="en">{t("common.english")}</SelectItem>
+                        <SelectItem value="en">English</SelectItem>
                         <SelectItem value="zh">中文</SelectItem>
                       </SelectContent>
                     </Select>
@@ -382,11 +378,11 @@ function CustomerList() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("customers.form.billingEntity")}</Label>
+                    <Label>Billing Entity</Label>
                     <Select value={formData.billingEntityId?.toString() || "none"} onValueChange={(v) => setFormData({ ...formData, billingEntityId: v === "none" ? undefined : parseInt(v) })}>
                       <SelectTrigger><SelectValue placeholder="Select billing entity" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">{t("common.notAssigned")}</SelectItem>
+                        <SelectItem value="none">Not Assigned</SelectItem>
                         {billingEntities?.map((be: any) => (
                           <SelectItem key={be.id} value={be.id.toString()}>{be.entityName} ({be.currency})</SelectItem>
                         ))}
@@ -394,23 +390,23 @@ function CustomerList() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("customers.form.deposit_multiplier")}</Label>
+                    <Label>Deposit Multiplier</Label>
                     <Select value={formData.depositMultiplier.toString()} onValueChange={(v) => setFormData({ ...formData, depositMultiplier: parseInt(v) })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1">{t("customers.depositMultiplier.one")}</SelectItem>
-                        <SelectItem value="2">{t("customers.depositMultiplier.two")}</SelectItem>
+                        <SelectItem value="1">1x (1 month)</SelectItem>
+                        <SelectItem value="2">2x (2 months)</SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground">{t("customers.depositMultiplier.hint")}</p>
+                    <p className="text-xs text-muted-foreground">Multiplier for security deposit calculation based on monthly payroll.</p>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("customers.form.notes")}</Label>
+                  <Label>Notes</Label>
                   <Textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={2} />
                 </div>
                 <div className="flex justify-end gap-3 pt-2">
-                  <Button variant="outline" onClick={() => setCreateOpen(false)}>{t("common.cancel")}</Button>
+                  <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
                   <Button onClick={validateAndCreate} disabled={createMutation.isPending}>
                     {createMutation.isPending ? "Creating..." : "Create Customer"}
                   </Button>
@@ -429,10 +425,10 @@ function CustomerList() {
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("customers.filters.allStatuses")}</SelectItem>
-              <SelectItem value="active">{t("status.active")}</SelectItem>
-              <SelectItem value="suspended">{t("status.suspended")}</SelectItem>
-              <SelectItem value="terminated">{t("status.terminated")}</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="suspended">Suspended</SelectItem>
+              <SelectItem value="terminated">Terminated</SelectItem>
             </SelectContent>
           </Select>
           <Select value={cpFilter} onValueChange={setCpFilter}>
@@ -486,7 +482,6 @@ function CustomerList() {
                 setCollapsedGroups={setCollapsedGroups}
                 onRowClick={(customerId) => setLocation(`/customers/${customerId}?from_page=${page}`)}
                 statusColors={statusColors}
-                t={t}
               />
             ) : (
               /* ── Flat View: traditional table ── */
@@ -494,11 +489,11 @@ function CustomerList() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-16">ID</TableHead>
-                    <TableHead>{t("customers.table.header.company")}</TableHead>
-                    <TableHead className="min-w-[120px]">{t("customers.table.header.country")}</TableHead>
-                    <TableHead>{t("customers.form.primary_contact")}</TableHead>
-                    <TableHead>{t("customers.table.header.billing")}</TableHead>
-                    <TableHead>{t("customers.table.header.status")}</TableHead>
+                    <TableHead>Company</TableHead>
+                    <TableHead className="min-w-[120px]">Country</TableHead>
+                    <TableHead>Primary Contact</TableHead>
+                    <TableHead>Billing</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -516,7 +511,7 @@ function CustomerList() {
                         <div className="text-xs text-muted-foreground">{customer.primaryContactEmail || ""}</div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm">{t("customers.paymentTerms.netDays", { days: customer.paymentTermDays ?? 30 })}</div>
+                        <div className="text-sm">Net {customer.paymentTermDays ?? 30} days</div>
                         <div className="text-xs text-muted-foreground">{customer.settlementCurrency}</div>
                       </TableCell>
                       <TableCell>
@@ -528,7 +523,7 @@ function CustomerList() {
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-12">
                         <Building2 className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                        <p className="text-sm text-muted-foreground">{t("customers.empty_state.no_customers")}</p>
+                        <p className="text-sm text-muted-foreground">No customers found.</p>
                       </TableCell>
                     </TableRow>
                   )}
@@ -544,9 +539,9 @@ function CustomerList() {
               <p className="text-xs text-muted-foreground">Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, data.total)} of {data.total} customers</p>
               {totalPages > 1 && (
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>{t("common.previous")}</Button>
+                  <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</Button>
                   <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-                  <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>{t("common.next")}</Button>
+                  <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</Button>
                 </div>
               )}
             </div>
@@ -559,7 +554,6 @@ function CustomerList() {
 
 /* ========== Customer Detail ========== */
 function CustomerDetail({ id }: { id: number }) {
-  const { t } = useI18n();
   const [, setLocation] = useLocation();
   const searchString = useSearch();
   const fromPage = new URLSearchParams(searchString).get("from_page") || "1";
@@ -693,7 +687,7 @@ function CustomerDetail({ id }: { id: number }) {
         effectiveTo: pricingForm.effectiveTo || undefined,
       });
     } else {
-      if (!pricingForm.countryCode) { toast.error(t("customers.validation.countryRequired")); return; }
+      if (!pricingForm.countryCode) { toast.error("Country is required."); return; }
       if (!pricingForm.fixedPrice) { toast.error("Fixed price is required"); return; }
       createPricingMutation.mutate({
         customerId: id,
@@ -907,20 +901,20 @@ function CustomerDetail({ id }: { id: number }) {
     return (
       <Layout breadcrumb={["EG", "Customers", "Not Found"]}>
         <div className="p-6 text-center py-20">
-          <p className="text-muted-foreground">{t("customers.detail.notFound")}</p>
-          <Button variant="outline" className="mt-4" onClick={() => setLocation(`/customers?page=${fromPage}`)}>{t("customers.button.back")}</Button>
+          <p className="text-muted-foreground">Customer not found.</p>
+          <Button variant="outline" className="mt-4" onClick={() => setLocation(`/customers?page=${fromPage}`)}>Back to Customers</Button>
         </div>
       </Layout>
     );
   }
 
   const tabs = [
-    { key: "info", label: t("customers.tabs.information") },
-    { key: "pricing", label: t("customers.tabs.pricingWithCount", { count: pricing?.length ?? 0 }) },
-    { key: "contacts", label: t("customers.tabs.contactsWithCount", { count: contacts?.length ?? 0 }) },
-    { key: "contracts", label: t("customers.tabs.contractsWithCount", { count: contracts?.length ?? 0 }) },
-    { key: "wallet", label: t("customers.tabs.wallet") },
-    { key: "leavePolicy", label: t("customers.tabs.leavePolicyWithCount", { count: leavePolicies?.length ?? 0 }) },
+    { key: "info", label: "Information" },
+    { key: "pricing", label: `Pricing (${pricing?.length ?? 0})` },
+    { key: "contacts", label: `Contacts (${contacts?.length ?? 0})` },
+    { key: "contracts", label: `Contracts (${contracts?.length ?? 0})` },
+    { key: "wallet", label: "Wallet" },
+    { key: "leavePolicy", label: `Leave Policy (${leavePolicies?.length ?? 0})` },
   ] as const;
 
   // Available countries from config for multi-select
@@ -953,12 +947,12 @@ function CustomerDetail({ id }: { id: number }) {
             disabled={portalAccessMutation.isPending}
             title={(() => {
               const primary = contacts?.find((c: any) => c.isPrimary && c.isPortalActive);
-              if (primary) return `${t("customers.contacts.loginAs") || "Login as"}: ${primary.contactName} (${primary.email})`;
-              return t("customers.contacts.accessPortalHint") || "Login as primary contact";
+              if (primary) return `Login as: ${primary.contactName} (${primary.email})`;
+              return "Login as primary contact";
             })()}
           >
             <ExternalLink className="w-4 h-4 mr-2" />
-            {portalAccessMutation.isPending ? (t("common.opening") || "Opening...") : (t("customers.contacts.accessPortal") || "Access Client Portal")}
+            {portalAccessMutation.isPending ? "Opening..." : "Access Client Portal"}
           </Button>
         </div>
 
@@ -975,7 +969,7 @@ function CustomerDetail({ id }: { id: number }) {
         {activeTab === "info" && (
           <div className="space-y-4">
             <div className="flex justify-end">
-              <Button variant="outline" size="sm" onClick={openEditDialog} disabled={!canManageClients} title={!canManageClients ? "Switch to EG-DIRECT context to edit customers." : undefined}>
+              <Button variant="outline" size="sm" onClick={openEditDialog} disabled={!true} title={!true ? "Switch to EG-DIRECT context to edit customers." : undefined}>
                 <Pencil className="w-4 h-4 mr-2" />Edit Customer
               </Button>
             </div>
@@ -983,89 +977,89 @@ function CustomerDetail({ id }: { id: number }) {
             {/* Edit Customer Dialog */}
             <Dialog open={editOpen} onOpenChange={setEditOpen}>
               <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-                <DialogHeader><DialogTitle>{t("customers.button.edit")}</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>Edit Customer</DialogTitle></DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("customers.form.company_name")}</Label>
+                      <Label>Company Name</Label>
                       <Input value={editForm.companyName || ""} onChange={(e) => setEditForm({ ...editForm, companyName: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("customers.form.legal_entity_name")}</Label>
+                      <Label>Legal Entity Name</Label>
                       <Input value={editForm.legalEntityName || ""} onChange={(e) => setEditForm({ ...editForm, legalEntityName: e.target.value })} />
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("customers.form.registration_no")}</Label>
+                      <Label>Registration Number</Label>
                       <Input value={editForm.registrationNumber || ""} onChange={(e) => setEditForm({ ...editForm, registrationNumber: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("customers.form.industry")}</Label>
+                      <Label>Industry</Label>
                       <Input value={editForm.industry || ""} onChange={(e) => setEditForm({ ...editForm, industry: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("customers.form.country")}</Label>
+                      <Label>Country</Label>
                       <CountrySelect value={editForm.country || ""} onValueChange={(v) => setEditForm({ ...editForm, country: v })} />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("customers.form.address")}</Label>
+                      <Label>Address</Label>
                       <Input value={editForm.address || ""} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("customers.form.city")}</Label>
+                      <Label>City</Label>
                       <Input value={editForm.city || ""} onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} />
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("common.state")}</Label>
+                      <Label>State</Label>
                       <Input value={editForm.state || ""} onChange={(e) => setEditForm({ ...editForm, state: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("common.postalCode")}</Label>
+                      <Label>Postal Code</Label>
                       <Input value={editForm.postalCode || ""} onChange={(e) => setEditForm({ ...editForm, postalCode: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("customers.table.header.status")}</Label>
+                      <Label>Status</Label>
                       <Select value={editForm.status || "active"} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="active">{t("status.active")}</SelectItem>
-                          <SelectItem value="inactive">{t("status.inactive")}</SelectItem>
-                          <SelectItem value="prospect">{t("status.prospect")}</SelectItem>
-                          <SelectItem value="churned">{t("status.churned")}</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                          <SelectItem value="prospect">Prospect</SelectItem>
+                          <SelectItem value="churned">Churned</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("customers.form.primary_contact")}</Label>
+                      <Label>Primary Contact Name</Label>
                       <Input value={editForm.primaryContactName || ""} onChange={(e) => setEditForm({ ...editForm, primaryContactName: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("customers.form.email")}</Label>
+                      <Label>Email</Label>
                       <Input type="email" value={editForm.primaryContactEmail || ""} onChange={(e) => setEditForm({ ...editForm, primaryContactEmail: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("customers.form.phone")}</Label>
+                      <Label>Phone</Label>
                       <Input value={editForm.primaryContactPhone || ""} onChange={(e) => setEditForm({ ...editForm, primaryContactPhone: e.target.value })} />
                     </div>
                   </div>
                   <div className="grid grid-cols-4 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("customers.form.payment_terms")}</Label>
+                      <Label>Payment Terms</Label>
                       <div className="flex gap-2">
                         <Select value={[7, 15, 30].includes(editForm.paymentTermDays ?? 30) ? (editForm.paymentTermDays ?? 30).toString() : "custom"} onValueChange={(v) => { if (v !== "custom") setEditForm({ ...editForm, paymentTermDays: parseInt(v) }); }}>
                           <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="7">{t("customers.paymentTerms.net7")}</SelectItem>
-                            <SelectItem value="15">{t("customers.paymentTerms.net15")}</SelectItem>
-                            <SelectItem value="30">{t("customers.paymentTerms.net30")}</SelectItem>
-                            <SelectItem value="custom">{t("common.custom")}</SelectItem>
+                            <SelectItem value="7">Net 7 days</SelectItem>
+                            <SelectItem value="15">Net 15 days</SelectItem>
+                            <SelectItem value="30">Net 30 days</SelectItem>
+                            <SelectItem value="custom">Custom</SelectItem>
                           </SelectContent>
                         </Select>
                         {![7, 15, 30].includes(editForm.paymentTermDays ?? 30) && (
@@ -1074,15 +1068,15 @@ function CustomerDetail({ id }: { id: number }) {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("customers.form.settlement_currency")}</Label>
+                      <Label>Settlement Currency</Label>
                       <CurrencySelect value={editForm.settlementCurrency || "USD"} onValueChange={(v) => setEditForm({ ...editForm, settlementCurrency: v })} />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("customers.form.invoice_language")}</Label>
+                      <Label>Invoice Language</Label>
                       <Select value={editForm.language || "en"} onValueChange={(v) => setEditForm({ ...editForm, language: v })}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="en">{t("common.english")}</SelectItem>
+                          <SelectItem value="en">English</SelectItem>
                           <SelectItem value="zh">中文</SelectItem>
                         </SelectContent>
                       </Select>
@@ -1090,11 +1084,11 @@ function CustomerDetail({ id }: { id: number }) {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("customers.form.billingEntity")}</Label>
+                      <Label>Billing Entity</Label>
                       <Select value={editForm.billingEntityId?.toString() || "none"} onValueChange={(v) => setEditForm({ ...editForm, billingEntityId: v === "none" ? undefined : parseInt(v) })}>
                         <SelectTrigger><SelectValue placeholder="Select billing entity" /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">{t("common.notAssigned")}</SelectItem>
+                          <SelectItem value="none">Not Assigned</SelectItem>
                           {billingEntitiesForDetail?.map((be: any) => (
                             <SelectItem key={be.id} value={be.id.toString()}>{be.entityName} ({be.currency})</SelectItem>
                           ))}
@@ -1102,23 +1096,23 @@ function CustomerDetail({ id }: { id: number }) {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("customers.form.deposit_multiplier")}</Label>
+                      <Label>Deposit Multiplier</Label>
                       <Select value={(editForm.depositMultiplier || 2).toString()} onValueChange={(v) => setEditForm({ ...editForm, depositMultiplier: parseInt(v) })}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1">{t("customers.depositMultiplier.one")}</SelectItem>
-                          <SelectItem value="2">{t("customers.depositMultiplier.two")}</SelectItem>
+                          <SelectItem value="1">1x (1 month)</SelectItem>
+                          <SelectItem value="2">2x (2 months)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("customers.form.notes")}</Label>
+                    <Label>Notes</Label>
                     <Textarea value={editForm.notes || ""} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} rows={2} />
                   </div>
                   <div className="flex justify-end gap-3 pt-2">
-                    <Button variant="outline" onClick={() => setEditOpen(false)}>{t("common.cancel")}</Button>
-                    <Button onClick={() => { if (!editForm.companyName?.trim()) { toast.error(t("customers.validation.companyNameRequired")); return; } updateCustomerMutation.mutate({ id, data: editForm }); }} disabled={updateCustomerMutation.isPending}>
+                    <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+                    <Button onClick={() => { if (!editForm.companyName?.trim()) { toast.error("Company Name is required."); return; } updateCustomerMutation.mutate({ id, data: editForm }); }} disabled={updateCustomerMutation.isPending}>
                       {updateCustomerMutation.isPending ? "Saving..." : "Save Changes"}
                     </Button>
                   </div>
@@ -1128,32 +1122,32 @@ function CustomerDetail({ id }: { id: number }) {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
-              <CardHeader><CardTitle className="text-base">{t("customers.sections.companyDetails")}</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">Company Details</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <InfoRow label="Company Name" value={customer.companyName} />
                 <InfoRow label="Legal Entity" value={customer.legalEntityName} />
                 <InfoRow label="Registration #" value={customer.registrationNumber} />
-                <InfoRow label={t("customers.form.industry")} value={customer.industry} />
-                <InfoRow label={t("customers.table.header.country")} value={countryName(customer.country)} />
-                <InfoRow label={t("customers.form.address")} value={[customer.address, customer.city, customer.state, customer.postalCode].filter(Boolean).join(", ")} />
+                <InfoRow label="Industry" value={customer.industry} />
+                <InfoRow label="Country" value={countryName(customer.country)} />
+                <InfoRow label="Address" value={[customer.address, customer.city, customer.state, customer.postalCode].filter(Boolean).join(", ")} />
               </CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle className="text-base">{t("customers.sections.billingContact")}</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">Billing & Contact</CardTitle></CardHeader>
               <CardContent className="space-y-4">
-                <InfoRow label="Payment Terms" value={t("customers.paymentTerms.netDays", { days: customer.paymentTermDays ?? 30 })} />
+                <InfoRow label="Payment Terms" value={`Net ${customer.paymentTermDays ?? 30} days`} />
                 <InfoRow label="Settlement Currency" value={customer.settlementCurrency} />
                 <InfoRow label="Invoice Language" value={customer.language === "zh" ? "中文" : "English"} />
                 <InfoRow label="Billing Entity" value={billingEntitiesForDetail?.find((be: any) => be.id === customer.billingEntityId)?.entityName || "Not assigned"} />
                 <InfoRow label="Deposit Multiplier" value={`${customer.depositMultiplier || 2}× (${customer.depositMultiplier === 1 ? "1 month" : "2 months"})`} />
                 <InfoRow label="Primary Contact" value={customer.primaryContactName} />
-                <InfoRow label={t("customers.form.email")} value={customer.primaryContactEmail} icon={<Mail className="w-3.5 h-3.5" />} />
-                <InfoRow label={t("customers.form.phone")} value={customer.primaryContactPhone} icon={<Phone className="w-3.5 h-3.5" />} />
+                <InfoRow label="Email" value={customer.primaryContactEmail} icon={<Mail className="w-3.5 h-3.5" />} />
+                <InfoRow label="Phone" value={customer.primaryContactPhone} icon={<Phone className="w-3.5 h-3.5" />} />
               </CardContent>
             </Card>
             {customer.notes && (
               <Card className="lg:col-span-2">
-                <CardHeader><CardTitle className="text-base">{t("customers.form.notes")}</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base">Notes</CardTitle></CardHeader>
                 <CardContent><p className="text-sm text-muted-foreground whitespace-pre-wrap">{customer.notes}</p></CardContent>
               </Card>
             )}
@@ -1169,8 +1163,8 @@ function CustomerDetail({ id }: { id: number }) {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-base">{t("customers.pricing.aorSectionTitle")}</CardTitle>
-                    <p className="text-xs text-muted-foreground mt-1">{t("customers.pricing.aorSectionHint")}</p>
+                    <CardTitle className="text-base">AOR Service Fee</CardTitle>
+                    <p className="text-xs text-muted-foreground mt-1">Set a fixed monthly fee for Agent of Record services.</p>
                   </div>
                   <Dialog open={aorPricingOpen} onOpenChange={(open) => {
                     setAorPricingOpen(open);
@@ -1184,30 +1178,30 @@ function CustomerDetail({ id }: { id: number }) {
                   }}>
                     <DialogTrigger asChild>
                       <Button size="sm" variant={activeAorPricing ? "outline" : "default"}>
-                        {activeAorPricing ? <><Pencil className="w-3.5 h-3.5 mr-1.5" />{t("customers.pricing.aorEditPrice")}</> : <><Plus className="w-4 h-4 mr-2" />{t("customers.pricing.aorSetPrice")}</>}
+                        {activeAorPricing ? <><Pencil className="w-3.5 h-3.5 mr-1.5" />Edit AOR Price</> : <><Plus className="w-4 h-4 mr-2" />Set AOR Price</>}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-sm">
-                      <DialogHeader><DialogTitle>{t("customers.pricing.aorSetPrice")}</DialogTitle></DialogHeader>
+                      <DialogHeader><DialogTitle>Set AOR Price</DialogTitle></DialogHeader>
                       <div className="space-y-4 mt-4">
                         <div className="space-y-2">
-                          <Label>{t("customers.pricing.aorPriceLabel")} *</Label>
+                          <Label>AOR Price *</Label>
                           <Input type="number" step="0.01" value={aorForm.fixedPrice} onChange={(e) => setAorForm({ ...aorForm, fixedPrice: e.target.value })} placeholder="300.00" />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label>{t("common.currency")}</Label>
+                            <Label>Currency</Label>
                             <CurrencySelect value={aorForm.currency} onValueChange={(v) => setAorForm({ ...aorForm, currency: v })} />
                           </div>
                           <div className="space-y-2">
-                            <Label>{t("common.effectiveFrom")} *</Label>
+                            <Label>Effective From *</Label>
                             <Input type="text" placeholder="YYYY-MM-DD" value={aorForm.effectiveFrom} onChange={(e) => setAorForm({ ...aorForm, effectiveFrom: e.target.value })} />
                           </div>
                         </div>
                         <div className="flex justify-end gap-3 pt-2">
-                          <Button variant="outline" onClick={() => setAorPricingOpen(false)}>{t("common.cancel")}</Button>
+                          <Button variant="outline" onClick={() => setAorPricingOpen(false)}>Cancel</Button>
                           <Button onClick={handleSaveAorPricing} disabled={createPricingMutation.isPending}>
-                            {createPricingMutation.isPending ? "Saving..." : t("common.save")}
+                            {createPricingMutation.isPending ? "Saving..." : "Save"}
                           </Button>
                         </div>
                       </div>
@@ -1221,7 +1215,7 @@ function CustomerDetail({ id }: { id: number }) {
                     <DollarSign className="w-5 h-5 text-emerald-600" />
                     <div className="flex-1">
                       <p className="text-lg font-semibold font-mono">{activeAorPricing.currency} {activeAorPricing.fixedPrice}</p>
-                      <p className="text-xs text-muted-foreground">{t("customers.pricing.aorPerContractorMonth")} · {t("common.effectiveFrom")}: {formatDate(activeAorPricing.effectiveFrom)}</p>
+                      <p className="text-xs text-muted-foreground">per contractor per month · Effective From: {formatDate(activeAorPricing.effectiveFrom)}</p>
                     </div>
                     <Badge variant="default" className="text-xs">Active</Badge>
                     <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => { if (confirm("Remove AOR pricing?")) deletePricingMutation.mutate({ id: activeAorPricing.id }); }}>
@@ -1229,7 +1223,7 @@ function CustomerDetail({ id }: { id: number }) {
                     </Button>
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground py-2">{t("customers.pricing.aorNotSet")}</p>
+                  <p className="text-sm text-muted-foreground py-2">No AOR pricing set for this customer.</p>
                 )}
               </CardContent>
             </Card>
@@ -1237,28 +1231,28 @@ function CustomerDetail({ id }: { id: number }) {
             {/* ── Section 2: EOR / Visa EOR Pricing ── */}
             <Card className="bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
               <CardContent className="p-4">
-                <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">{t("customers.pricing.priorityTitle")}</p>
+                <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">Pricing Rule Priority</p>
                 <p className="text-xs text-blue-700 dark:text-blue-300">
-                  {t("customers.pricing.priorityHint")}
+                  Country-specific fixed prices take precedence over global discounts. If no specific rule applies, standard rates are used.
                 </p>
               </CardContent>
             </Card>
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium">{t("customers.pricing.eorSectionTitle")}</h3>
+              <h3 className="text-sm font-medium">EOR / Visa EOR Pricing Rules</h3>
               <Dialog open={pricingOpen} onOpenChange={(open) => { setPricingOpen(open); if (open) { setPricingMode("single"); setPricingForm({ pricingType: "country_specific", globalDiscountPercent: "", countryCode: "", selectedCountries: [], serviceType: "eor", fixedPrice: "", visaOneTimeFee: "", currency: "USD", effectiveFrom: formatDateISO(new Date()), effectiveTo: "" }); } }}>
                 <DialogTrigger asChild>
-                  <Button size="sm"><Plus className="w-4 h-4 mr-2" />{t("customers.pricing.addPricing")}</Button>
+                  <Button size="sm"><Plus className="w-4 h-4 mr-2" />Add Pricing Rule</Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-                  <DialogHeader><DialogTitle>{t("customers.pricing.addPricing")} Rule</DialogTitle></DialogHeader>
+                  <DialogHeader><DialogTitle>Add Pricing Rule</DialogTitle></DialogHeader>
                   <div className="space-y-4 mt-4">
                     <div className="space-y-2">
-                      <Label>{t("customers.pricing.pricingType")} *</Label>
+                      <Label>Pricing Type *</Label>
                       <Select value={pricingForm.pricingType} onValueChange={(v) => setPricingForm({ ...pricingForm, pricingType: v as any })}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="global_discount">{t("customers.pricing.globalDiscount")}</SelectItem>
-                          <SelectItem value="country_specific">{t("customers.pricing.countrySpecificFixedPrice")}</SelectItem>
+                          <SelectItem value="global_discount">Global Discount</SelectItem>
+                          <SelectItem value="country_specific">Country-Specific Fixed Price</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1266,32 +1260,32 @@ function CustomerDetail({ id }: { id: number }) {
                     {pricingForm.pricingType === "global_discount" ? (
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <Label>{t("customers.pricing.discountPercent")}</Label>
-                          <Input type="number" step="0.01" min="0" max="100" value={pricingForm.globalDiscountPercent} onChange={(e) => setPricingForm({ ...pricingForm, globalDiscountPercent: e.target.value })} placeholder={t("customers.pricing.discountPlaceholder")} />
-                          <p className="text-xs text-muted-foreground">{t("customers.pricing.discountHint")}</p>
+                          <Label>Discount Percentage</Label>
+                          <Input type="number" step="0.01" min="0" max="100" value={pricingForm.globalDiscountPercent} onChange={(e) => setPricingForm({ ...pricingForm, globalDiscountPercent: e.target.value })} placeholder="e.g. 10.00" />
+                          <p className="text-xs text-muted-foreground">Apply a percentage discount to standard EOR/Visa EOR rates globally.</p>
                         </div>
                       </div>
                     ) : (
                       <>
                         {/* Single vs Batch mode toggle */}
                         <div className="flex gap-2">
-                          <Button variant={pricingMode === "single" ? "default" : "outline"} size="sm" onClick={() => setPricingMode("single")}>{t("customers.pricing.singleCountry")}</Button>
-                          <Button variant={pricingMode === "batch" ? "default" : "outline"} size="sm" onClick={() => setPricingMode("batch")}>{t("customers.pricing.multipleCountries")}</Button>
+                          <Button variant={pricingMode === "single" ? "default" : "outline"} size="sm" onClick={() => setPricingMode("single")}>Single Country</Button>
+                          <Button variant={pricingMode === "batch" ? "default" : "outline"} size="sm" onClick={() => setPricingMode("batch")}>Multiple Countries</Button>
                         </div>
 
                         {pricingMode === "single" ? (
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label>{t("customers.form.country")}</Label>
+                              <Label>Country</Label>
                               <CountrySelect value={pricingForm.countryCode} onValueChange={(v) => setPricingForm({ ...pricingForm, countryCode: v })} />
                             </div>
                             <div className="space-y-2">
-                              <Label>{t("employees.create.form.serviceType")} *</Label>
+                              <Label>Service Type *</Label>
                               <Select value={pricingForm.serviceType} onValueChange={(v) => setPricingForm({ ...pricingForm, serviceType: v as any })}>
                                 <SelectTrigger><SelectValue /></SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="eor">{t("employees.create.form.serviceType.eor")}</SelectItem>
-                                  <SelectItem value="visa_eor">{t("employees.create.form.serviceType.visaEor")}</SelectItem>
+                                  <SelectItem value="eor">EOR</SelectItem>
+                                  <SelectItem value="visa_eor">Visa EOR</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
@@ -1299,9 +1293,9 @@ function CustomerDetail({ id }: { id: number }) {
                         ) : (
                           <div className="space-y-3">
                             <div className="space-y-2">
-                              <Label>{t("customers.pricing.selectCountries")}</Label>
+                              <Label>Select Countries</Label>
                               <div className="flex flex-wrap gap-2 p-3 border rounded-md min-h-[42px] bg-muted/30">
-                                {pricingForm.selectedCountries.length === 0 && <span className="text-sm text-muted-foreground">{t("customers.pricing.noCountriesSelected")}</span>}
+                                {pricingForm.selectedCountries.length === 0 && <span className="text-sm text-muted-foreground">No countries selected</span>}
                                 {pricingForm.selectedCountries.map(cc => {
                                   const name = availableCountries.find(c => c.code === cc)?.name || cc;
                                   return (
@@ -1320,12 +1314,12 @@ function CustomerDetail({ id }: { id: number }) {
                               </div>
                             </div>
                             <div className="space-y-2">
-                              <Label>{t("employees.create.form.serviceType")} *</Label>
+                              <Label>Service Type *</Label>
                               <Select value={pricingForm.serviceType} onValueChange={(v) => setPricingForm({ ...pricingForm, serviceType: v as any })}>
                                 <SelectTrigger><SelectValue /></SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="eor">{t("employees.create.form.serviceType.eor")}</SelectItem>
-                                  <SelectItem value="visa_eor">{t("employees.create.form.serviceType.visaEor")}</SelectItem>
+                                  <SelectItem value="eor">EOR</SelectItem>
+                                  <SelectItem value="visa_eor">Visa EOR</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
@@ -1334,7 +1328,7 @@ function CustomerDetail({ id }: { id: number }) {
 
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label>{t("customers.pricing.fixedPricePerEmployeePerMonth")} *</Label>
+                            <Label>Fixed Price (per employee per month) *</Label>
                             <Input type="number" step="0.01" value={pricingForm.fixedPrice} onChange={(e) => setPricingForm({ ...pricingForm, fixedPrice: e.target.value })} placeholder="500.00" />
                           </div>
                           {pricingForm.serviceType === "visa_eor" && (
@@ -1344,7 +1338,7 @@ function CustomerDetail({ id }: { id: number }) {
                             </div>
                           )}
                           <div className="space-y-2">
-                            <Label>{t("common.currency")}</Label>
+                            <Label>Currency</Label>
                             <CurrencySelect value={pricingForm.currency} onValueChange={(v) => setPricingForm({ ...pricingForm, currency: v })} />
                           </div>
                         </div>
@@ -1353,17 +1347,17 @@ function CustomerDetail({ id }: { id: number }) {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>{t("common.effectiveFrom")} *</Label>
+                        <Label>Effective From *</Label>
                         <Input type="text" placeholder="YYYY-MM-DD" value={pricingForm.effectiveFrom} onChange={(e) => setPricingForm({ ...pricingForm, effectiveFrom: e.target.value })} />
                       </div>
                       <div className="space-y-2">
-                        <Label>{t("common.effectiveTo")}</Label>
+                        <Label>Effective To</Label>
                         <Input type="text" placeholder="YYYY-MM-DD" value={pricingForm.effectiveTo} onChange={(e) => setPricingForm({ ...pricingForm, effectiveTo: e.target.value })} />
                       </div>
                     </div>
 
                     <div className="flex justify-end gap-3 pt-2">
-                      <Button variant="outline" onClick={() => setPricingOpen(false)}>{t("common.cancel")}</Button>
+                      <Button variant="outline" onClick={() => setPricingOpen(false)}>Cancel</Button>
                       <Button onClick={handleSavePricing} disabled={createPricingMutation.isPending || batchCreatePricingMutation.isPending}>
                         {(createPricingMutation.isPending || batchCreatePricingMutation.isPending) ? "Saving..." : "Save Pricing"}
                       </Button>
@@ -1380,15 +1374,15 @@ function CustomerDetail({ id }: { id: number }) {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t("common.type")}</TableHead>
-                        <TableHead className="min-w-[120px]">{t("customers.table.header.country")}</TableHead>
-                        <TableHead>{t("common.service")}</TableHead>
-                        <TableHead>{t("customers.pricing.standardRate")}</TableHead>
-                        <TableHead>{t("customers.pricing.customerPrice")}</TableHead>
-                        <TableHead>{t("customers.pricing.visaSetupFee")}</TableHead>
-                        <TableHead>{t("customers.pricing.effectivePeriod")}</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead className="min-w-[120px]">Country</TableHead>
+                        <TableHead>Service</TableHead>
+                        <TableHead>Standard Rate</TableHead>
+                        <TableHead>Customer Price</TableHead>
+                        <TableHead>Visa Setup Fee</TableHead>
+                        <TableHead>Effective Period</TableHead>
                         <TableHead>Source</TableHead>
-                        <TableHead>{t("customers.table.header.status")}</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead className="w-10"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1451,8 +1445,8 @@ function CustomerDetail({ id }: { id: number }) {
                 ) : (
                   <div className="text-center py-12">
                     <DollarSign className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                    <p className="text-sm text-muted-foreground">{t("customers.empty_state.no_pricing")}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{t("customers.pricing.emptyHint")}</p>
+                    <p className="text-sm text-muted-foreground">No pricing rules configured for this customer.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Add pricing rules to define custom rates for EOR and Visa EOR services.</p>
                   </div>
                 )}
               </CardContent>
@@ -1466,36 +1460,36 @@ function CustomerDetail({ id }: { id: number }) {
             <div className="flex justify-end">
               <Dialog open={contactOpen} onOpenChange={setContactOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm"><UserPlus className="w-4 h-4 mr-2" />{t("customers.button.add_contact")}</Button>
+                  <Button size="sm"><UserPlus className="w-4 h-4 mr-2" />Add Contact</Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-md">
-                  <DialogHeader><DialogTitle>{t("customers.button.add_contact")}</DialogTitle></DialogHeader>
+                  <DialogHeader><DialogTitle>Add Contact</DialogTitle></DialogHeader>
                   <div className="space-y-4 mt-4">
                     <div className="space-y-2">
-                      <Label>{t("common.name")} *</Label>
+                      <Label>Name *</Label>
                       <Input value={contactForm.contactName} onChange={(e) => setContactForm({ ...contactForm, contactName: e.target.value })} placeholder="Jane Smith" />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("common.email")} *</Label>
+                      <Label>Email *</Label>
                       <Input type="email" value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} placeholder="jane@company.com" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>{t("customers.form.phone")}</Label>
+                        <Label>Phone</Label>
                         <Input value={contactForm.phone} onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })} placeholder="+65 9123 4567" />
                       </div>
                       <div className="space-y-2">
-                        <Label>{t("customers.contacts.jobTitle") || "Job Title"}</Label>
+                        <Label>Job Title</Label>
                         <Select value={contactForm.role || "none"} onValueChange={(v) => setContactForm({ ...contactForm, role: v === "none" ? "" : v })}>
                           <SelectTrigger><SelectValue placeholder="Select title" /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="none">{t("customers.contacts.noSpecificRole")}</SelectItem>
-                            <SelectItem value="HR Manager">{t("customers.contacts.role.hrManager")}</SelectItem>
-                            <SelectItem value="Finance Manager">{t("customers.contacts.role.financeManager")}</SelectItem>
-                            <SelectItem value="CEO">{t("customers.contacts.role.ceo")}</SelectItem>
-                            <SelectItem value="COO">{t("customers.contacts.role.coo")}</SelectItem>
-                            <SelectItem value="Legal">{t("customers.contacts.role.legal")}</SelectItem>
-                            <SelectItem value="Other">{t("common.other")}</SelectItem>
+                            <SelectItem value="none">No Specific Role</SelectItem>
+                            <SelectItem value="HR Manager">HR Manager</SelectItem>
+                            <SelectItem value="Finance Manager">Finance Manager</SelectItem>
+                            <SelectItem value="CEO">CEO</SelectItem>
+                            <SelectItem value="COO">COO</SelectItem>
+                            <SelectItem value="Legal">Legal</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1511,7 +1505,7 @@ function CustomerDetail({ id }: { id: number }) {
                       </label>
                     </div>
                     <div className="flex justify-end gap-3 pt-2">
-                      <Button variant="outline" onClick={() => setContactOpen(false)}>{t("common.cancel")}</Button>
+                      <Button variant="outline" onClick={() => setContactOpen(false)}>Cancel</Button>
                       <Button onClick={() => { if (!contactForm.contactName || !contactForm.email) { toast.error("Name and email are required"); return; } createContactMutation.mutate({ customerId: id, ...contactForm }); }} disabled={createContactMutation.isPending}>
                         {createContactMutation.isPending ? "Saving..." : "Save Contact"}
                       </Button>
@@ -1526,13 +1520,13 @@ function CustomerDetail({ id }: { id: number }) {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t("common.name")}</TableHead>
-                        <TableHead>{t("customers.form.email")}</TableHead>
-                        <TableHead>{t("customers.form.phone")}</TableHead>
-                        <TableHead>{t("customers.contacts.jobTitle") || "Job Title"}</TableHead>
-                        <TableHead>{t("customers.contacts.portalRole") || "Portal Role"}</TableHead>
-                        <TableHead>{t("customers.contacts.portalStatus")}</TableHead>
-                        <TableHead className="text-right">{t("common.actions")}</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Job Title</TableHead>
+                        <TableHead>Portal Role</TableHead>
+                        <TableHead>Portal Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1541,7 +1535,7 @@ function CustomerDetail({ id }: { id: number }) {
                           <TableCell className="text-sm font-medium">
                             <div className="flex items-center gap-1">
                               {c.contactName}
-                              {c.isPrimary && <Badge className="text-xs ml-1" variant="default">{t("customers.contacts.primary")}</Badge>}
+                              {c.isPrimary && <Badge className="text-xs ml-1" variant="default">Primary</Badge>}
                             </div>
                           </TableCell>
                           <TableCell className="text-sm">{c.email}</TableCell>
@@ -1565,30 +1559,30 @@ function CustomerDetail({ id }: { id: number }) {
                                   <Send className="w-3 h-3 mr-1" />Invited
                                 </Badge>
                               ) : (
-                                <span className="text-xs text-muted-foreground">{t("customers.contacts.noAccess")}</span>
+                                <span className="text-xs text-muted-foreground">No Access</span>
                               )}
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1 justify-end items-center">
                               {/* Edit contact info */}
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditContactDialog(c)} title={t("common.edit") || "Edit"}>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditContactDialog(c)} title="Edit">
                                 <Pencil className="w-3.5 h-3.5" />
                               </Button>
                               {/* Invite (only when no portal access) */}
                               {!(c as any).isPortalActive && !c.hasPortalAccess && (
                                 <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => openInviteDialog(c.id)}>
-                                  <Send className="w-3 h-3 mr-1" />{t("customers.contacts.inviteToPortal") || "Invite"}
+                                  <Send className="w-3 h-3 mr-1" />Invite
                                 </Button>
                               )}
                               {c.hasPortalAccess && !(c as any).isPortalActive && (
                                 <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => openInviteDialog(c.id)}>
-                                  <Send className="w-3 h-3 mr-1" />{t("customers.contacts.resendInvite") || "Resend"}
+                                  <Send className="w-3 h-3 mr-1" />Resend
                                 </Button>
                               )}
                               {/* Login As (inline for active portal users) */}
                               {(c as any).isPortalActive && (
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleLoginAs(c.id)} title={t("customers.contacts.loginAs") || "Login As"}>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleLoginAs(c.id)} title="Login As">
                                   <LogIn className="w-3.5 h-3.5" />
                                 </Button>
                               )}
@@ -1603,27 +1597,27 @@ function CustomerDetail({ id }: { id: number }) {
                                   {(c as any).isPortalActive && (
                                     <>
                                       <DropdownMenuItem onClick={() => openPermDialog(c)}>
-                                        <Shield className="w-3.5 h-3.5 mr-2" />{t("customers.contacts.changePermission") || "Change Permission"}
+                                        <Shield className="w-3.5 h-3.5 mr-2" />Change Permission
                                       </DropdownMenuItem>
                                       <DropdownMenuItem onClick={() => openResetPwDialog(c.id, c.contactName)}>
-                                        <KeyRound className="w-3.5 h-3.5 mr-2" />{t("customers.contacts.resetPassword") || "Reset Password"}
+                                        <KeyRound className="w-3.5 h-3.5 mr-2" />Reset Password
                                       </DropdownMenuItem>
-                                      <DropdownMenuItem className="text-destructive" onClick={() => { if (confirm(t("customers.contacts.revokeConfirm") || "Revoke portal access for this contact?")) revokeAccessMutation.mutate({ contactId: c.id }); }}>
-                                        <ShieldX className="w-3.5 h-3.5 mr-2" />{t("customers.contacts.revoke") || "Revoke Access"}
+                                      <DropdownMenuItem className="text-destructive" onClick={() => { if (confirm("Revoke portal access for this contact?")) revokeAccessMutation.mutate({ contactId: c.id }); }}>
+                                        <ShieldX className="w-3.5 h-3.5 mr-2" />Revoke Access
                                       </DropdownMenuItem>
                                       <DropdownMenuSeparator />
                                     </>
                                   )}
                                   {!c.isPrimary && (
                                     <DropdownMenuItem onClick={() => {
-                                      if (confirm(t("customers.contacts.setPrimaryConfirm") || `Set ${c.contactName} as the primary contact?`))
+                                      if (confirm(`Set ${c.contactName} as the primary contact?`))
                                         updateContactMutation.mutate({ id: c.id, customerId: id, data: { isPrimary: true } });
                                     }}>
-                                      <ShieldCheck className="w-3.5 h-3.5 mr-2" />{t("customers.contacts.setPrimary") || "Set Primary"}
+                                      <ShieldCheck className="w-3.5 h-3.5 mr-2" />Set Primary
                                     </DropdownMenuItem>
                                   )}
-                                  <DropdownMenuItem className="text-destructive" onClick={() => { if (confirm(t("customers.contacts.deleteConfirm") || "Delete this contact?")) deleteContactMutation.mutate({ id: c.id }); }}>
-                                    <Trash2 className="w-3.5 h-3.5 mr-2" />{t("common.delete") || "Delete"}
+                                  <DropdownMenuItem className="text-destructive" onClick={() => { if (confirm("Delete this contact?")) deleteContactMutation.mutate({ id: c.id }); }}>
+                                    <Trash2 className="w-3.5 h-3.5 mr-2" />Delete
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -1636,7 +1630,7 @@ function CustomerDetail({ id }: { id: number }) {
                 ) : (
                   <div className="text-center py-12">
                     <Users className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                    <p className="text-sm text-muted-foreground">{t("customers.contacts.empty")}</p>
+                    <p className="text-sm text-muted-foreground">No contacts found for this customer.</p>
                   </div>
                 )}
               </CardContent>
@@ -1656,19 +1650,19 @@ function CustomerDetail({ id }: { id: number }) {
                       Generate an invite link for this contact to access the Client Portal. They will set a password and can then log in to view employees, invoices, and manage leave requests.
                     </p>
                     <div className="space-y-2">
-                      <Label>{t("customers.contacts.portalRole")}</Label>
+                      <Label>Portal Role</Label>
                       <Select value={inviteRole} onValueChange={(v: any) => setInviteRole(v)}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="admin">{t("customers.contacts.portalRoleAdmin")}</SelectItem>
-                          <SelectItem value="hr_manager">{t("customers.contacts.portalRoleHr")}</SelectItem>
-                          <SelectItem value="finance">{t("customers.contacts.portalRoleFinance")}</SelectItem>
-                          <SelectItem value="viewer">{t("customers.contacts.portalRoleViewer")}</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="hr_manager">HR Manager</SelectItem>
+                          <SelectItem value="finance">Finance</SelectItem>
+                          <SelectItem value="viewer">Viewer</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="flex justify-end gap-3 pt-2">
-                      <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>{t("common.cancel")}</Button>
+                      <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>Cancel</Button>
                       <Button onClick={handleGenerateInvite} disabled={generateInviteMutation.isPending}>
                         {generateInviteMutation.isPending ? "Generating..." : "Generate Invite Link"}
                       </Button>
@@ -1677,12 +1671,12 @@ function CustomerDetail({ id }: { id: number }) {
                 ) : (
                   <div className="space-y-4 mt-2">
                     <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
-                      <p className="text-sm"><span className="font-medium">{t("customers.invite.contact")}:</span> {inviteResult.contactName}</p>
-                      <p className="text-sm"><span className="font-medium">{t("common.email")}:</span> {inviteResult.email}</p>
-                      <p className="text-sm"><span className="font-medium">{t("common.role")}:</span> {inviteRole}</p>
+                      <p className="text-sm"><span className="font-medium">Contact:</span> {inviteResult.contactName}</p>
+                      <p className="text-sm"><span className="font-medium">Email:</span> {inviteResult.email}</p>
+                      <p className="text-sm"><span className="font-medium">Role:</span> {inviteRole}</p>
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("customers.invite.link")}</Label>
+                      <Label>Invite Link</Label>
                       <div className="flex gap-2">
                         <Input
                           readOnly
@@ -1698,7 +1692,7 @@ function CustomerDetail({ id }: { id: number }) {
                       </p>
                     </div>
                     <div className="flex justify-end pt-2">
-                      <Button onClick={() => setInviteDialogOpen(false)}>{t("common.done")}</Button>
+                      <Button onClick={() => setInviteDialogOpen(false)}>Done</Button>
                     </div>
                   </div>
                 )}
@@ -1709,7 +1703,7 @@ function CustomerDetail({ id }: { id: number }) {
             <Dialog open={resetPwOpen} onOpenChange={setResetPwOpen}>
               <DialogContent className="max-w-sm">
                 <DialogHeader>
-                  <DialogTitle>{t("customers.contacts.resetPortalPassword")}</DialogTitle>
+                  <DialogTitle>Reset Portal Password</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 mt-2">
                   <p className="text-sm text-muted-foreground">
@@ -1717,7 +1711,7 @@ function CustomerDetail({ id }: { id: number }) {
                     The user will need to use this new password to log in.
                   </p>
                   <div className="space-y-2">
-                    <Label>{t("customers.contacts.newPassword")}</Label>
+                    <Label>New Password</Label>
                     <Input
                       type="password"
                       value={resetPwValue}
@@ -1727,7 +1721,7 @@ function CustomerDetail({ id }: { id: number }) {
                     />
                   </div>
                   <div className="flex justify-end gap-3 pt-2">
-                    <Button variant="outline" onClick={() => setResetPwOpen(false)}>{t("common.cancel")}</Button>
+                    <Button variant="outline" onClick={() => setResetPwOpen(false)}>Cancel</Button>
                     <Button
                       onClick={() => {
                         if (!resetPwContactId || resetPwValue.length < 8) {
@@ -1748,41 +1742,41 @@ function CustomerDetail({ id }: { id: number }) {
             {/* ── Edit Contact Dialog ── */}
             <Dialog open={editContactOpen} onOpenChange={setEditContactOpen}>
               <DialogContent className="max-w-md">
-                <DialogHeader><DialogTitle>{t("customers.contacts.editContact") || "Edit Contact"}</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>Edit Contact</DialogTitle></DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div className="space-y-2">
-                    <Label>{t("common.name")} *</Label>
+                    <Label>Name *</Label>
                     <Input value={editContactForm.contactName} onChange={(e) => setEditContactForm({ ...editContactForm, contactName: e.target.value })} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("common.email")} *</Label>
+                    <Label>Email *</Label>
                     <Input type="email" value={editContactForm.email} onChange={(e) => setEditContactForm({ ...editContactForm, email: e.target.value })} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("customers.form.phone")}</Label>
+                      <Label>Phone</Label>
                       <Input value={editContactForm.phone} onChange={(e) => setEditContactForm({ ...editContactForm, phone: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("customers.contacts.jobTitle") || "Job Title"}</Label>
+                      <Label>Job Title</Label>
                       <Select value={editContactForm.role || "none"} onValueChange={(v) => setEditContactForm({ ...editContactForm, role: v === "none" ? "" : v })}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">{t("customers.contacts.noSpecificRole")}</SelectItem>
-                          <SelectItem value="HR Manager">{t("customers.contacts.role.hrManager")}</SelectItem>
-                          <SelectItem value="Finance Manager">{t("customers.contacts.role.financeManager")}</SelectItem>
-                          <SelectItem value="CEO">{t("customers.contacts.role.ceo")}</SelectItem>
-                          <SelectItem value="COO">{t("customers.contacts.role.coo")}</SelectItem>
-                          <SelectItem value="Legal">{t("customers.contacts.role.legal")}</SelectItem>
-                          <SelectItem value="Other">{t("common.other")}</SelectItem>
+                          <SelectItem value="none">No Specific Role</SelectItem>
+                          <SelectItem value="HR Manager">HR Manager</SelectItem>
+                          <SelectItem value="Finance Manager">Finance Manager</SelectItem>
+                          <SelectItem value="CEO">CEO</SelectItem>
+                          <SelectItem value="COO">COO</SelectItem>
+                          <SelectItem value="Legal">Legal</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                   <div className="flex justify-end gap-3 pt-2">
-                    <Button variant="outline" onClick={() => setEditContactOpen(false)}>{t("common.cancel")}</Button>
+                    <Button variant="outline" onClick={() => setEditContactOpen(false)}>Cancel</Button>
                     <Button onClick={handleSaveEditContact} disabled={updateContactMutation.isPending}>
-                      {updateContactMutation.isPending ? (t("common.saving") || "Saving...") : (t("common.save") || "Save")}
+                      {updateContactMutation.isPending ? "Saving..." : "Save"}
                     </Button>
                   </div>
                 </div>
@@ -1792,27 +1786,27 @@ function CustomerDetail({ id }: { id: number }) {
             {/* ── Change Permission Dialog ── */}
             <Dialog open={permDialogOpen} onOpenChange={setPermDialogOpen}>
               <DialogContent className="max-w-sm">
-                <DialogHeader><DialogTitle>{t("customers.contacts.changePermission") || "Change Portal Permission"}</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>Change Portal Permission</DialogTitle></DialogHeader>
                 <div className="space-y-4 mt-2">
                   <p className="text-sm text-muted-foreground">
-                    {t("customers.contacts.changePermissionDesc") || `Update the portal permission for`} <span className="font-medium text-foreground">{permContactName}</span>
+                    Update the portal permission for <span className="font-medium text-foreground">{permContactName}</span>
                   </p>
                   <div className="space-y-2">
-                    <Label>{t("customers.contacts.portalRole") || "Portal Role"}</Label>
+                    <Label>Portal Role</Label>
                     <Select value={permRole} onValueChange={(v: any) => setPermRole(v)}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="admin">{t("customers.contacts.portalRoleAdmin")}</SelectItem>
-                        <SelectItem value="hr_manager">{t("customers.contacts.portalRoleHr")}</SelectItem>
-                        <SelectItem value="finance">{t("customers.contacts.portalRoleFinance")}</SelectItem>
-                        <SelectItem value="viewer">{t("customers.contacts.portalRoleViewer")}</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="hr_manager">HR Manager</SelectItem>
+                        <SelectItem value="finance">Finance</SelectItem>
+                        <SelectItem value="viewer">Viewer</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="flex justify-end gap-3 pt-2">
-                    <Button variant="outline" onClick={() => setPermDialogOpen(false)}>{t("common.cancel")}</Button>
+                    <Button variant="outline" onClick={() => setPermDialogOpen(false)}>Cancel</Button>
                     <Button onClick={handleSavePermission} disabled={updateContactMutation.isPending}>
-                      {updateContactMutation.isPending ? (t("common.saving") || "Saving...") : (t("common.save") || "Save")}
+                      {updateContactMutation.isPending ? "Saving..." : "Save"}
                     </Button>
                   </div>
                 </div>
@@ -1827,30 +1821,30 @@ function CustomerDetail({ id }: { id: number }) {
             <div className="flex justify-end">
               <Dialog open={contractOpen} onOpenChange={(open) => { setContractOpen(open); if (!open) { setSelectedFile(null); } }}>
                 <DialogTrigger asChild>
-                  <Button size="sm"><Upload className="w-4 h-4 mr-2" />{t("customers.contracts.uploadContract")}</Button>
+                  <Button size="sm"><Upload className="w-4 h-4 mr-2" />Upload Contract</Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-lg">
-                  <DialogHeader><DialogTitle>{t("customers.contracts.uploadContract")}</DialogTitle></DialogHeader>
+                  <DialogHeader><DialogTitle>Upload Contract</DialogTitle></DialogHeader>
                   <div className="space-y-4 mt-4">
                     <div className="space-y-2">
-                      <Label>{t("customers.contracts.contractName")} *</Label>
+                      <Label>Contract Name *</Label>
                       <Input value={contractForm.contractName} onChange={(e) => setContractForm({ ...contractForm, contractName: e.target.value })} placeholder="Service Agreement 2026" />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("customers.contracts.contractType")}</Label>
+                      <Label>Contract Type</Label>
                       <Select value={contractForm.contractType} onValueChange={(v) => setContractForm({ ...contractForm, contractType: v })}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="service_agreement">{t("customers.contracts.type.serviceAgreement")}</SelectItem>
-                          <SelectItem value="nda">{t("customers.contracts.type.nda")}</SelectItem>
-                          <SelectItem value="amendment">{t("customers.contracts.type.amendment")}</SelectItem>
-                          <SelectItem value="addendum">{t("customers.contracts.type.addendum")}</SelectItem>
-                          <SelectItem value="other">{t("common.other")}</SelectItem>
+                          <SelectItem value="service_agreement">Service Agreement</SelectItem>
+                          <SelectItem value="nda">NDA</SelectItem>
+                          <SelectItem value="amendment">Amendment</SelectItem>
+                          <SelectItem value="addendum">Addendum</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("common.file")} *</Label>
+                      <Label>File *</Label>
                       <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg" className="hidden" onChange={(e) => { if (e.target.files?.[0]) setSelectedFile(e.target.files[0]); }} />
                       <div className="flex items-center gap-3">
                         <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
@@ -1861,20 +1855,20 @@ function CustomerDetail({ id }: { id: number }) {
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                       <div className="space-y-2">
-                        <Label>{t("customers.contracts.signedDate")}</Label>
+                        <Label>Signed Date</Label>
                         <DatePicker value={contractForm.signedDate} onChange={(d) => setContractForm({ ...contractForm, signedDate: d })} />
                       </div>
                       <div className="space-y-2">
-                        <Label>{t("customers.contracts.effectiveDate")}</Label>
+                        <Label>Effective Date</Label>
                         <DatePicker value={contractForm.effectiveDate} onChange={(d) => setContractForm({ ...contractForm, effectiveDate: d })} />
                       </div>
                       <div className="space-y-2">
-                        <Label>{t("customers.contracts.expiryDate")}</Label>
+                        <Label>Expiry Date</Label>
                         <DatePicker value={contractForm.expiryDate} onChange={(d) => setContractForm({ ...contractForm, expiryDate: d })} />
                       </div>
                     </div>
                     <div className="flex justify-end gap-3 pt-2">
-                      <Button variant="outline" onClick={() => setContractOpen(false)}>{t("common.cancel")}</Button>
+                      <Button variant="outline" onClick={() => setContractOpen(false)}>Cancel</Button>
                       <Button onClick={handleUploadContract} disabled={uploadContractMutation.isPending}>
                         {uploadContractMutation.isPending ? "Uploading..." : "Upload Contract"}
                       </Button>
@@ -1889,12 +1883,12 @@ function CustomerDetail({ id }: { id: number }) {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t("customers.contracts.contractName")}</TableHead>
-                        <TableHead>{t("common.type")}</TableHead>
-                        <TableHead>{t("customers.contracts.signedDate")}</TableHead>
-                        <TableHead>{t("customers.contracts.effective")}</TableHead>
-                        <TableHead>{t("customers.contracts.expiry")}</TableHead>
-                        <TableHead>{t("customers.table.header.status")}</TableHead>
+                        <TableHead>Contract Name</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Signed Date</TableHead>
+                        <TableHead>Effective</TableHead>
+                        <TableHead>Expiry</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead className="w-20"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1928,8 +1922,8 @@ function CustomerDetail({ id }: { id: number }) {
                 ) : (
                   <div className="text-center py-12">
                     <FileText className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                    <p className="text-sm text-muted-foreground">{t("customers.empty_state.no_contracts")}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{t("customers.contracts.emptyHint")}</p>
+                    <p className="text-sm text-muted-foreground">No contracts found for this customer.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Upload contracts to keep all legal documents organized.</p>
                   </div>
                 )}
               </CardContent>
@@ -1958,7 +1952,6 @@ function LeavePolicyTab({ customerId, customer, leavePolicies, refetch }: {
   leavePolicies: any[];
   refetch: () => void;
 }) {
-  const { t } = useI18n();
   const [initCountry, setInitCountry] = useState("");
   const [editingCountry, setEditingCountry] = useState<string | null>(null);
   const [editForms, setEditForms] = useState<Record<number, { annualEntitlement: number; expiryRule: "year_end" | "anniversary" | "no_expiry"; carryOverDays: number }>>({});
@@ -1976,7 +1969,7 @@ function LeavePolicyTab({ customerId, customer, leavePolicies, refetch }: {
   const updateMutation = trpc.customerLeavePolicies.update.useMutation();
   const deleteMutation = trpc.customerLeavePolicies.delete.useMutation({
     onSuccess: () => {
-      toast.success(t("leave.policy.deleted") || "Leave policy deleted");
+      toast.success("Leave policy deleted");
       refetch();
     },
     onError: (err) => toast.error(err.message),
@@ -2004,7 +1997,7 @@ function LeavePolicyTab({ customerId, customer, leavePolicies, refetch }: {
         updateMutation.mutateAsync({ id: parseInt(idStr), data })
       );
       await Promise.all(promises);
-      toast.success(t("leave.policy.countryUpdated") || "Leave policies updated");
+      toast.success("Leave policies updated");
       setEditingCountry(null);
       setEditForms({});
       refetch();
@@ -2027,9 +2020,9 @@ function LeavePolicyTab({ customerId, customer, leavePolicies, refetch }: {
   const availableCountries = countriesData?.filter(c => !countriesWithPolicies.has(c.countryCode)) ?? [];
 
   const expiryRuleLabels: Record<string, string> = {
-    year_end: t("leave.expiryRule.yearEnd"),
-    anniversary: t("leave.expiryRule.anniversary"),
-    no_expiry: t("leave.expiryRule.noExpiry"),
+    year_end: "Year End",
+    anniversary: "Anniversary",
+    no_expiry: "No Expiry",
   };
 
   return (
@@ -2037,17 +2030,17 @@ function LeavePolicyTab({ customerId, customer, leavePolicies, refetch }: {
       {/* Initialize for new country */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("employees.leave.initializePolicy")}</CardTitle>
+          <CardTitle className="text-base">Initialize Leave Policy</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-3">
-            {t("customers.leave.initialize_hint")}
+            Initialize leave policies for a country based on statutory defaults.
           </p>
           <div className="flex gap-2 items-end">
             <div className="flex-1">
-              <Label className="text-xs">{t("customers.table.header.country")}</Label>
+              <Label className="text-xs">Country</Label>
               <Select value={initCountry} onValueChange={setInitCountry}>
-                <SelectTrigger><SelectValue placeholder={t("customers.leave.select_country_placeholder")} /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select a country" /></SelectTrigger>
                 <SelectContent>
                   {availableCountries.map(c => (
                     <SelectItem key={c.countryCode} value={c.countryCode}>{c.countryName} ({c.countryCode})</SelectItem>
@@ -2060,7 +2053,7 @@ function LeavePolicyTab({ customerId, customer, leavePolicies, refetch }: {
               onClick={() => initMutation.mutate({ customerId, countryCode: initCountry })}
             >
               <Plus className="w-4 h-4 mr-1" />
-              {t("customers.leave.initialize_button")}
+              Initialize Policies
             </Button>
           </div>
         </CardContent>
@@ -2073,22 +2066,22 @@ function LeavePolicyTab({ customerId, customer, leavePolicies, refetch }: {
           <Card key={countryCode}>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base">{t("customers.leave.countryPolicies", { country: countryCode })}</CardTitle>
+                <CardTitle className="text-base">Leave Policies for {countryCode}</CardTitle>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline">{t("customers.leave.typesCount", { count: policies.length })}</Badge>
+                  <Badge variant="outline">{policies.length} types</Badge>
                   {isEditing ? (
                     <div className="flex gap-1">
                       <Button size="sm" variant="default" className="h-7 text-xs" disabled={savingCountry} onClick={saveCountryPolicies}>
                         {savingCountry ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
-                        {t("common.save")}
+                        Save
                       </Button>
                       <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setEditingCountry(null); setEditForms({}); }}>
-                        {t("common.cancel")}
+                        Cancel
                       </Button>
                     </div>
                   ) : (
                     <Button size="sm" variant="ghost" className="h-7" onClick={() => startEditCountry(countryCode, policies)}>
-                      <Pencil className="w-3.5 h-3.5 mr-1" /> {t("common.edit") || "Edit"}
+                      <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
                     </Button>
                   )}
                 </div>
@@ -2098,11 +2091,11 @@ function LeavePolicyTab({ customerId, customer, leavePolicies, refetch }: {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("leave.table.header.leaveType")}</TableHead>
-                    <TableHead>{t("leave.table.header.annualEntitlement")}</TableHead>
-                    <TableHead>{t("leave.table.header.expiryRule")}</TableHead>
-                    <TableHead>{t("leave.table.header.carryOverDays")}</TableHead>
-                    <TableHead className="w-16">{t("common.actions")}</TableHead>
+                    <TableHead>Leave Type</TableHead>
+                    <TableHead>Annual Entitlement</TableHead>
+                    <TableHead>Expiry Rule</TableHead>
+                    <TableHead>Carry Over Days</TableHead>
+                    <TableHead className="w-16">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -2113,7 +2106,7 @@ function LeavePolicyTab({ customerId, customer, leavePolicies, refetch }: {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-sm">{policy.leaveTypeName}</span>
-                            {policy.isPaid === false && <Badge variant="outline" className="text-xs">{t("leave.badge.unpaid")}</Badge>}
+                            {policy.isPaid === false && <Badge variant="outline" className="text-xs">Unpaid</Badge>}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -2126,7 +2119,7 @@ function LeavePolicyTab({ customerId, customer, leavePolicies, refetch }: {
                               onChange={(e) => setEditForms({ ...editForms, [policy.id]: { ...form, annualEntitlement: parseInt(e.target.value) || 0 } })}
                             />
                           ) : (
-                            <span className="text-sm">{policy.annualEntitlement} {t("common.days")}</span>
+                            <span className="text-sm">{policy.annualEntitlement} days</span>
                           )}
                         </TableCell>
                         <TableCell>
@@ -2134,9 +2127,9 @@ function LeavePolicyTab({ customerId, customer, leavePolicies, refetch }: {
                             <Select value={form.expiryRule} onValueChange={(v) => setEditForms({ ...editForms, [policy.id]: { ...form, expiryRule: v as "year_end" | "anniversary" | "no_expiry" } })}>
                               <SelectTrigger className="h-8 w-48"><SelectValue /></SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="year_end">{t("leave.expiryRule.yearEnd")}</SelectItem>
-                                <SelectItem value="anniversary">{t("leave.expiryRule.anniversary")}</SelectItem>
-                                <SelectItem value="no_expiry">{t("leave.expiryRule.noExpiry")}</SelectItem>
+                                <SelectItem value="year_end">Year End</SelectItem>
+                                <SelectItem value="anniversary">Anniversary</SelectItem>
+                                <SelectItem value="no_expiry">No Expiry</SelectItem>
                               </SelectContent>
                             </Select>
                           ) : (
@@ -2153,12 +2146,12 @@ function LeavePolicyTab({ customerId, customer, leavePolicies, refetch }: {
                               onChange={(e) => setEditForms({ ...editForms, [policy.id]: { ...form, carryOverDays: parseInt(e.target.value) || 0 } })}
                             />
                           ) : (
-                            <span className="text-sm">{policy.carryOverDays > 0 ? `${policy.carryOverDays} ${t("common.days")}` : t("common.none")}</span>
+                            <span className="text-sm">{policy.carryOverDays > 0 ? `${policy.carryOverDays} days` : "None"}</span>
                           )}
                         </TableCell>
                         <TableCell>
                           <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => {
-                            if (confirm(t("leave.policy.deleteConfirm") || "Delete this leave policy?")) deleteMutation.mutate({ id: policy.id });
+                            if (confirm("Delete this leave policy?")) deleteMutation.mutate({ id: policy.id });
                           }}>
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
@@ -2177,8 +2170,8 @@ function LeavePolicyTab({ customerId, customer, leavePolicies, refetch }: {
         <Card>
           <CardContent className="py-12 text-center">
             <FileText className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">{t("employees.leave.empty")}</p>
-            <p className="text-xs text-muted-foreground mt-1">{t("employees.leave.emptyHint")}</p>
+            <p className="text-sm text-muted-foreground">No leave policies configured for this customer.</p>
+            <p className="text-xs text-muted-foreground mt-1">Initialize policies from statutory defaults or add custom rules.</p>
           </CardContent>
         </Card>
       )}
@@ -2187,7 +2180,6 @@ function LeavePolicyTab({ customerId, customer, leavePolicies, refetch }: {
 }
 
 function WalletTab({ customerId, currency }: { customerId: number; currency: string }) {
-  const { t } = useI18n();
   const utils = trpc.useContext();
   const [walletTab, setWalletTab] = useState<"operating" | "deposit">("operating");
 

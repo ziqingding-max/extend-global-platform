@@ -1,4 +1,3 @@
-
 import Layout from "@/components/Layout";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -17,7 +16,6 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { useI18n } from "@/lib/i18n";
 import { exportToCsv } from "@/lib/csvExport";
 import { formatDate, formatAmount } from "@/lib/format";
 
@@ -33,10 +31,7 @@ import { useCpContext } from "@/_core/store/cpContextStore";
 // actually let's move it to components/invoices/InvoiceGenerationPanel.tsx later
 // For now, I'll inline a simplified version or assume it's moved if I had time.
 // But to keep it working, I need to copy it or import it.
-// Let's assume I should move it to keep this file clean.
-// I'll create a placeholder or copy the code. 
-// Given the constraints, I'll keep the GenerationPanel here but minimized or move it to a new file in next step?
-// I'll move it to a new file first.
+// Let's assume I should move it to a new file first.
 
 // Wait, I can't easily move it without another tool call. 
 // I'll keep it here for now but use the new hook for the list logic.
@@ -63,33 +58,32 @@ const statusColors: Record<string, string> = {
 };
 
 const statusLabelKeys: Record<string, string> = {
-  draft: "invoices.status.draft",
-  pending_review: "invoices.status.pendingReview",
-  sent: "invoices.status.sent",
-  paid: "invoices.status.paid",
-  overdue: "invoices.status.overdue",
-  cancelled: "invoices.status.cancelled",
-  applied: "invoices.status.applied",
-  void: "invoices.status.void",
-  partially_paid: "invoices.status.partiallyPaid",
+  draft: "Draft",
+  pending_review: "Pending Review",
+  sent: "Sent",
+  paid: "Paid",
+  overdue: "Overdue",
+  cancelled: "Cancelled",
+  applied: "Applied",
+  void: "Void",
+  partially_paid: "Partially Paid",
 };
 
 const typeLabelKeys: Record<string, string> = {
-  deposit: "invoices.type.deposit",
-  monthly_eor: "invoices.type.monthlyEor",
-  monthly_visa_eor: "invoices.type.monthlyVisaEor",
-  monthly_aor: "invoices.type.monthlyAor",
-  visa_service: "invoices.type.visaService",
-  deposit_refund: "invoices.type.depositRefund",
-  credit_note: "invoices.type.creditNote",
-  manual: "invoices.type.manual",
-  monthly: "invoices.type.monthly",
-  one_time: "invoices.type.oneTime",
+  deposit: "Deposit",
+  monthly_eor: "Monthly EOR",
+  monthly_visa_eor: "Monthly Visa EOR",
+  monthly_aor: "Monthly AOR",
+  visa_service: "Visa Service",
+  deposit_refund: "Deposit Refund",
+  credit_note: "Credit Note",
+  manual: "Manual",
+  monthly: "Monthly",
+  one_time: "One-Time",
 };
 
 /* ========== Invoice Generation Panel ========== */
 function InvoiceGenerationPanel() {
-  const { t } = useI18n();
   const [month, setMonth] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -98,12 +92,12 @@ function InvoiceGenerationPanel() {
   const generateMutation = trpc.invoiceGeneration.generateFromPayroll.useMutation({
     onSuccess: (result: any) => {
       if (result.success) {
-        toast.success(t("invoices.generation.toast.generatedSuccess").replace("{count}", String(result.invoiceIds?.length || 0)));
+        toast.success(`Successfully generated ${String(result.invoiceIds?.length || 0)} invoices.`);
         if (result.warnings?.length) {
           result.warnings.forEach((w: string) => toast.warning(w));
         }
       } else {
-        toast.error(result.error || t("invoices.generation.toast.generationFailed"));
+        toast.error(result.error || "Invoice generation failed.");
       }
     },
     onError: (err: any) => toast.error(err.message),
@@ -112,9 +106,9 @@ function InvoiceGenerationPanel() {
   const regenerateMutation = trpc.invoiceGeneration.regenerate.useMutation({
     onSuccess: (result: any) => {
       if (result.success) {
-        toast.success(t("invoices.generation.toast.regeneratedSuccess").replace("{count}", String(result.invoiceIds?.length || 0)));
+        toast.success(`Successfully regenerated ${String(result.invoiceIds?.length || 0)} invoices.`);
       } else {
-        toast.error(result.error || t("invoices.generation.toast.regenerationFailed"));
+        toast.error(result.error || "Invoice regeneration failed.");
       }
       setShowRegenConfirm(false);
     },
@@ -142,17 +136,17 @@ function InvoiceGenerationPanel() {
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
           <Zap className="w-4 h-4 text-amber-500" />
-          <span className="text-sm font-medium">{t("invoices.generation.title")}</span>
-          <MonthPicker value={month} onChange={(m) => setMonth(m)} placeholder={t("invoices.generation.selectMonthPlaceholder")} className="w-40 h-8 text-sm" />
+          <span className="text-sm font-medium">Invoice Generation</span>
+          <MonthPicker value={month} onChange={(m) => setMonth(m)} placeholder="Select Month" className="w-40 h-8 text-sm" />
           <Button size="sm" onClick={handleGenerateClick} disabled={generateMutation.isPending}>
-            {generateMutation.isPending ? t("invoices.generation.generatingButton") : t("invoices.generation.generateButton")}
+            {generateMutation.isPending ? "Generating..." : "Generate"}
           </Button>
           <Button variant="outline" onClick={() => setShowRegenConfirm(true)} disabled={regenerateMutation.isPending} size="sm">
             <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-            {regenerateMutation.isPending ? t("invoices.generation.regeneratingButton") : t("invoices.generation.regenerateButton")}
+            {regenerateMutation.isPending ? "Regenerating..." : "Regenerate"}
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">{t("invoices.generation.description")}</p>
+        <p className="text-xs text-muted-foreground mt-2">Generate invoices for a specific payroll month. This will create draft invoices based on payroll data.</p>
       </CardContent>
 
       {/* Regenerate Confirmation Dialog */}
@@ -160,11 +154,11 @@ function InvoiceGenerationPanel() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-amber-500" /> {t("invoices.generation.regenerateConfirmTitle") || "Confirm Regenerate"}
+              <AlertTriangle className="w-5 h-5 text-amber-500" /> Confirm Regenerate
             </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            {t("invoices.generation.regenerateConfirmMessage") || "This will delete all DRAFT invoices for the selected month and recreate them from payroll data. Non-draft invoices (sent, paid, overdue) will NOT be affected. Continue?"}
+            This will delete all DRAFT invoices for the selected month and recreate them from payroll data. Non-draft invoices (sent, paid, overdue) will NOT be affected. Continue?
           </p>
           {preCheck.data && (preCheck.data as any).warnings?.map((w: string, i: number) => (
             <p key={i} className="text-xs text-amber-600 flex items-center gap-1">
@@ -189,11 +183,11 @@ function InvoiceGenerationPanel() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-amber-500" /> {t("invoices.generation.generateConfirmTitle") || "Confirm Generate"}
+              <AlertTriangle className="w-5 h-5 text-amber-500" /> Confirm Generate
             </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            {t("invoices.generation.generateConfirmMessage") || "Invoices already exist for this month. Generating will create additional invoices. Continue?"}
+            Invoices already exist for this month. Generating will create additional invoices. Continue?
           </p>
           {preCheck.data && (preCheck.data as any).warnings?.map((w: string, i: number) => (
             <p key={i} className="text-xs text-amber-600 flex items-center gap-1">
@@ -217,7 +211,6 @@ function InvoiceGenerationPanel() {
 
 /* ========== Main Page Component ========== */
 export default function Invoices() {
-  const { t } = useI18n();
   /* ── Layer Tab State (top-level B2B2B isolation) ── */
   const [activeLayerTab, setActiveLayerTab] = useState<string>("all");
 
@@ -312,8 +305,8 @@ export default function Invoices() {
       <div className="p-6 space-y-6 page-enter">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t("invoices.list.title")}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{t("invoices.list.subtitle")}</p>
+            <h1 className="text-2xl font-bold tracking-tight">Invoices</h1>
+            <p className="text-sm text-muted-foreground mt-1">Manage all invoices across your organization.</p>
           </div>
           <div className="flex gap-2">
             <Button
@@ -323,20 +316,20 @@ export default function Invoices() {
               onClick={() => exportToCsv(
                 invoices,
                 [
-                  { header: t("invoices.list.table.header.invoiceNumber"), accessor: (r) => r.invoiceNumber },
-                  { header: t("invoices.list.filter.typeLabel"), accessor: (r) => (typeLabelKeys[r.invoiceType] ? t(typeLabelKeys[r.invoiceType]) : r.invoiceType) },
-                  { header: t("invoices.list.table.header.customer"), accessor: (r) => (r as any).customerName || "" },
-                  { header: t("common.date"), accessor: (r) => r.createdAt ? formatDate(r.createdAt) : "" },
-                  { header: t("invoices.list.table.header.dueDate"), accessor: (r) => r.dueDate ? formatDate(r.dueDate) : "" },
-                  { header: t("invoices.list.table.header.total"), accessor: (r) => formatAmount(r.total) },
-                  { header: t("invoices.detail.summary.balanceDue"), accessor: (r) => formatAmount(r.amountDue) },
-                  { header: t("invoices.detail.info.currency"), accessor: (r) => r.currency },
-                  { header: t("invoices.list.filter.statusLabel"), accessor: (r) => (statusLabelKeys[r.status] ? t(statusLabelKeys[r.status]) : r.status) },
+                  { header: "Invoice Number", accessor: (r) => r.invoiceNumber },
+                  { header: "Type", accessor: (r) => (typeLabelKeys[r.invoiceType] ? typeLabelKeys[r.invoiceType] : r.invoiceType) },
+                  { header: "Customer", accessor: (r) => (r as any).customerName || "" },
+                  { header: "Date", accessor: (r) => r.createdAt ? formatDate(r.createdAt) : "" },
+                  { header: "Due Date", accessor: (r) => r.dueDate ? formatDate(r.dueDate) : "" },
+                  { header: "Total", accessor: (r) => formatAmount(r.total) },
+                  { header: "Balance Due", accessor: (r) => formatAmount(r.amountDue) },
+                  { header: "Currency", accessor: (r) => r.currency },
+                  { header: "Status", accessor: (r) => (statusLabelKeys[r.status] ? statusLabelKeys[r.status] : r.status) },
                 ],
                 `invoices-${new Date().toISOString().slice(0, 10)}`
               )}
             >
-              <Download className="w-4 h-4 mr-1" /> {t("invoices.list.exportCsvButton")}
+              <Download className="w-4 h-4 mr-1" /> Export CSV
             </Button>
             {!isReadOnly && (
               <>
@@ -350,7 +343,7 @@ export default function Invoices() {
                   setManualForm({ customerId: 0, billingEntityId: undefined, invoiceType: "manual", invoiceMonth: "", currency: "USD", notes: "", dueDate: "" });
                   setShowManualCreate(true);
                 }}>
-                  <Plus className="w-4 h-4 mr-2" /> {t("invoices.list.createInvoiceButton")}
+                  <Plus className="w-4 h-4 mr-2" /> Create Invoice
                 </Button>
               </>
             )}
@@ -406,9 +399,9 @@ export default function Invoices() {
 
         <Tabs defaultValue="list" className="w-full">
           <TabsList>
-            <TabsTrigger value="list"><FileText className="w-3.5 h-3.5 mr-1.5" />{t("invoices.list.tab.active")} ({activeInvoices.length})</TabsTrigger>
-            <TabsTrigger value="history"><CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />{t("invoices.list.tab.history")} ({historyInvoices.length})</TabsTrigger>
-            <TabsTrigger value="monthly"><BarChart3 className="w-3.5 h-3.5 mr-1.5" />{t("invoices.list.tab.monthlyOverview")}</TabsTrigger>
+            <TabsTrigger value="list"><FileText className="w-3.5 h-3.5 mr-1.5" />Active ({activeInvoices.length})</TabsTrigger>
+            <TabsTrigger value="history"><CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />History ({historyInvoices.length})</TabsTrigger>
+            <TabsTrigger value="monthly"><BarChart3 className="w-3.5 h-3.5 mr-1.5" />Monthly Overview</TabsTrigger>
           </TabsList>
 
           <TabsContent value="list" className="space-y-4 mt-4">
@@ -425,19 +418,19 @@ export default function Invoices() {
             {!isReadOnly && selection.selectedIds.size > 0 && (
               <Card className="border-primary/30 bg-primary/5">
                 <CardContent className="p-3 flex items-center gap-3">
-                  <span className="text-sm font-medium">{t("invoices.list.batch.selectedCount").replace("{count}", String(selection.selectedIds.size))}</span>
+                  <span className="text-sm font-medium">Selected {selection.selectedIds.size} invoices</span>
                   <div className="flex gap-2 ml-auto">
                     <Button size="sm" variant="outline" onClick={() => batch.handleAction("pending_review")} disabled={batch.mutation.isPending}>
-                      <Send className="w-3.5 h-3.5 mr-1.5" />{t("invoices.list.batch.sendForReviewButton")}
+                      <Send className="w-3.5 h-3.5 mr-1.5" />Send For Review
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => batch.handleAction("sent")} disabled={batch.mutation.isPending}>
-                      <Send className="w-3.5 h-3.5 mr-1.5" />{t("invoices.list.batch.markSentButton")}
+                      <Send className="w-3.5 h-3.5 mr-1.5" />Mark Sent
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => setShowBatchPaid(true)} disabled={batch.mutation.isPending}>
-                      <CreditCard className="w-3.5 h-3.5 mr-1.5" />{t("invoices.actions.markPaid")}
+                      <CreditCard className="w-3.5 h-3.5 mr-1.5" />Mark Paid
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => selection.setSelectedIds(new Set())}>
-                      {t("common.clear")}
+                      Clear
                     </Button>
                   </div>
                 </CardContent>
@@ -525,16 +518,16 @@ export default function Invoices() {
       {/* Dialogs */}
       <Dialog open={showManualCreate} onOpenChange={setShowManualCreate}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{t("invoices.list.createInvoiceButton")}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Create Invoice</DialogTitle></DialogHeader>
           <div className="space-y-4">
             {/* Customer */}
             <div className="space-y-2">
-              <Label>{t("invoices.manual.customerLabel")}</Label>
+              <Label>Customer</Label>
               <Select value={manualForm.customerId ? manualForm.customerId.toString() : ""} onValueChange={(v) => {
                 const cust = customers?.data?.find((c) => c.id === parseInt(v));
                 setManualForm({ ...manualForm, customerId: parseInt(v), currency: cust?.settlementCurrency || "USD", billingEntityId: cust?.billingEntityId || undefined });
               }}>
-                <SelectTrigger><SelectValue placeholder={t("invoices.manual.selectCustomerPlaceholder")} /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select a customer" /></SelectTrigger>
                 <SelectContent>
                   {customers?.data?.map((c) => (
                     <SelectItem key={c.id} value={c.id.toString()}>{c.companyName}</SelectItem>
@@ -545,12 +538,12 @@ export default function Invoices() {
 
             {/* Invoice Type */}
             <div className="space-y-2">
-              <Label>{t("invoices.list.filter.typeLabel")}</Label>
+              <Label>Invoice Type</Label>
               <Select value={manualForm.invoiceType} onValueChange={(v) => setManualForm({ ...manualForm, invoiceType: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {["manual", "deposit", "monthly_eor", "monthly_visa_eor", "monthly_aor", "visa_service"].map((t_) => (
-                    <SelectItem key={t_} value={t_}>{typeLabelKeys[t_] ? t(typeLabelKeys[t_]) : t_}</SelectItem>
+                    <SelectItem key={t_} value={t_}>{typeLabelKeys[t_] ? typeLabelKeys[t_] : t_}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -558,24 +551,24 @@ export default function Invoices() {
 
             {/* Invoice Month */}
             <div className="space-y-2">
-              <Label>{t("invoices.detail.info.invoiceMonth")}</Label>
+              <Label>Invoice Month</Label>
               <MonthPicker 
                 value={manualForm.invoiceMonth} 
                 onChange={(v) => setManualForm({ ...manualForm, invoiceMonth: v })} 
-                placeholder={t("invoices.generation.selectMonthPlaceholder")}
+                placeholder="Select Month"
                 className="w-full"
               />
             </div>
 
             {/* Currency */}
             <div className="space-y-2">
-              <Label>{t("invoices.detail.info.currency")}</Label>
+              <Label>Currency</Label>
               <CurrencySelect value={manualForm.currency} onValueChange={(v) => setManualForm({ ...manualForm, currency: v })} />
             </div>
 
             {/* Billing Entity */}
             <div className="space-y-2">
-              <Label>{t("invoices.detail.info.billingEntity")}</Label>
+              <Label>Billing Entity</Label>
               <Select value={manualForm.billingEntityId ? manualForm.billingEntityId.toString() : ""} onValueChange={(v) => setManualForm({ ...manualForm, billingEntityId: v ? parseInt(v) : undefined })}>
                 <SelectTrigger><SelectValue placeholder="Select billing entity" /></SelectTrigger>
                 <SelectContent>
@@ -588,7 +581,7 @@ export default function Invoices() {
 
             {/* Due Date */}
             <div className="space-y-2">
-              <Label>{t("invoices.list.table.header.dueDate")}</Label>
+              <Label>Due Date</Label>
               <DatePicker 
                 value={manualForm.dueDate} 
                 onChange={(d) => setManualForm({ ...manualForm, dueDate: d })} 
@@ -598,12 +591,12 @@ export default function Invoices() {
 
             {/* Notes */}
             <div className="space-y-2">
-              <Label>{t("invoices.detail.info.notes")}</Label>
+              <Label>Notes</Label>
               <Input value={manualForm.notes} onChange={(e) => setManualForm({ ...manualForm, notes: e.target.value })} placeholder="Optional notes" />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowManualCreate(false)}>{t("common.cancel")}</Button>
+            <Button variant="outline" onClick={() => setShowManualCreate(false)}>Cancel</Button>
             <Button onClick={() => createMut.mutate({
                 customerId: manualForm.customerId,
                 billingEntityId: manualForm.billingEntityId,
@@ -616,7 +609,7 @@ export default function Invoices() {
                 notes: manualForm.notes || undefined,
                 dueDate: manualForm.dueDate || undefined,
               })} disabled={!manualForm.customerId || createMut.isPending}>
-              {createMut.isPending ? t("common.creating") : t("invoices.list.createInvoiceButton")}
+              {createMut.isPending ? "Creating..." : "Create Invoice"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -628,9 +621,9 @@ export default function Invoices() {
           <DialogHeader><DialogTitle>Create Credit Note</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label>{t("invoices.manual.customerLabel")}</Label>
+              <Label>Customer</Label>
               <Select value={creditNoteForm.customerId ? creditNoteForm.customerId.toString() : ""} onValueChange={(v) => setCreditNoteForm({ ...creditNoteForm, customerId: parseInt(v), originalInvoiceId: 0 })}>
-                <SelectTrigger><SelectValue placeholder={t("invoices.manual.selectCustomerPlaceholder")} /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select a customer" /></SelectTrigger>
                 <SelectContent>
                   {customers?.data?.map((c) => (
                     <SelectItem key={c.id} value={c.id.toString()}>{c.companyName}</SelectItem>
@@ -709,7 +702,7 @@ export default function Invoices() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreditNoteCreate(false)}>{t("common.cancel")}</Button>
+            <Button variant="outline" onClick={() => setShowCreditNoteCreate(false)}>Cancel</Button>
             <Button 
               onClick={() => {
                 if (!creditNoteForm.originalInvoiceId || !creditNoteForm.reason) return;
@@ -736,9 +729,9 @@ export default function Invoices() {
       {/* Batch Paid Dialog */}
       <Dialog open={showBatchPaid} onOpenChange={(open) => { setShowBatchPaid(open); if (!open) setBatchPaidAmount(""); }}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>{t("invoices.batchPaid.title")}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Mark Invoices as Paid</DialogTitle></DialogHeader>
           <div className="space-y-4">
-             <Input type="number" value={batchPaidAmount} onChange={(e) => setBatchPaidAmount(e.target.value)} placeholder={t("invoices.batchPaid.amountPlaceholder")} />
+             <Input type="number" value={batchPaidAmount} onChange={(e) => setBatchPaidAmount(e.target.value)} placeholder="Enter amount paid (optional)" />
           </div>
           <DialogFooter>
              <Button onClick={() => {

@@ -26,12 +26,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Globe, Search, CalendarDays, Clock, Briefcase, Pencil, DollarSign, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import CurrencySelect from "@/components/CurrencySelect";
-import { useI18n } from "@/lib/i18n";
 
 type FilterStatus = "all" | "active" | "inactive";
 
 export default function CountriesContent() {
-  const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const [editOpen, setEditOpen] = useState(false);
@@ -110,7 +108,7 @@ export default function CountriesContent() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t("countries.title")}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Countries</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Configure service fees to activate countries. Legal data is pre-populated.
             </p>
@@ -122,19 +120,19 @@ export default function CountriesContent() {
           <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => setStatusFilter("all")}>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold">{stats.total}</div>
-              <div className="text-xs text-muted-foreground">{t("countries.stats.total")}</div>
+              <div className="text-xs text-muted-foreground">Total Countries</div>
             </CardContent>
           </Card>
           <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => setStatusFilter("active")}>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-              <div className="text-xs text-muted-foreground">{t("countries.stats.active")}</div>
+              <div className="text-xs text-muted-foreground">Active</div>
             </CardContent>
           </Card>
           <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => setStatusFilter("inactive")}>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-muted-foreground">{stats.inactive}</div>
-              <div className="text-xs text-muted-foreground">{t("countries.stats.inactive")}</div>
+              <div className="text-xs text-muted-foreground">Inactive</div>
             </CardContent>
           </Card>
         </div>
@@ -150,9 +148,9 @@ export default function CountriesContent() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("countries.filter.all_status")}</SelectItem>
-              <SelectItem value="active">{t("countries.stats.active")}</SelectItem>
-              <SelectItem value="inactive">{t("countries.stats.inactive")}</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -165,14 +163,14 @@ export default function CountriesContent() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t("countries.table.header.country")}</TableHead>
-                      <TableHead>{t("countries.table.header.currency")}</TableHead>
-                      <TableHead>{t("countries.table.header.payroll_cycle")}</TableHead>
-                      <TableHead>{t("countries.table.header.eor_rate")}</TableHead>
-                      <TableHead>{t("countries.table.header.annual_leave")}</TableHead>
-                      <TableHead>{t("countries.table.header.vat")}</TableHead>
-                      <TableHead>{t("countries.table.header.status")}</TableHead>
-                      <TableHead className="w-16">{t("countries.table.header.fees")}</TableHead>
+                      <TableHead>Country</TableHead>
+                      <TableHead>Currency</TableHead>
+                      <TableHead>Payroll Cycle</TableHead>
+                      <TableHead>EOR Rate</TableHead>
+                      <TableHead>Annual Leave</TableHead>
+                      <TableHead>VAT</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="w-16">Fees</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -260,28 +258,28 @@ export default function CountriesContent() {
                     </CardTitle>
                     <div className="flex items-center gap-2 mt-1">
                       {(selectedCountryData as any).isActive ? (
-                        <Badge variant="default" className="text-xs gap-1"><CheckCircle2 className="w-3 h-3" />{t("countries.stats.active")}</Badge>
+                        <Badge variant="default" className="text-xs gap-1"><CheckCircle2 className="w-3 h-3" />Active</Badge>
                       ) : (
-                        <Badge variant="secondary" className="text-xs gap-1"><XCircle className="w-3 h-3" />{t("countries.detail.inactive_prompt")}</Badge>
+                        <Badge variant="secondary" className="text-xs gap-1"><XCircle className="w-3 h-3" />This country is inactive</Badge>
                       )}
                     </div>
                   </CardHeader>
                   <CardContent>
                     <Tabs defaultValue="rates">
                       <TabsList className="w-full">
-                        <TabsTrigger value="rates" className="flex-1">{t("countries.detail.tabs.service_fees")}</TabsTrigger>
-                        <TabsTrigger value="rules" className="flex-1">{t("countries.detail.tabs.legal_info")}</TabsTrigger>
-                        <TabsTrigger value="leave" className="flex-1">{t("countries.detail.tabs.leave_types")}</TabsTrigger>
+                        <TabsTrigger value="rates" className="flex-1">Service Fees</TabsTrigger>
+                        <TabsTrigger value="rules" className="flex-1">Legal Info</TabsTrigger>
+                        <TabsTrigger value="leave" className="flex-1">Leave Types</TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="rates" className="mt-4 space-y-3">
-                        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("countries.detail.rates.monthly_title")}</div>
+                        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Monthly Rates</div>
                         <DetailRow label="EOR Rate" value={(selectedCountryData as any).standardEorRate ? `${(selectedCountryData as any).standardRateCurrency || 'USD'} ${(selectedCountryData as any).standardEorRate}` : "Not configured"} />
                         <DetailRow label="Visa EOR Rate" value={(selectedCountryData as any).standardVisaEorRate ? `${(selectedCountryData as any).standardRateCurrency || 'USD'} ${(selectedCountryData as any).standardVisaEorRate}` : "Not configured"} />
                         <DetailRow label="AOR Rate" value={(selectedCountryData as any).standardAorRate ? `${(selectedCountryData as any).standardRateCurrency || 'USD'} ${(selectedCountryData as any).standardAorRate}` : "Not configured"} />
                         <div className="border-t pt-2 mt-2">
-                          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("countries.detail.rates.onetime_title")}</div>
-                          <DetailRow label="Visa Setup Fee" value={(selectedCountryData as any).visaEorSetupFee ? `${(selectedCountryData as any).standardRateCurrency || 'USD'} ${(selectedCountryData as any).visaEorSetupFee}` : "Not configured"} />
+                          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">One-time Fees</div>
+                          <DetailRow label="Visa EOR Setup Fee" value={(selectedCountryData as any).visaEorSetupFee ? `${(selectedCountryData as any).standardRateCurrency || 'USD'} ${(selectedCountryData as any).visaEorSetupFee}` : "Not configured"} />
                         </div>
                         <Button
                           variant="outline"
@@ -294,15 +292,15 @@ export default function CountriesContent() {
                       </TabsContent>
 
                       <TabsContent value="rules" className="mt-4 space-y-3">
-                        <DetailRow icon={<Clock className="w-3.5 h-3.5" />} label={t("countries.table.header.currency")} value={selectedCountryData.localCurrency} />
+                        <DetailRow icon={<Clock className="w-3.5 h-3.5" />} label="Currency" value={selectedCountryData.localCurrency} />
                         <DetailRow icon={<CalendarDays className="w-3.5 h-3.5" />} label="Payroll Cycle" value={(selectedCountryData.payrollCycle || "monthly").replace("_", " ")} />
-                        <DetailRow icon={<Clock className="w-3.5 h-3.5" />} label={t("countries.detail.legal.probation")} value={`${selectedCountryData.probationPeriodDays || 90} days`} />
+                        <DetailRow icon={<Clock className="w-3.5 h-3.5" />} label="Probation Period" value={`${selectedCountryData.probationPeriodDays || 90} days`} />
                         <DetailRow icon={<Clock className="w-3.5 h-3.5" />} label="Notice Period" value={`${selectedCountryData.noticePeriodDays || 30} days`} />
                         <DetailRow icon={<Briefcase className="w-3.5 h-3.5" />} label="Working Days/Week" value={`${selectedCountryData.workingDaysPerWeek || 5} days`} />
                         <DetailRow icon={<CalendarDays className="w-3.5 h-3.5" />} label="Statutory Leave" value={`${(selectedCountryData as any).statutoryAnnualLeave || 14} days/year`} />
                         {selectedCountryData.notes && (
                           <div className="pt-2 border-t">
-                            <div className="text-xs text-muted-foreground mb-1">{t("countries.detail.notes.title")}</div>
+                            <div className="text-xs text-muted-foreground mb-1">Notes</div>
                             <p className="text-sm">{selectedCountryData.notes}</p>
                           </div>
                         )}
@@ -310,7 +308,7 @@ export default function CountriesContent() {
 
                       <TabsContent value="leave" className="mt-4">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-sm font-medium">{t("countries.detail.tabs.leave_types")}</span>
+                          <span className="text-sm font-medium">Leave Types</span>
                           <span className="text-xs text-muted-foreground">{leaveTypes?.length || 0} types</span>
                         </div>
                         {leaveTypes && leaveTypes.length > 0 ? (
@@ -345,7 +343,7 @@ export default function CountriesContent() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <Globe className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground">{t("countries.detail.empty.prompt")}</p>
+                  <p className="text-sm text-muted-foreground">Select a country to view details</p>
                 </CardContent>
               </Card>
             )}
@@ -369,7 +367,7 @@ export default function CountriesContent() {
 
               {/* Rate Currency */}
               <div className="space-y-2">
-                <Label>{t("countries.edit.rate_currency.label")}</Label>
+                <Label>Rate Currency</Label>
                 <CurrencySelect
                   value={editFormData.standardRateCurrency}
                   onValueChange={(v) => setEditFormData({ ...editFormData, standardRateCurrency: v })}
@@ -378,10 +376,10 @@ export default function CountriesContent() {
 
               {/* Monthly Rates */}
               <div>
-                <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">{t("countries.edit.monthly_rates.title")}</h3>
+                <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">Monthly Rates</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("countries.table.header.eor_rate")}</Label>
+                    <Label>EOR Rate</Label>
                     <Input
                       type="number"
                       step="0.01"
@@ -391,7 +389,7 @@ export default function CountriesContent() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("countries.edit.visa_eor_rate.label")}</Label>
+                    <Label>Visa EOR Rate</Label>
                     <Input
                       type="number"
                       step="0.01"
@@ -401,7 +399,7 @@ export default function CountriesContent() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("countries.edit.aor_rate.label")}</Label>
+                    <Label>AOR Rate</Label>
                     <Input
                       type="number"
                       step="0.01"
@@ -415,7 +413,7 @@ export default function CountriesContent() {
 
               {/* One-time Fees */}
               <div>
-                <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">{t("countries.detail.rates.onetime_title")}</h3>
+                <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">One-time Fees</h3>
                 <div className="space-y-2">
                   <Label>Visa EOR Setup Fee</Label>
                   <Input
@@ -425,16 +423,16 @@ export default function CountriesContent() {
                     onChange={(e) => setEditFormData({ ...editFormData, visaEorSetupFee: e.target.value })}
                     placeholder="1500.00"
                   />
-                  <p className="text-xs text-muted-foreground">{t("countries.edit.visa_setup_fee.description")}</p>
+                  <p className="text-xs text-muted-foreground">Setup fee for visa EOR service</p>
                 </div>
               </div>
 
               {/* VAT Configuration */}
               <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("countries.edit.vat.title")}</h4>
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">VAT Configuration</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("countries.edit.vat_applicable.label")}</Label>
+                    <Label>VAT Applicable</Label>
                     <div className="flex items-center gap-3 h-9">
                       <Switch
                         checked={editFormData.vatApplicable || false}
@@ -447,7 +445,7 @@ export default function CountriesContent() {
                   </div>
                   {editFormData.vatApplicable && (
                     <div className="space-y-2">
-                      <Label>{t("countries.edit.vat_rate.label")}</Label>
+                      <Label>VAT Rate</Label>
                       <Input
                         type="number"
                         step="0.01"
@@ -463,7 +461,7 @@ export default function CountriesContent() {
 
               {/* Notes */}
               <div className="space-y-2">
-                <Label>{t("countries.detail.notes.title")}</Label>
+                <Label>Notes</Label>
                 <Textarea
                   value={editFormData.notes}
                   onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
@@ -490,7 +488,7 @@ export default function CountriesContent() {
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
-                <Button variant="outline" onClick={() => setEditOpen(false)}>{t("countries.edit.action.cancel")}</Button>
+                <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
                 <Button onClick={handleUpdate} disabled={updateMutation.isPending}>
                   {updateMutation.isPending ? "Saving..." : "Save Service Fees"}
                 </Button>

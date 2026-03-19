@@ -50,7 +50,6 @@ import {
 } from "lucide-react";
 import { exportToCsv } from "@/lib/csvExport";
 
-import { useI18n } from "@/lib/i18n";
 const ACRONYMS = new Set(["hr", "it", "eor"]);
 function formatLabel(raw: string): string {
   return raw.replace(/_/g, " ").split(" ").map(w => ACRONYMS.has(w.toLowerCase()) ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
@@ -87,7 +86,6 @@ function getMonthOptions() {
 }
 
 export default function ProfitLossReport() {
-  const { t } = useI18n();
   const monthOptions = useMemo(() => getMonthOptions(), []);
   const now = new Date();
   const defaultEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -155,8 +153,8 @@ export default function ProfitLossReport() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t("profit_loss_report.page.title")}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{t("profit_loss_report.page.description")}</p>
+            <h1 className="text-2xl font-bold tracking-tight">Profit & Loss Report</h1>
+            <p className="text-sm text-muted-foreground mt-1">Monthly breakdown of revenue (from invoices) vs expenses (from vendor bills) with interactive charts and detailed breakdowns</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
@@ -166,7 +164,7 @@ export default function ProfitLossReport() {
                   {monthOptions.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <span className="text-muted-foreground">{t("profit_loss_report.page.date_range_separator")}</span>
+              <span className="text-muted-foreground">to</span>
               <Select value={endMonth} onValueChange={setEndMonth}>
                 <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -186,7 +184,7 @@ export default function ProfitLossReport() {
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{t("profit_loss_report.summary.total_revenue")}</div>
+                  <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">TOTAL REVENUE</div>
                   <div className="text-2xl font-bold mt-1 text-emerald-400">USD {formatAmount(summary.totalRevenue)}</div>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-emerald-500/15 flex items-center justify-center">
@@ -199,7 +197,7 @@ export default function ProfitLossReport() {
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{t("profit_loss_report.summary.total_expenses")}</div>
+                  <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">TOTAL EXPENSES</div>
                   <div className="text-2xl font-bold mt-1 text-red-400">USD {formatAmount(summary.totalExpenses)}</div>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-red-500/15 flex items-center justify-center">
@@ -212,10 +210,10 @@ export default function ProfitLossReport() {
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{t("profit_loss_report.summary.net_profit")}</div>
+                  <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">NET PROFIT</div>
                   <div className={`text-2xl font-bold mt-1 ${isProfit ? "text-blue-400" : "text-red-400"}`}>
                     USD {formatAmount(Math.abs(summary.netProfit))}
-                    {!isProfit && <span className="text-sm ml-1">{t("profit_loss_report.summary.loss_label")}</span>}
+                    {!isProfit && <span className="text-sm ml-1">Loss</span>}
                   </div>
                 </div>
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isProfit ? "bg-blue-500/15" : "bg-red-500/15"}`}>
@@ -228,7 +226,7 @@ export default function ProfitLossReport() {
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{t("profit_loss_report.summary.profit_margin")}</div>
+                  <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">PROFIT MARGIN</div>
                   <div className={`text-2xl font-bold mt-1 ${summary.profitMargin >= 0 ? "text-blue-400" : "text-red-400"}`}>
                     {summary.profitMargin.toFixed(1)}%
                   </div>
@@ -244,8 +242,8 @@ export default function ProfitLossReport() {
         {/* Monthly Trend Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("profit_loss_report.monthly_trend.title")}</CardTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">{t("profit_loss_report.monthly_trend.description")}</p>
+            <CardTitle className="text-base">Monthly Trend</CardTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">Monthly revenue, expenses, and net profit trends</p>
           </CardHeader>
           <CardContent>
             {monthly.length > 0 ? (
@@ -274,7 +272,7 @@ export default function ProfitLossReport() {
               <div className="h-[350px] flex items-center justify-center text-muted-foreground">
                 <div className="text-center">
                   <BarChart3 className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                  <p>{t("profit_loss_report.monthly_breakdown.empty")}</p>
+                  <p>No monthly breakdown data available</p>
                 </div>
               </div>
             )}
@@ -331,7 +329,7 @@ export default function ProfitLossReport() {
           {/* Expenses by Category */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("profit_loss_report.expenses_by_category.title")}</CardTitle>
+              <CardTitle className="text-base">Expenses by Category</CardTitle>
             </CardHeader>
             <CardContent>
               {expensesByCategory.length > 0 ? (
@@ -464,10 +462,10 @@ export default function ProfitLossReport() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Customer</TableHead>
-                    <TableHead className="text-right">{t("profit_loss_report.table_header.revenue")}</TableHead>
+                    <TableHead className="text-right">Revenue</TableHead>
                     <TableHead className="text-right">Cost Allocated</TableHead>
                     <TableHead className="text-right">Profit</TableHead>
-                    <TableHead className="text-right">{t("profit_loss_report.table_header.margin")}</TableHead>
+                    <TableHead className="text-right">Margin</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -503,9 +501,9 @@ export default function ProfitLossReport() {
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{t("profit_loss_report.summary.unallocated_expenses")}</div>
+                  <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">UNALLOCATED EXPENSES</div>
                   <div className="text-xl font-bold mt-1 text-amber-400">USD {formatAmount(summary.totalUnallocated)}</div>
-                  <p className="text-xs text-muted-foreground mt-1">{t("profit_loss_report.summary.unallocated_expenses_desc")}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Operational costs not allocated to specific categories</p>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-amber-500/15 flex items-center justify-center">
                   <DollarSign className="w-5 h-5 text-amber-400" />
@@ -518,20 +516,20 @@ export default function ProfitLossReport() {
         {/* Monthly Detail Table */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("profit_loss_report.monthly_breakdown.title")}</CardTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">{t("profit_loss_report.monthly_breakdown.description")}</p>
+            <CardTitle className="text-base">Monthly Breakdown</CardTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">Detailed monthly revenue, expenses, and profit data</p>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("profit_loss_report.table_header.month")}</TableHead>
-                  <TableHead className="text-right">{t("profit_loss_report.table_header.revenue")}</TableHead>
-                  <TableHead className="text-right">{t("profit_loss_report.table_header.expenses")}</TableHead>
-                  <TableHead className="text-right">{t("profit_loss_report.summary.net_profit")}</TableHead>
-                  <TableHead className="text-right">{t("profit_loss_report.table_header.margin")}</TableHead>
-                  <TableHead className="text-right">{t("profit_loss_report.table_header.invoices")}</TableHead>
-                  <TableHead className="text-right">{t("profit_loss_report.table_header.bills")}</TableHead>
+                  <TableHead>Month</TableHead>
+                  <TableHead className="text-right">Revenue</TableHead>
+                  <TableHead className="text-right">Expenses</TableHead>
+                  <TableHead className="text-right">Net Profit</TableHead>
+                  <TableHead className="text-right">Margin</TableHead>
+                  <TableHead className="text-right">Invoices</TableHead>
+                  <TableHead className="text-right">Bills</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -555,7 +553,7 @@ export default function ProfitLossReport() {
                     })}
                     {/* Totals Row */}
                     <TableRow className="font-semibold bg-muted/50">
-                      <TableCell>{t("profit_loss_report.table_footer.total")}</TableCell>
+                      <TableCell>Total</TableCell>
                       <TableCell className="text-right font-mono text-emerald-400">USD {formatAmount(summary.totalRevenue)}</TableCell>
                       <TableCell className="text-right font-mono text-red-400">USD {formatAmount(summary.totalExpenses)}</TableCell>
                       <TableCell className={`text-right font-mono ${isProfit ? "text-blue-400" : "text-red-400"}`}>

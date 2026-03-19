@@ -4,7 +4,6 @@
  */
 import { useState, useRef } from "react";
 import Layout from "@/components/Layout";
-import { useI18n } from "@/lib/i18n";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,7 +40,6 @@ const emptyForm: FormState = {
 };
 
 export default function BillingEntities({ embedded }: { embedded?: boolean } = {}) {
-  const { t } = useI18n();
   const [showCreate, setShowCreate] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>({ ...emptyForm });
@@ -118,7 +116,7 @@ export default function BillingEntities({ embedded }: { embedded?: boolean } = {
   if (isLoading && !entities) {
     if (embedded) return <PageSkeleton cards={0} hasTable={false} />;
     return (
-      <Layout title={t("billing.title")} breadcrumb={[t("nav.finance"), t("billing.title")]}>
+      <Layout title="Billing Entities" breadcrumb={["Finance", "Billing Entities"]}>
         <PageSkeleton cards={0} hasTable={false} />
       </Layout>
     );
@@ -128,9 +126,9 @@ export default function BillingEntities({ embedded }: { embedded?: boolean } = {
       <div className={embedded ? "space-y-6" : "p-6 space-y-6 page-enter"}>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">{t("billing.title")}</h1>
+            <h1 className="text-2xl font-bold">Billing Entities</h1>
             <p className="text-muted-foreground text-sm mt-1">
-              {t("billing.subtitle")}
+              Manage your billing entities including logos, bank details, and invoice prefixes.
             </p>
           </div>
           <Button onClick={() => { resetForm(); setShowCreate(true); }}>
@@ -303,7 +301,7 @@ export default function BillingEntities({ embedded }: { embedded?: boolean } = {
   }
 
   return (
-    <Layout title={t("billing.title")} breadcrumb={[t("nav.finance"), t("billing.title")]}>
+    <Layout title="Billing Entities" breadcrumb={["Finance", "Billing Entities"]}>
       {content}
       {dialog}
     </Layout>

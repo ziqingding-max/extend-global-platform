@@ -59,7 +59,6 @@ import { formatCurrency, countryFlag, countryName } from "@/lib/format";
 
 
 
-import { useI18n } from "@/lib/i18n";
 const statusConfig: Record<string, { color: string; icon: any }> = {
   draft: { color: "bg-gray-50 text-gray-600 border-gray-200", icon: FileText },
   pending_approval: { color: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
@@ -80,22 +79,21 @@ function PayslipDialog({
   employee: any;
   run: any;
 }) {
-  const { t, lang } = useI18n();
   if (!employee) return null;
   const currency = employee.currency || run?.currency || "USD";
 
   // Earnings: exclude reimbursements from gross pay calculation
   const earnings = [
-    { label: t("portal_payroll.payslip_dialog.earnings.base_salary"), amount: employee.baseSalary },
-    { label: t("portal_payroll.payslip_dialog.earnings.bonus"), amount: employee.bonus },
-    { label: t("portal_payroll.payslip_dialog.earnings.allowances"), amount: employee.allowances },
+    { label: "Base Salary", amount: employee.baseSalary },
+    { label: "Bonus", amount: employee.bonus },
+    { label: "Allowances", amount: employee.allowances },
   ].filter(e => Number(e.amount || 0) > 0);
 
   const deductions = [
-    { label: t("portal_payroll.payslip_dialog.deductions.tax"), amount: employee.taxDeduction },
-    { label: t("portal_payroll.payslip_dialog.deductions.social_security"), amount: employee.socialSecurityDeduction },
-    { label: t("portal_payroll.payslip_dialog.deductions.other"), amount: employee.deductions },
-    { label: t("portal_payroll.payslip_dialog.deductions.unpaid_leave"), amount: employee.unpaidLeaveDeduction, days: employee.unpaidLeaveDays },
+    { label: "Tax", amount: employee.taxDeduction },
+    { label: "Social Security", amount: employee.socialSecurityDeduction },
+    { label: "Other Deductions", amount: employee.deductions },
+    { label: "Unpaid Leave", days: employee.unpaidLeaveDays, amount: employee.unpaidLeaveDeduction },
   ].filter(d => Number(d.amount || 0) > 0);
 
   const reimbursementAmount = Number(employee.reimbursements || 0);
@@ -103,14 +101,14 @@ function PayslipDialog({
   const totalPayout = netPay + reimbursementAmount;
 
   const employerContributions = [
-    { label: t("portal_payroll.payslip_dialog.employer_contributions.social"), amount: employee.employerSocialContribution },
+    { label: "Social Contributions", amount: employee.employerSocialContribution },
   ].filter(e => Number(e.amount || 0) > 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-lg">{t("portal_payroll.payslip_dialog.title")}</DialogTitle>
+          <DialogTitle className="text-lg">Payslip Details</DialogTitle>
         </DialogHeader>
         <div className="overflow-y-auto flex-1 space-y-5 pr-1">
           {/* Employee Info */}
@@ -123,16 +121,16 @@ function PayslipDialog({
               <p className="text-xs text-muted-foreground">{employee.jobTitle || employee.employeeCode || "Employee"}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">{t("portal_payroll.payslip_dialog.period")}</p>
+              <p className="text-xs text-muted-foreground">Payroll Period</p>
               <p className="text-sm font-medium">
-                {run ? new Date(run.payrollMonth).toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { month: "long", year: "numeric" }) : "—"}
+                {run ? new Date(run.payrollMonth).toLocaleString("en-US", { month: "long", year: "numeric" }) : "—"}
               </p>
             </div>
           </div>
 
           {/* Earnings */}
           <div>
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("portal_payroll.payslip_dialog.earnings.title")}</h4>
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Earnings</h4>
             <div className="space-y-1.5">
               {earnings.map((e, i) => (
                 <div key={i} className="flex justify-between items-center text-sm">
@@ -142,7 +140,7 @@ function PayslipDialog({
               ))}
               <Separator className="my-2" />
               <div className="flex justify-between items-center text-sm font-semibold">
-                <span>{t("portal_payroll.payslip_dialog.earnings.gross_pay")}</span>
+                <span>Gross Pay</span>
                 <span className="font-mono">{formatCurrency(currency, employee.gross)}</span>
               </div>
             </div>
@@ -151,7 +149,7 @@ function PayslipDialog({
           {/* Deductions */}
           {deductions.length > 0 && (
             <div>
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("portal_payroll.payslip_dialog.deductions.title")}</h4>
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Deductions</h4>
               <div className="space-y-1.5">
                 {deductions.map((d, i) => (
                   <div key={i} className="flex justify-between items-center text-sm">
@@ -164,7 +162,7 @@ function PayslipDialog({
                 ))}
                 <Separator className="my-2" />
                 <div className="flex justify-between items-center text-sm font-semibold">
-                  <span>{t("portal_payroll.payslip_dialog.deductions.total")}</span>
+                  <span>Total Deductions</span>
                   <span className="font-mono text-red-600">
                     -{formatCurrency(
                       currency,
@@ -179,7 +177,7 @@ function PayslipDialog({
           {/* Net Pay */}
           <div className="p-3 bg-muted/50 rounded-lg">
             <div className="flex justify-between items-center">
-              <span className="font-semibold">{t("portal_payroll.payslip_dialog.net_pay")}</span>
+              <span className="font-semibold">Net Pay</span>
               <span className="text-lg font-bold font-mono">
                 {formatCurrency(currency, employee.net)}
               </span>
@@ -189,10 +187,10 @@ function PayslipDialog({
           {/* Reimbursements — separate from salary */}
           {reimbursementAmount > 0 && (
             <div>
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("portal_payroll.payslip_dialog.reimbursements.title")}</h4>
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Reimbursements</h4>
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">{t("portal_payroll.payslip_dialog.reimbursements.expense")}</span>
+                  <span className="text-muted-foreground">Expense Reimbursement</span>
                   <span className="font-mono">{formatCurrency(currency, reimbursementAmount)}</span>
                 </div>
               </div>
@@ -203,9 +201,9 @@ function PayslipDialog({
           <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
             <div className="flex justify-between items-center">
               <div>
-                <span className="font-semibold text-emerald-800 dark:text-emerald-200">{t("portal_payroll.payslip_dialog.total_payout")}</span>
+                <span className="font-semibold text-emerald-800 dark:text-emerald-200">Total Payout</span>
                 {reimbursementAmount > 0 && (
-                  <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-0.5">{t("portal_payroll.payslip_dialog.total_payout_description")}</p>
+                  <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-0.5">This includes net pay and reimbursements.</p>
                 )}
               </div>
               <span className="text-xl font-bold font-mono text-emerald-700 dark:text-emerald-300">
@@ -217,7 +215,7 @@ function PayslipDialog({
           {/* Employer Contributions */}
           {employerContributions.length > 0 && (
             <div>
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("portal_payroll.payslip_dialog.employer_contributions.title")}</h4>
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Employer Contributions</h4>
               <div className="space-y-1.5">
                 {employerContributions.map((e, i) => (
                   <div key={i} className="flex justify-between items-center text-sm">
@@ -227,7 +225,7 @@ function PayslipDialog({
                 ))}
                 <Separator className="my-2" />
                 <div className="flex justify-between items-center text-sm font-semibold">
-                  <span>{t("portal_payroll.payslip_dialog.total_employment_cost")}</span>
+                  <span>Total Employment Cost</span>
                   <span className="font-mono">{formatCurrency(currency, employee.totalEmploymentCost)}</span>
                 </div>
               </div>
@@ -237,7 +235,7 @@ function PayslipDialog({
           {/* Notes */}
           {employee.notes && (
             <div>
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("portal_payroll.payslip_dialog.notes")}</h4>
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Notes</h4>
               <p className="text-sm text-muted-foreground bg-muted/40 p-3 rounded-lg">{employee.notes}</p>
             </div>
           )}
@@ -255,7 +253,6 @@ function PayrollRunCard({
   run: any;
   onSelectEmployee: (employee: any, run: any) => void;
 }) {
-  const { t, lang } = useI18n();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const { data: detail, isLoading: loadingDetail } = portalTrpc.payroll.detail.useQuery(
@@ -267,7 +264,7 @@ function PayrollRunCard({
   const StatusIcon = config.icon;
 
   const payrollDate = new Date(run.payrollMonth);
-  const monthLabel = payrollDate.toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { month: "long", year: "numeric" });
+  const monthLabel = payrollDate.toLocaleString("en-US", { month: "long", year: "numeric" });
 
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-md">
@@ -286,7 +283,7 @@ function PayrollRunCard({
                 <p className="font-semibold text-base">{countryName(run.countryCode)}</p>
                 <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", config.color)}>
                   <StatusIcon className="w-2.5 h-2.5 mr-0.5" />
-                  {t(`status.${run.status}`) || run.status}
+                  {run.status.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground mt-0.5">
@@ -297,13 +294,13 @@ function PayrollRunCard({
           </div>
           <div className="flex items-center gap-6">
             <div className="text-right hidden sm:block">
-              <p className="text-xs text-muted-foreground">{t("portal_payroll.summary.total_gross")}</p>
+              <p className="text-xs text-muted-foreground">Total Gross</p>
               <p className="text-base font-bold font-mono">
                 {formatCurrency(run.currency, run.customerTotalGross)}
               </p>
             </div>
             <div className="text-right hidden md:block">
-              <p className="text-xs text-muted-foreground">{t("portal_payroll.payslip_dialog.net_pay")}</p>
+              <p className="text-xs text-muted-foreground">Net Pay</p>
               <p className="text-base font-semibold font-mono text-muted-foreground">
                 {formatCurrency(run.currency, run.customerTotalNet)}
               </p>
@@ -330,12 +327,12 @@ function PayrollRunCard({
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/30">
-                    <TableHead className="font-semibold">{t("portal_payroll.run_card.table.employee")}</TableHead>
-                    <TableHead className="text-right font-semibold">{t("portal_payroll.payslip_dialog.earnings.base_salary")}</TableHead>
-                    <TableHead className="text-right font-semibold hidden md:table-cell">{t("portal_payroll.payslip_dialog.earnings.allowances")}</TableHead>
-                    <TableHead className="text-right font-semibold hidden lg:table-cell">{t("portal_payroll.payslip_dialog.deductions.title")}</TableHead>
-                    <TableHead className="text-right font-semibold">{t("portal_payroll.run_card.gross")}</TableHead>
-                    <TableHead className="text-right font-semibold">{t("portal_payroll.payslip_dialog.net_pay")}</TableHead>
+                    <TableHead className="font-semibold">Employee</TableHead>
+                    <TableHead className="text-right font-semibold">Base Salary</TableHead>
+                    <TableHead className="text-right font-semibold hidden md:table-cell">Allowances</TableHead>
+                    <TableHead className="text-right font-semibold hidden lg:table-cell">Deductions</TableHead>
+                    <TableHead className="text-right font-semibold">Gross</TableHead>
+                    <TableHead className="text-right font-semibold">Net Pay</TableHead>
                     <TableHead className="w-8"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -509,7 +506,6 @@ function MultiCurrencyCard({
 
 /** Export CSV button that fetches employee-level detail data */
 function ExportCsvButton({ year, disabled }: { year: number; disabled: boolean }) {
-  const { t, lang } = useI18n();
   const [isExporting, setIsExporting] = useState(false);
   const utils = portalTrpc.useUtils();
 
@@ -519,7 +515,7 @@ function ExportCsvButton({ year, disabled }: { year: number; disabled: boolean }
       const data = await utils.payroll.exportData.fetch({ year });
       if (!data || data.length === 0) return;
       exportToCsv(data, [
-        { header: "Month", accessor: (r: any) => r.payrollMonth ? new Date(r.payrollMonth).toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { month: "long", year: "numeric" }) : "" },
+        { header: "Month", accessor: (r: any) => r.payrollMonth ? new Date(r.payrollMonth).toLocaleString("en-US", { month: "long", year: "numeric" }) : "" },
         { header: "Country/Region", accessor: (r: any) => r.countryCode || "" },
         { header: "Employee Name", accessor: (r: any) => r.employeeName || "" },
         { header: "Employee Code", accessor: (r: any) => r.employeeCode || "" },
@@ -553,7 +549,6 @@ function ExportCsvButton({ year, disabled }: { year: number; disabled: boolean }
 }
 
 export default function PortalPayroll() {
-  const { t, lang } = useI18n();
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(String(currentYear));
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
@@ -619,12 +614,12 @@ export default function PortalPayroll() {
   };
 
   return (
-    <PortalLayout title={t("portal_payroll.title")}>
+    <PortalLayout title="Payroll">
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">{t("portal_payroll.title")}</h2>
+            <h2 className="text-2xl font-bold tracking-tight">Payroll</h2>
             <p className="text-sm text-muted-foreground mt-1">
               View approved payroll runs and employee salary details
             </p>
@@ -676,7 +671,7 @@ export default function PortalPayroll() {
             <MultiCurrencyCard
               icon={<DollarSign className="w-5 h-5 text-emerald-600" />}
               iconBg="bg-emerald-50 dark:bg-emerald-950/30"
-              label={t("portal_payroll.summary.total_gross")}
+              label="Total Gross"
               byCurrency={stats.byCurrency}
               field="gross"
               isMultiCurrency={stats.isMultiCurrency}
@@ -687,7 +682,7 @@ export default function PortalPayroll() {
             <MultiCurrencyCard
               icon={<TrendingUp className="w-5 h-5 text-blue-600" />}
               iconBg="bg-blue-50 dark:bg-blue-950/30"
-              label={t("portal_payroll.summary.total_net")}
+              label="Total Net"
               byCurrency={stats.byCurrency}
               field="net"
               isMultiCurrency={stats.isMultiCurrency}
@@ -701,7 +696,7 @@ export default function PortalPayroll() {
                     <Calendar className="w-5 h-5 text-purple-600" />
                   </div>
                   <div>
-                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">{t("portal_payroll.summary.payroll_runs")}</p>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Payroll Runs</p>
                     <p className="text-lg font-bold">{stats.runCount}</p>
                   </div>
                 </div>
@@ -714,7 +709,7 @@ export default function PortalPayroll() {
                     <Users className="w-5 h-5 text-amber-600" />
                   </div>
                   <div>
-                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">{t("portal_payroll.summary.employees")}</p>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Employees</p>
                     <p className="text-lg font-bold">{stats.totalEmployees}</p>
                   </div>
                 </div>
@@ -767,7 +762,7 @@ export default function PortalPayroll() {
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
                   <DollarSign className="w-8 h-8" />
                 </div>
-                <p className="text-lg font-medium">{t("portal_payroll.empty.no_approved_runs")}</p>
+                <p className="text-lg font-medium">No approved payroll runs found</p>
                 <p className="text-sm mt-1">
                   {selectedCountry !== "all"
                     ? `No payroll runs found for ${countryName(selectedCountry)} in ${selectedYear}.`

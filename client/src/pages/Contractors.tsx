@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { useI18n } from "@/lib/i18n";
 import Layout from "@/components/Layout";
 import {
   Card, CardContent
@@ -30,7 +29,6 @@ import { formatCurrencyAmount } from "@/components/CurrencyAmount";
 import { countryName, formatStatusLabel } from "@/lib/format";
 
 export function ContractorListContent() {
-  const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [customerFilter, setCustomerFilter] = useState<string>("all");
@@ -71,18 +69,6 @@ export function ContractorListContent() {
     offset: (page - 1) * pageSize,
   });
 
-  // Contractor Invoice Hook (Fetch invoices for all contractors? No, this is Contractor List page)
-  // We need a separate ContractorInvoices page.
-  // But wait, the user asked to "Update ContractorInvoices page".
-  // Let me check if there is a separate page or if I should create one.
-  // The file I'm editing is `Contractors.tsx` which lists Contractors.
-  // I should check `routes` or `App.tsx`.
-  // If there is no `ContractorInvoices.tsx`, I should create it.
-  
-  // Wait, the task is "Update `ContractorInvoices` page". 
-  // I see `pages/Contractors.tsx` but no `pages/ContractorInvoices.tsx`.
-  // I should probably create `pages/ContractorInvoices.tsx`.
-  
   const { data: customers } = trpc.customers.list.useQuery({ limit: 200 });
   const { data: countriesList } = trpc.countries.list.useQuery();
   const { data: cpList } = trpc.channelPartners.list.useQuery({ limit: 200, includeInternal: true });
@@ -103,33 +89,33 @@ export function ContractorListContent() {
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input className="pl-9" placeholder={t("common.search")} value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input className="pl-9" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={customerFilter} onValueChange={setCustomerFilter}>
-          <SelectTrigger className="w-44"><SelectValue placeholder={t("employees.create.form.customer")} /></SelectTrigger>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Customer" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("employees.list.filters.customer.all")}</SelectItem>
+            <SelectItem value="all">All Customers</SelectItem>
             {customers?.data?.map((c) => (
               <SelectItem key={c.id} value={String(c.id)}>{c.companyName}</SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={countryFilter} onValueChange={setCountryFilter}>
-          <SelectTrigger className="w-36"><SelectValue placeholder={t("employees.list.table.header.country")} /></SelectTrigger>
+          <SelectTrigger className="w-36"><SelectValue placeholder="Country" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("employees.list.filters.country.all")}</SelectItem>
+            <SelectItem value="all">All Countries</SelectItem>
             {countriesList?.map((c: any) => (
               <SelectItem key={c.countryCode} value={c.countryCode}>{c.countryCode} — {c.countryName}</SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-44"><SelectValue placeholder={t("employees.list.table.header.status")} /></SelectTrigger>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("employees.all_statuses")}</SelectItem>
-            <SelectItem value="active">{t("status.active")}</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="terminated">{t("status.terminated")}</SelectItem>
+            <SelectItem value="terminated">Terminated</SelectItem>
           </SelectContent>
         </Select>
         <Select value={cpFilter} onValueChange={setCpFilter}>
@@ -151,10 +137,10 @@ export function ContractorListContent() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-16">ID</TableHead>
-                <TableHead>{t("contractors.list.table.header.contractor")}</TableHead>
-                <TableHead>{t("employees.create.form.customer")}</TableHead>
-                <TableHead className="min-w-[120px]">{t("employees.list.table.header.country")}</TableHead>
-                <TableHead>{t("contractors.list.table.header.status")}</TableHead>
+                <TableHead>Contractors</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead className="min-w-[120px]">Country</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
@@ -199,7 +185,7 @@ export function ContractorListContent() {
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-12">
                     <Briefcase className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                    <p className="text-sm text-muted-foreground">{t("contractors.list.empty.message")}</p>
+                    <p className="text-sm text-muted-foreground">No contractors found</p>
                   </TableCell>
                 </TableRow>
               )}
@@ -215,9 +201,9 @@ export function ContractorListContent() {
             <p className="text-xs text-muted-foreground">Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, data.total)} of {data.total} contractors</p>
             {totalPages > 1 && (
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>{t("employees.list.pagination.previous")}</Button>
+                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</Button>
                 <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>{t("employees.list.pagination.next")}</Button>
+                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</Button>
               </div>
             )}
           </div>

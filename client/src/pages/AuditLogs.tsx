@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Layout from "@/components/Layout";
-import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
 import { formatAuditDescription } from "@/lib/auditDescriptions";
 import { trpc } from "@/lib/trpc";
@@ -37,32 +36,32 @@ const ACTION_COLORS: Record<string, string> = {
 };
 
 const ACTION_DISPLAY: Record<string, string> = {
-  create: "audit.action.create",
-  update: "audit.action.update",
-  delete: "audit.action.delete",
-  approve: "audit.action.approve",
-  reject: "audit.action.reject",
-  cancel: "audit.action.cancel",
-  auto_fill: "audit.action.auto_fill",
-  batch_create: "audit.action.batch_create",
-  batch_update: "audit.action.batch_update",
-  generate: "audit.action.generate",
-  regenerate: "audit.action.regenerate",
-  auto_create: "audit.action.auto_create",
-  auto_lock_monthly: "audit.action.auto_lock_monthly",
-  employee_auto_activated: "audit.action.employee_auto_activated",
-  employee_auto_added_to_payroll: "audit.action.employee_auto_added_to_payroll",
-  payroll_run_auto_created: "audit.action.payroll_run_auto_created",
-  employee_auto_on_leave: "audit.action.employee_auto_on_leave",
-  employee_auto_return_from_leave: "audit.action.employee_auto_return_from_leave",
-  fetch_live: "audit.action.fetch_live",
-  initialize: "audit.action.initialize",
-  upsert: "audit.action.upsert",
-  update_role: "audit.action.update_role",
-  activate: "audit.action.activate",
-  deactivate: "audit.action.deactivate",
-  upload_receipt: "audit.action.upload_receipt",
-  payroll_submit_lock: "audit.action.payroll_submit_lock",
+  create: "Create",
+  update: "Update",
+  delete: "Delete",
+  approve: "Approve",
+  reject: "Reject",
+  cancel: "Cancel",
+  auto_fill: "Auto Fill",
+  batch_create: "Batch Create",
+  batch_update: "Batch Update",
+  generate: "Generate",
+  regenerate: "Regenerate",
+  auto_create: "Auto Create",
+  auto_lock_monthly: "Auto Lock Monthly",
+  employee_auto_activated: "Employee Auto Activated",
+  employee_auto_added_to_payroll: "Employee Auto Added To Payroll",
+  payroll_run_auto_created: "Payroll Run Auto Created",
+  employee_auto_on_leave: "Employee Auto On Leave",
+  employee_auto_return_from_leave: "Employee Auto Return From Leave",
+  fetch_live: "Fetch Live",
+  initialize: "Initialize",
+  upsert: "Upsert",
+  update_role: "Update Role",
+  activate: "Activate",
+  deactivate: "Deactivate",
+  upload_receipt: "Upload Receipt",
+  payroll_submit_lock: "Payroll Submit Lock",
 };
 
 const ENTITY_TYPES = [
@@ -86,7 +85,6 @@ const ENTITY_TYPES = [
 const ACTION_FILTERS = ["create", "update", "delete", "approve", "reject", "cancel", "generate", "auto_fill", "auto_lock_monthly"] as const;
 
 export default function AuditLogs({ embedded }: { embedded?: boolean } = {}) {
-  const { t } = useI18n();
   const [filters, setFilters] = useState({
     entityType: "",
     action: "",
@@ -101,7 +99,7 @@ export default function AuditLogs({ embedded }: { embedded?: boolean } = {}) {
   if (isLoading && logs.length === 0) {
     if (embedded) return <TablePageSkeleton />;
     return (
-      <Layout title={t("audit.title")} breadcrumb={[t("nav.system"), t("audit.title")]}>
+      <Layout title="Audit Logs" breadcrumb={["System", "Audit Logs"]}>
         <TablePageSkeleton />
       </Layout>
     );
@@ -110,8 +108,8 @@ export default function AuditLogs({ embedded }: { embedded?: boolean } = {}) {
   const content = (
       <div className={embedded ? "space-y-6" : "p-6 space-y-6 page-enter"}>
         <div>
-          <h1 className="text-2xl font-bold">{t("audit.title")}</h1>
-          <p className="text-muted-foreground text-sm mt-1">{t("audit.subtitle")}</p>
+          <h1 className="text-2xl font-bold">Audit Logs</h1>
+          <p className="text-muted-foreground text-sm mt-1">Audit log details and history</p>
         </div>
 
         <div className="flex gap-3 items-center">
@@ -120,12 +118,30 @@ export default function AuditLogs({ embedded }: { embedded?: boolean } = {}) {
             onValueChange={(v) => setFilters(f => ({ ...f, entityType: v === "all" ? "" : v, offset: 0 }))}
           >
             <SelectTrigger className="w-48">
-              <SelectValue placeholder={t("audit.filter.entity_all")} />
+              <SelectValue placeholder="All Entities" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("audit.filter.entity_all")}</SelectItem>
+              <SelectItem value="all">All Entities</SelectItem>
               {ENTITY_TYPES.map((entity) => (
-                <SelectItem key={entity} value={entity}>{t(`audit.entity.${entity}`)}</SelectItem>
+                <SelectItem key={entity} value={entity}>
+                  {{
+                    customer: "Customer",
+                    employee: "Employee",
+                    payroll_run: "Payroll Run",
+                    payroll_item: "Payroll Item",
+                    invoice: "Invoice",
+                    adjustment: "Adjustment",
+                    leave_record: "Leave Record",
+                    country_config: "Country Config",
+                    leave_type: "Leave Type",
+                    exchange_rate: "Exchange Rate",
+                    billing_entity: "Billing Entity",
+                    employee_document: "Employee Document",
+                    employee_contract: "Employee Contract",
+                    user: "User",
+                    system: "System",
+                  }[entity] || entity}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -135,18 +151,30 @@ export default function AuditLogs({ embedded }: { embedded?: boolean } = {}) {
             onValueChange={(v) => setFilters(f => ({ ...f, action: v === "all" ? "" : v, offset: 0 }))}
           >
             <SelectTrigger className="w-40">
-              <SelectValue placeholder={t("audit.filter.action_all")} />
+              <SelectValue placeholder="All Actions" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("audit.filter.action_all")}</SelectItem>
+              <SelectItem value="all">All Actions</SelectItem>
               {ACTION_FILTERS.map((action) => (
-                <SelectItem key={action} value={action}>{t(`audit.action.${action}`)}</SelectItem>
+                <SelectItem key={action} value={action}>
+                  {{
+                    create: "Create",
+                    update: "Update",
+                    delete: "Delete",
+                    approve: "Approve",
+                    reject: "Reject",
+                    cancel: "Cancel",
+                    generate: "Generate",
+                    auto_fill: "Auto Fill",
+                    auto_lock_monthly: "Auto Lock Monthly",
+                  }[action] || action}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
           <div className="text-sm text-muted-foreground ml-auto">
-            {t("audit.showing", { shown: String(logs.length), total: String(total) })}
+            {`Showing ${logs.length} of ${total}`}
           </div>
         </div>
 
@@ -156,10 +184,10 @@ export default function AuditLogs({ embedded }: { embedded?: boolean } = {}) {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
-                    <th className="text-left p-3 font-medium w-[160px]">{t("audit.table.timestamp")}</th>
-                    <th className="text-left p-3 font-medium w-[100px]">{t("audit.table.user")}</th>
-                    <th className="text-left p-3 font-medium w-[110px]">{t("audit.table.action")}</th>
-                    <th className="text-left p-3 font-medium">{t("audit.table.description")}</th>
+                    <th className="text-left p-3 font-medium w-[160px]">Timestamp</th>
+                    <th className="text-left p-3 font-medium w-[100px]">User</th>
+                    <th className="text-left p-3 font-medium w-[110px]">Action</th>
+                    <th className="text-left p-3 font-medium">Description</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -169,11 +197,11 @@ export default function AuditLogs({ embedded }: { embedded?: boolean } = {}) {
                         {formatDateTime(log.createdAt)}
                       </td>
                       <td className="p-3 text-sm">
-                        {log.resolvedUserName || log.userName || (log.userId ? `${t("audit.user_label")} #${log.userId}` : t("audit.entity.system"))}
+                        {log.resolvedUserName || log.userName || (log.userId ? `User #${log.userId}` : "System")}
                       </td>
                       <td className="p-3">
                         <Badge className={`text-xs ${ACTION_COLORS[log.action] || "bg-gray-100 text-gray-800"}`} variant="outline">
-                          {ACTION_DISPLAY[log.action] ? t(ACTION_DISPLAY[log.action]) : log.action}
+                          {ACTION_DISPLAY[log.action] ? ACTION_DISPLAY[log.action] : log.action}
                         </Badge>
                       </td>
                       <td className="p-3 text-sm">
@@ -185,7 +213,7 @@ export default function AuditLogs({ embedded }: { embedded?: boolean } = {}) {
                     <tr>
                       <td colSpan={4} className="p-8 text-center text-muted-foreground">
                         <ClipboardList className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                        {isLoading ? t("common.loading") : t("audit.empty")}
+                        {isLoading ? "Loading..." : "No audit logs found"}
                       </td>
                     </tr>
                   )}
@@ -203,7 +231,7 @@ export default function AuditLogs({ embedded }: { embedded?: boolean } = {}) {
               disabled={filters.offset === 0}
               onClick={() => setFilters(f => ({ ...f, offset: Math.max(0, f.offset - f.limit) }))}
             >
-              {t("common.previous")}
+              Previous
             </Button>
             <Button
               variant="outline"
@@ -211,7 +239,7 @@ export default function AuditLogs({ embedded }: { embedded?: boolean } = {}) {
               disabled={filters.offset + filters.limit >= total}
               onClick={() => setFilters(f => ({ ...f, offset: f.offset + f.limit }))}
             >
-              {t("common.next")}
+              Next
             </Button>
           </div>
         )}
@@ -221,7 +249,7 @@ export default function AuditLogs({ embedded }: { embedded?: boolean } = {}) {
   if (embedded) return content;
 
   return (
-    <Layout title={t("audit.title")} breadcrumb={[t("nav.system"), t("audit.title")]}>
+    <Layout title="Audit Logs" breadcrumb={["System", "Audit Logs"]}>
       {content}
     </Layout>
   );

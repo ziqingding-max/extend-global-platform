@@ -15,9 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Building2, Loader2, Lock, CheckCircle, XCircle } from "lucide-react";
 
-import { useI18n } from "@/lib/i18n";
 export default function PortalRegister() {
-  const { t } = useI18n();
   const [, setLocation] = useLocation();
   const searchString = useSearch();
   const params = new URLSearchParams(searchString);
@@ -38,7 +36,7 @@ export default function PortalRegister() {
       setLocation(portalPath("/"));
     },
     onError: (err) => {
-      setError(err.message || t("portal_register.error.registration_failed"));
+      setError(err.message || "Registration failed. Please try again.");
     },
   });
 
@@ -47,12 +45,12 @@ export default function PortalRegister() {
     setError("");
 
     if (password.length < 8) {
-      setError(t("portal_register.error.password_too_short"));
+      setError("Password must be at least 8 characters long.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError(t("portal_register.error.passwords_do_not_match"));
+      setError("Passwords do not match.");
       return;
     }
 
@@ -67,12 +65,12 @@ export default function PortalRegister() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center gap-4 text-center">
               <XCircle className="w-12 h-12 text-destructive" />
-              <h2 className="text-xl font-semibold">{t("portal_register.invalid_link.title")}</h2>
+              <h2 className="text-xl font-semibold">Invalid Link</h2>
               <p className="text-sm text-muted-foreground">
-                {t("portal_register.invalid_link.description")}
+                The link you used is invalid or expired.
               </p>
               <Button variant="outline" onClick={() => setLocation(portalPath("/login"))}>
-                {t("portal_register.invalid_link.go_to_login")}
+                Go to Login
               </Button>
             </div>
           </CardContent>
@@ -87,7 +85,7 @@ export default function PortalRegister() {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">{t("portal_register.verifying_invite.message")}</p>
+          <p className="text-sm text-muted-foreground">Verifying your invite...</p>
         </div>
       </div>
     );
@@ -101,12 +99,12 @@ export default function PortalRegister() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center gap-4 text-center">
               <XCircle className="w-12 h-12 text-destructive" />
-              <h2 className="text-xl font-semibold">{t("portal_register.invite_not_valid.title")}</h2>
+              <h2 className="text-xl font-semibold">Invite Not Valid</h2>
               <p className="text-sm text-muted-foreground">
-                {invite.reason || t("portal_register.invite_not_valid.reason_fallback")}
+                {invite.reason || "This invite is no longer valid."}
               </p>
               <Button variant="outline" onClick={() => setLocation(portalPath("/login"))}>
-                {t("portal_register.invalid_link.go_to_login")}
+                Go to Login
               </Button>
             </div>
           </CardContent>
@@ -124,18 +122,18 @@ export default function PortalRegister() {
             <Building2 className="w-6 h-6 text-primary-foreground" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-            {t("portal_register.header.title")}
+            Register Your Account
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {t("portal_register.header.subtitle")}
+            Please set your password to activate your account.
           </p>
         </div>
 
         <Card>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">{t("portal_register.welcome.title").replace("{contactName}", invite?.contactName || "User")}</CardTitle>
+            <CardTitle className="text-xl">{`Welcome, ${invite?.contactName || "User"}`}</CardTitle>
             <CardDescription>
-              {t("portal_register.welcome.description").replace("<strong>{companyName}</strong>", invite?.companyName || "")}
+              {`You have been invited to join ${invite?.companyName || ""}. Please complete your registration below.`}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -148,7 +146,7 @@ export default function PortalRegister() {
 
               {/* Email (read-only) */}
               <div className="space-y-2">
-                <Label>{t("portal_register.form.email_label")}</Label>
+                <Label>Email</Label>
                 <Input
                   value={invite?.email || ""}
                   disabled
@@ -157,13 +155,13 @@ export default function PortalRegister() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">{t("portal_register.form.password_label")}</Label>
+                <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
-                    placeholder={t("portal_register.form.password_placeholder")}
+                    placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10"
@@ -174,13 +172,13 @@ export default function PortalRegister() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">{t("portal_register.form.confirm_password_label")}</Label>
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
                     type="password"
-                    placeholder={t("portal_register.form.confirm_password_placeholder")}
+                    placeholder="Confirm your password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="pl-10"
@@ -190,7 +188,7 @@ export default function PortalRegister() {
                 {password && confirmPassword && password === confirmPassword && (
                   <div className="flex items-center gap-1 text-xs text-green-600">
                     <CheckCircle className="w-3 h-3" />
-                    {t("portal_register.form.passwords_match")}
+                    Passwords match
                   </div>
                 )}
               </div>
@@ -203,22 +201,22 @@ export default function PortalRegister() {
                 {registerMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {t("portal_register.form.button_activating")}
+                    Activating...
                   </>
                 ) : (
-                  t("portal_register.form.button_activate")
+                  "Activate Account"
                 )}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
               <p className="text-xs text-muted-foreground">
-                {t("portal_register.login_prompt.text")} 
+                Already have an account?{" "}
                 <button
                   className="text-primary hover:underline"
                   onClick={() => setLocation(portalPath("/login"))}
                 >
-                  {t("portal_register.login_prompt.sign_in")}
+                  Sign In
                 </button>
               </p>
             </div>

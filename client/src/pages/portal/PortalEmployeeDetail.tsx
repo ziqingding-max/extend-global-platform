@@ -50,7 +50,6 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { formatDate, countryName } from "@/lib/format";
 
-import { useI18n } from "@/lib/i18n";
 
 const statusColors: Record<string, string> = {
   pending_review: "bg-amber-50 text-amber-700 border-amber-200",
@@ -64,7 +63,6 @@ const statusColors: Record<string, string> = {
 };
 
 export default function PortalEmployeeDetail() {
-  const { t, locale } = useI18n();
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const employeeId = parseInt(params.id || "0", 10);
@@ -81,7 +79,7 @@ export default function PortalEmployeeDetail() {
 
   const requestTerminationMutation = portalTrpc.employees.requestTermination.useMutation({
     onSuccess: () => {
-      toast.success(t("portal.termination.dialog.success"));
+      toast.success("Termination request submitted successfully.");
       setTerminateRequestOpen(false);
     },
     onError: (err) => toast.error(err.message),
@@ -95,7 +93,7 @@ export default function PortalEmployeeDetail() {
 
   const uploadMutation = portalTrpc.employees.uploadDocument.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_employees.toast.uploadSuccess"));
+      toast.success("Document uploaded successfully.");
       setUploadOpen(false);
       setUploadDocName("");
       setUploadDocType("passport");
@@ -108,7 +106,7 @@ export default function PortalEmployeeDetail() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
-      toast.error(t("portal_employees.toast.fileTooLarge"));
+      toast.error("File size exceeds 10MB limit.");
       return;
     }
     const reader = new FileReader();
@@ -127,18 +125,33 @@ export default function PortalEmployeeDetail() {
     reader.readAsDataURL(file);
   }
 
-  // Helper: get i18n'd doc type label
+  // Helper: get doc type label
   function docTypeLabel(dt: string): string {
-    const key = `portal_employees.docType.${dt}`;
-    const val = t(key);
-    return val !== key ? val : dt;
+    switch (dt) {
+      case "passport": return "Passport";
+      case "national_id": return "National ID";
+      case "resume": return "Resume";
+      case "work_permit": return "Work Permit";
+      case "visa": return "Visa";
+      case "education": return "Education Certificate";
+      case "other": return "Other";
+      default: return dt;
+    }
   }
 
-  // Helper: get i18n'd status label
+  // Helper: get status label
   function statusLabel(s: string): string {
-    const key = `portal_employees.status.${s}`;
-    const val = t(key);
-    return val !== key ? val : s;
+    switch (s) {
+      case "pending_review": return "Pending Review";
+      case "documents_incomplete": return "Documents Incomplete";
+      case "onboarding": return "Onboarding";
+      case "contract_signed": return "Contract Signed";
+      case "active": return "Active";
+      case "on_leave": return "On Leave";
+      case "offboarding": return "Offboarding";
+      case "terminated": return "Terminated";
+      default: return s;
+    }
   }
 
   // Can upload documents when status is documents_incomplete or pending_review
@@ -146,7 +159,7 @@ export default function PortalEmployeeDetail() {
 
   if (isLoading) {
     return (
-      <PortalLayout title={t("portal_employees.detail.title")}>
+      <PortalLayout title="Employee Details">
         <div className="p-6 max-w-5xl mx-auto space-y-6">
           <Skeleton className="h-8 w-48" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -160,13 +173,13 @@ export default function PortalEmployeeDetail() {
 
   if (!employee) {
     return (
-      <PortalLayout title={t("portal_employees.detail.title")}>
+      <PortalLayout title="Employee Details">
         <div className="p-6 max-w-5xl mx-auto">
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
             <AlertCircle className="w-12 h-12 mb-4" />
-            <p className="text-lg font-medium">{t("portal_employees.detail.notFound")}</p>
+            <p className="text-lg font-medium">Employee not found.</p>
             <Button variant="outline" className="mt-4" onClick={() => setLocation(portalPath("/people?tab=employees"))}>
-              <ArrowLeft className="w-4 h-4 mr-2" /> {t("portal_employees.detail.backToEmployees")}
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Employees
             </Button>
           </div>
         </div>
@@ -177,13 +190,13 @@ export default function PortalEmployeeDetail() {
   const statusColor = statusColors[employee.status] || statusColors.active;
 
   return (
-    <PortalLayout title={t("portal_employees.detail.title")}>
+    <PortalLayout title="Employee Details">
       <div className="p-6 max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" onClick={() => setLocation(portalPath("/people?tab=employees"))}>
-              <ArrowLeft className="w-4 h-4 mr-2" /> {t("portal_employees.detail.back")}
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back
             </Button>
             <div>
               <div className="flex items-center gap-3">
@@ -208,7 +221,7 @@ export default function PortalEmployeeDetail() {
                 setTerminateRequestOpen(true);
               }}
             >
-              {t("portal.termination.requestButton")}
+              Request Termination
             </Button>
           )}
         </div>
@@ -229,13 +242,13 @@ export default function PortalEmployeeDetail() {
                 )}
               </div>
               <div className="mt-6 space-y-3">
-                <ContactRow icon={Mail} label={t("portal_employees.profile.email")} value={employee.email} />
-                <ContactRow icon={Phone} label={t("portal_employees.profile.phone")} value={employee.phone} />
-                <ContactRow icon={MapPin} label={t("portal_employees.profile.location")} value={
+                <ContactRow icon={Mail} label="Email" value={employee.email} />
+                <ContactRow icon={Phone} label="Phone" value={employee.phone} />
+                <ContactRow icon={MapPin} label="Location" value={
                   [employee.city, employee.state, countryName(employee.country)].filter(Boolean).join(", ") || undefined
                 } />
-                <ContactRow icon={Globe} label={t("portal_employees.personal.nationality")} value={countryName(employee.nationality)} />
-                <ContactRow icon={Calendar} label={t("portal_employees.profile.dob")} value={
+                <ContactRow icon={Globe} label="Nationality" value={countryName(employee.nationality)} />
+                <ContactRow icon={Calendar} label="Date of Birth" value={
                   employee.dateOfBirth ? formatDate(employee.dateOfBirth) : undefined
                 } />
               </div>
@@ -246,12 +259,12 @@ export default function PortalEmployeeDetail() {
           <div className="lg:col-span-2">
             <Tabs defaultValue="personal">
               <TabsList>
-                <TabsTrigger value="personal">{t("portal_employees.tabs.personal")}</TabsTrigger>
-                <TabsTrigger value="employment">{t("portal_employees.tabs.employment")}</TabsTrigger>
-                <TabsTrigger value="documents">{t("portal_employees.tabs.documents")} ({employee.documents?.length || 0})</TabsTrigger>
-                <TabsTrigger value="contracts">{t("portal_employees.tabs.contracts")} ({employee.contracts?.length || 0})</TabsTrigger>
+                <TabsTrigger value="personal">Personal</TabsTrigger>
+                <TabsTrigger value="employment">Employment</TabsTrigger>
+                <TabsTrigger value="documents">Documents ({employee.documents?.length || 0})</TabsTrigger>
+                <TabsTrigger value="contracts">Contracts ({employee.contracts?.length || 0})</TabsTrigger>
                 {(employee.status === "active" || employee.status === "on_leave") && (
-                  <TabsTrigger value="leave">{t("portal_employees.tabs.leave")}</TabsTrigger>
+                  <TabsTrigger value="leave">Leave</TabsTrigger>
                 )}
               </TabsList>
 
@@ -259,37 +272,37 @@ export default function PortalEmployeeDetail() {
               <TabsContent value="personal" className="mt-4">
                 <Card>
                   <CardContent className="pt-6">
-                    <SectionTitle>{t("portal_employees.personal.basicInfo")}</SectionTitle>
+                    <SectionTitle>Basic Information</SectionTitle>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8">
-                      <InfoField icon={User} label={t("portal_employees.personal.fullNameLabel")} value={`${employee.firstName} ${employee.lastName}`} hint={t("portal_employees.personal.fullNameHint")} />
-                      <InfoField icon={Mail} label={t("portal_employees.personal.emailLabel")} value={employee.email} hint={t("portal_employees.personal.emailHint")} />
-                      <InfoField icon={Phone} label={t("portal_employees.personal.phoneLabel")} value={employee.phone} hint={t("portal_employees.personal.phoneHint")} />
-                      <InfoField icon={Calendar} label={t("portal_employees.personal.dobLabel")} value={employee.dateOfBirth ? formatDate(employee.dateOfBirth) : undefined} hint={t("portal_employees.personal.dobHint")} />
-                      <InfoField icon={User} label={t("portal_employees.personal.gender")} value={
-                        employee.gender === "male" ? t("portal_employees.gender.male") :
-                        employee.gender === "female" ? t("portal_employees.gender.female") :
-                        employee.gender === "other" ? t("portal_employees.gender.other") : undefined
-                      } hint={t("portal_employees.personal.genderHint")} />
-                      <InfoField icon={Globe} label={t("portal_employees.personal.nationalityLabel")} value={countryName(employee.nationality)} hint={t("portal_employees.personal.nationalityHint")} />
+                      <InfoField icon={User} label="Full Name" value={`${employee.firstName} ${employee.lastName}`} hint="Employee's full legal name." />
+                      <InfoField icon={Mail} label="Email" value={employee.email} hint="Primary email address for communication." />
+                      <InfoField icon={Phone} label="Phone Number" value={employee.phone} hint="Primary contact phone number." />
+                      <InfoField icon={Calendar} label="Date of Birth" value={employee.dateOfBirth ? formatDate(employee.dateOfBirth) : undefined} hint="Employee's date of birth." />
+                      <InfoField icon={User} label="Gender" value={
+                        employee.gender === "male" ? "Male" :
+                        employee.gender === "female" ? "Female" :
+                        employee.gender === "other" ? "Other" : undefined
+                      } hint="Employee's gender." />
+                      <InfoField icon={Globe} label="Nationality" value={countryName(employee.nationality)} hint="Employee's country of nationality." />
                     </div>
 
-                    <SectionTitle className="mt-8">{t("portal_employees.personal.identification")}</SectionTitle>
+                    <SectionTitle className="mt-8">Identification</SectionTitle>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8">
-                      <InfoField icon={CreditCard} label={t("portal_employees.personal.idTypeLabel")} value={
-                        employee.idType === "passport" ? t("portal_employees.idType.passport") :
-                        employee.idType === "national_id" ? t("portal_employees.idType.national_id") :
-                        employee.idType === "drivers_license" ? t("portal_employees.idType.drivers_license") :
+                      <InfoField icon={CreditCard} label="ID Type" value={
+                        employee.idType === "passport" ? "Passport" :
+                        employee.idType === "national_id" ? "National ID" :
+                        employee.idType === "drivers_license" ? "Driver's License" :
                         employee.idType
-                      } hint={t("portal_employees.personal.idTypeHint")} />
-                      <InfoField icon={Hash} label={t("portal_employees.personal.idNumberLabel")} value={employee.idNumber} hint={t("portal_employees.personal.idNumberHint")} />
+                      } hint="Type of identification document." />
+                      <InfoField icon={Hash} label="ID Number" value={employee.idNumber} hint="Identification document number." />
                     </div>
 
-                    <SectionTitle className="mt-8">{t("portal_employees.personal.address")}</SectionTitle>
+                    <SectionTitle className="mt-8">Address</SectionTitle>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8">
-                      <InfoField icon={Home} label={t("portal_employees.personal.streetLabel")} value={employee.address} hint={t("portal_employees.personal.addressHint")} />
-                      <InfoField icon={MapPin} label={t("portal_employees.personal.city")} value={employee.city} />
-                      <InfoField icon={MapPin} label={t("portal_employees.personal.stateLabel")} value={employee.state} />
-                      <InfoField icon={Hash} label={t("portal_employees.personal.postalCodeLabel")} value={employee.postalCode} />
+                      <InfoField icon={Home} label="Street Address" value={employee.address} hint="Employee's residential street address." />
+                      <InfoField icon={MapPin} label="City" value={employee.city} />
+                      <InfoField icon={MapPin} label="State/Province" value={employee.state} />
+                      <InfoField icon={Hash} label="Postal Code" value={employee.postalCode} />
                     </div>
                   </CardContent>
                 </Card>
@@ -299,35 +312,35 @@ export default function PortalEmployeeDetail() {
               <TabsContent value="employment" className="mt-4">
                 <Card>
                   <CardContent className="pt-6">
-                    <SectionTitle>{t("portal_employees.employment.details")}</SectionTitle>
+                    <SectionTitle>Employment Details</SectionTitle>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8">
-                      <InfoField icon={Briefcase} label={t("portal_employees.employment.serviceType")} value={
-                        employee.serviceType === "eor" ? t("portal_employees.serviceType.eor") :
-                        employee.serviceType === "visa_eor" ? t("portal_employees.serviceType.visa_eor") :
-                        employee.serviceType === "aor" ? t("portal_employees.serviceType.aor") :
+                      <InfoField icon={Briefcase} label="Service Type" value={
+                        employee.serviceType === "eor" ? "Employer of Record (EOR)" :
+                        employee.serviceType === "visa_eor" ? "Visa & EOR" :
+                        employee.serviceType === "aor" ? "Agent of Record (AOR)" :
                         employee.serviceType
-                      } hint={t("portal_employees.employment.serviceTypeHint")} />
-                      <InfoField icon={Briefcase} label={t("portal_employees.employment.employmentType")} value={
-                        employee.employmentType === "long_term" ? t("portal_employees.employmentType.long_term") :
-                        employee.employmentType === "fixed_term" ? t("portal_employees.employmentType.fixed_term") :
+                      } hint="Type of service provided for the employee." />
+                      <InfoField icon={Briefcase} label="Employment Type" value={
+                        employee.employmentType === "long_term" ? "Long-term" :
+                        employee.employmentType === "fixed_term" ? "Fixed-term" :
                         employee.employmentType
-                      } hint={t("portal_employees.employment.typeHint")} />
-                      <InfoField icon={Calendar} label={t("portal_employees.employment.startDate")} value={employee.startDate ? formatDate(employee.startDate) : undefined} hint={t("portal_employees.employment.startDateHint")} />
-                      <InfoField icon={Calendar} label={t("portal_employees.employment.endDate")} value={employee.endDate ? formatDate(employee.endDate) : undefined} hint={t("portal_employees.employment.endDateHint")} />
-                      <InfoField icon={MapPin} label={t("portal_employees.employment.employmentCountry")} value={countryName(employee.country)} hint={t("portal_employees.employment.employmentCountryHint")} />
-                      <InfoField icon={Briefcase} label={t("portal_employees.employment.department")} value={employee.department} hint={t("portal_employees.employment.departmentHint")} />
-                      <InfoField icon={Briefcase} label={t("portal_employees.employment.jobTitle")} value={employee.jobTitle} hint={t("portal_employees.employment.jobTitleHint")} />
-                      <InfoField icon={Hash} label={t("portal_employees.employment.employeeCode")} value={employee.employeeCode} hint={t("portal_employees.employment.employeeCodeHint")} />
+                      } hint="Type of employment contract." />
+                      <InfoField icon={Calendar} label="Start Date" value={employee.startDate ? formatDate(employee.startDate) : undefined} hint="Date employment officially began." />
+                      <InfoField icon={Calendar} label="End Date" value={employee.endDate ? formatDate(employee.endDate) : undefined} hint="Date employment officially ended (if applicable)." />
+                      <InfoField icon={MapPin} label="Employment Country" value={countryName(employee.country)} hint="Country where the employee is employed." />
+                      <InfoField icon={Briefcase} label="Department" value={employee.department} hint="Department the employee belongs to." />
+                      <InfoField icon={Briefcase} label="Job Title" value={employee.jobTitle} hint="Employee's official job title." />
+                      <InfoField icon={Hash} label="Employee Code" value={employee.employeeCode} hint="Unique identifier for the employee." />
                     </div>
 
-                    <SectionTitle className="mt-8">{t("portal_employees.employment.compensation")}</SectionTitle>
+                    <SectionTitle className="mt-8">Compensation</SectionTitle>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8">
-                      <InfoField icon={CreditCard} label={t("portal_employees.employment.baseSalary")} value={
+                      <InfoField icon={CreditCard} label="Base Salary" value={
                         employee.baseSalary != null
                           ? `${Number(employee.baseSalary).toLocaleString()} ${employee.salaryCurrency || "USD"}/month`
                           : undefined
-                      } hint={t("portal_employees.employment.baseSalaryHint")} />
-                      <InfoField icon={CreditCard} label={t("portal_employees.employment.salaryCurrency")} value={employee.salaryCurrency} hint={t("portal_employees.employment.salaryCurrencyHint")} />
+                      } hint="Employee's gross base salary." />
+                      <InfoField icon={CreditCard} label="Salary Currency" value={employee.salaryCurrency} hint="Currency in which the salary is paid." />
                     </div>
 
                     {/* Bank Details Section */}
@@ -336,7 +349,7 @@ export default function PortalEmployeeDetail() {
                       if (!bd || typeof bd !== "object" || Object.keys(bd).length === 0) return null;
                       return (
                         <>
-                          <SectionTitle className="mt-8">{t("portal_employees.employment.bankDetails")}</SectionTitle>
+                          <SectionTitle className="mt-8">Bank Details</SectionTitle>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8">
                             {Object.entries(bd).map(([key, value]) => (
                               value ? (
@@ -355,15 +368,15 @@ export default function PortalEmployeeDetail() {
 
                     {employee.requiresVisa && (
                       <>
-                        <SectionTitle className="mt-8">{t("portal_employees.visa.title")}</SectionTitle>
+                        <SectionTitle className="mt-8">Visa Information</SectionTitle>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8">
-                          <InfoField icon={Shield} label={t("portal_employees.visa.status")} value={
+                          <InfoField icon={Shield} label="Visa Status" value={
                             employee.visaStatus
                               ? employee.visaStatus.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())
-                              : t("portal_employees.visa.pending")
-                          } hint={t("portal_employees.visa.statusHint")} />
-                          <InfoField icon={Calendar} label={t("portal_employees.visa.expiry")} value={employee.visaExpiryDate ? formatDate(employee.visaExpiryDate) : undefined} hint={t("portal_employees.visa.expiryHint")} />
-                          <InfoField icon={FileText} label={t("portal_employees.visa.notes")} value={employee.visaNotes} hint={t("portal_employees.visa.notesHint")} />
+                              : "Pending"
+                          } hint="Current status of the employee's visa." />
+                          <InfoField icon={Calendar} label="Visa Expiry Date" value={employee.visaExpiryDate ? formatDate(employee.visaExpiryDate) : undefined} hint="Date the employee's visa expires." />
+                          <InfoField icon={FileText} label="Visa Notes" value={employee.visaNotes} hint="Any additional notes regarding the employee's visa." />
                         </div>
                       </>
                     )}
@@ -380,9 +393,9 @@ export default function PortalEmployeeDetail() {
                       <div className="flex items-start gap-3">
                         <AlertTriangle className="w-5 h-5 text-rose-600 mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="text-sm font-semibold text-rose-800">{t("portal_employees.status.documents_incomplete")}</p>
+                          <p className="text-sm font-semibold text-rose-800">Documents Incomplete</p>
                           <p className="text-xs text-rose-600 mt-1">
-                            {t("portal_employees.documents.bannerText")}
+                            Some required documents are missing or need review. Please upload them to proceed.
                           </p>
                         </div>
                       </div>
@@ -394,7 +407,7 @@ export default function PortalEmployeeDetail() {
                 {canUploadDocuments && (
                   <div className="flex justify-end">
                     <Button size="sm" onClick={() => setUploadOpen(true)}>
-                      <Upload className="w-4 h-4 mr-2" /> {t("portal_employees.documents.uploadButton")}
+                      <Upload className="w-4 h-4 mr-2" /> Upload Document
                     </Button>
                   </div>
                 )}
@@ -404,11 +417,11 @@ export default function PortalEmployeeDetail() {
                     <CardContent className="py-12">
                       <div className="flex flex-col items-center text-muted-foreground">
                         <FileText className="w-10 h-10 mb-3" />
-                        <p className="font-medium">{t("portal_employees.documents.noDocumentsUploaded")}</p>
+                        <p className="font-medium">No documents uploaded yet.</p>
                         <p className="text-sm mt-1">
                           {canUploadDocuments
-                            ? t("portal_employees.documents.uploadHint")
-                            : t("portal_employees.documents.willAppear")}
+                            ? "Upload documents to complete your profile."
+                            : "Uploaded documents will appear here."}
                         </p>
                       </div>
                     </CardContent>
@@ -434,7 +447,7 @@ export default function PortalEmployeeDetail() {
                             {doc.fileUrl && (
                               <Button variant="ghost" size="sm" asChild>
                                 <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
-                                  <Download className="w-4 h-4 mr-1" /> {t("portal_employees.documents.view")}
+                                  <Download className="w-4 h-4 mr-1" /> View
                                 </a>
                               </Button>
                             )}
@@ -453,8 +466,8 @@ export default function PortalEmployeeDetail() {
                     <CardContent className="py-12">
                       <div className="flex flex-col items-center text-muted-foreground">
                         <Shield className="w-10 h-10 mb-3" />
-                        <p className="font-medium">{t("portal_employees.contracts.noContractsTitle")}</p>
-                        <p className="text-sm mt-1">{t("portal_employees.contracts.willAppear")}</p>
+                        <p className="font-medium">No contracts found.</p>
+                        <p className="text-sm mt-1">Signed contracts will appear here.</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -469,12 +482,12 @@ export default function PortalEmployeeDetail() {
                                 <Shield className="w-5 h-5 text-indigo-600" />
                               </div>
                               <div>
-                                <p className="text-sm font-medium">{contract.contractType || t("portal_employees.contracts.employmentContract")}</p>
+                                <p className="text-sm font-medium">{contract.contractType || "Employment Contract"}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  {contract.effectiveDate && `${t("portal_employees.contracts.effective")}: ${formatDate(contract.effectiveDate)}`}
-                                  {contract.expiryDate && ` \u2014 ${t("portal_employees.contracts.expires")}: ${formatDate(contract.expiryDate)}`}
+                                  {contract.effectiveDate && `Effective: ${formatDate(contract.effectiveDate)}`}
+                                  {contract.expiryDate && ` — Expires: ${formatDate(contract.expiryDate)}`}
                                   {!contract.effectiveDate && !contract.expiryDate && contract.uploadedAt && `Uploaded: ${formatDate(contract.uploadedAt)}`}
-                                  {contract.notes && ` \u00b7 ${contract.notes}`}
+                                  {contract.notes && ` · ${contract.notes}`}
                                 </p>
                               </div>
                             </div>
@@ -522,8 +535,8 @@ export default function PortalEmployeeDetail() {
                     <CardContent className="py-12">
                       <div className="flex flex-col items-center text-muted-foreground">
                         <Calendar className="w-10 h-10 mb-3" />
-                        <p className="font-medium">{t("portal_employees.leave.noBalances")}</p>
-                        <p className="text-sm mt-1">{t("portal_employees.leave.willAppear")}</p>
+                        <p className="font-medium">No leave balances found.</p>
+                        <p className="text-sm mt-1">Leave balances will appear here once configured.</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -548,8 +561,8 @@ export default function PortalEmployeeDetail() {
                           <div className="flex items-center gap-4">
                             <div className="flex-1">
                               <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                                <span>{t("portal_employees.leave.used")}: {balance.used}</span>
-                                <span>{t("portal_employees.leave.total")}: {balance.totalEntitlement}</span>
+                                <span>Used: {balance.used}</span>
+                                <span>Total: {balance.totalEntitlement}</span>
                               </div>
                               <div className="h-2 bg-muted rounded-full overflow-hidden">
                                 <div
@@ -560,7 +573,7 @@ export default function PortalEmployeeDetail() {
                             </div>
                             <div className="text-right">
                               <p className="text-lg font-bold text-primary">{balance.remaining}</p>
-                              <p className="text-xs text-muted-foreground">{t("portal_employees.leave.remaining")}</p>
+                              <p className="text-xs text-muted-foreground">Remaining</p>
                             </div>
                           </div>
                         </CardContent>
@@ -578,34 +591,34 @@ export default function PortalEmployeeDetail() {
         <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{t("portal_employees.documents.upload")}</DialogTitle>
+              <DialogTitle>Upload Document</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-2">
               <div className="space-y-2">
-                <Label>{t("portal_employees.upload.docType")}</Label>
+                <Label>Document Type</Label>
                 <Select value={uploadDocType} onValueChange={setUploadDocType}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="passport">{t("portal_employees.docType.passport")}</SelectItem>
-                    <SelectItem value="national_id">{t("portal_employees.docType.national_id")}</SelectItem>
-                    <SelectItem value="resume">{t("portal_employees.docType.resume")}</SelectItem>
-                    <SelectItem value="work_permit">{t("portal_employees.docType.work_permit")}</SelectItem>
-                    <SelectItem value="visa">{t("portal_employees.docType.visa")}</SelectItem>
-                    <SelectItem value="education">{t("portal_employees.docType.education")}</SelectItem>
-                    <SelectItem value="other">{t("portal_employees.docType.other")}</SelectItem>
+                    <SelectItem value="passport">Passport</SelectItem>
+                    <SelectItem value="national_id">National ID</SelectItem>
+                    <SelectItem value="resume">Resume</SelectItem>
+                    <SelectItem value="work_permit">Work Permit</SelectItem>
+                    <SelectItem value="visa">Visa</SelectItem>
+                    <SelectItem value="education">Education Certificate</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>{t("portal_employees.upload.docName")}</Label>
+                <Label>Document Name</Label>
                 <Input
                   value={uploadDocName}
                   onChange={(e) => setUploadDocName(e.target.value)}
-                  placeholder={t("portal_employees.upload.docNamePlaceholder")}
+                  placeholder="e.g., John Doe Passport"
                 />
               </div>
               <div className="space-y-2">
-                <Label>{t("portal_employees.upload.file")}</Label>
+                <Label>File</Label>
                 <Input
                   ref={fileInputRef}
                   type="file"
@@ -617,7 +630,7 @@ export default function PortalEmployeeDetail() {
               {uploadMutation.isPending && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  {t("portal_employees.upload.uploading")}
+                  Uploading...
                 </div>
               )}
             </div>
@@ -627,32 +640,32 @@ export default function PortalEmployeeDetail() {
         <Dialog open={terminateRequestOpen} onOpenChange={setTerminateRequestOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{t("portal.termination.dialog.title.employee")}</DialogTitle>
+              <DialogTitle>Request Termination</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <p className="text-sm text-muted-foreground">
-                {t("portal.termination.dialog.description")}
+                Please provide the last day of employment and a reason for the termination request.
               </p>
               <div className="space-y-2">
-                <Label>{t("portal.termination.dialog.endDate")}</Label>
+                <Label>Last Day of Employment</Label>
                 <DatePicker
                   value={terminateEndDate}
                   onChange={(d) => setTerminateEndDate(d || "")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>{t("portal.termination.dialog.reason")}</Label>
+                <Label>Reason for Termination</Label>
                 <Textarea
                   value={terminateReason}
                   onChange={(e) => setTerminateReason(e.target.value)}
-                  placeholder={t("portal.termination.dialog.reasonPlaceholder")}
+                  placeholder="e.g., Resignation, End of contract, Performance issues"
                   rows={3}
                 />
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setTerminateRequestOpen(false)}>
-                {t("common.cancel")}
+                Cancel
               </Button>
               <Button
                 variant="destructive"
@@ -666,8 +679,8 @@ export default function PortalEmployeeDetail() {
                 }}
               >
                 {requestTerminationMutation.isPending
-                  ? t("portal.termination.dialog.submitting")
-                  : t("portal.termination.dialog.submit")}
+                  ? "Submitting..."
+                  : "Submit Request"}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -23,8 +23,6 @@ import {
 import { cn } from "@/lib/utils";
 import { countryName, countryFlag } from "@/lib/format";
 
-import { useI18n } from "@/lib/i18n";
-
 // ─── Calendar Component ──────────────────────────────────────────────────────
 
 interface CalendarDay {
@@ -390,7 +388,6 @@ function ComplianceResources() {
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function PortalCompliance() {
-  const { t } = useI18n();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedCountry, setSelectedCountry] = useState("all");
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
@@ -423,7 +420,7 @@ export default function PortalCompliance() {
       <div className="p-6 space-y-6">
         {/* Header */}
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">{t("portal_compliance.header.title")}</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Compliance Hub</h2>
           <p className="text-sm text-muted-foreground mt-1">
             Policy updates, public holidays, and compliance resources for your operating countries
           </p>
@@ -535,7 +532,7 @@ export default function PortalCompliance() {
               <CardContent className="py-12">
                 <div className="flex flex-col items-center justify-center text-muted-foreground">
                   <CalendarDays className="w-10 h-10 mb-3" />
-                  <p className="text-sm font-medium">{t("portal_compliance.empty_state.no_holidays_found")}</p>
+                  <p className="text-sm font-medium">No holidays found</p>
                   <p className="text-xs mt-1">
                     {selectedCountry !== "all"
                       ? "Try selecting a different country or year."

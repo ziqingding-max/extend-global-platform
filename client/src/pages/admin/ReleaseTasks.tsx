@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import Layout from "@/components/Layout";
 import { trpc } from "@/lib/trpc";
-import { useI18n } from "@/lib/i18n";
 import {
   Card, CardContent, CardHeader, CardTitle,
 } from "@/components/ui/card";
@@ -24,7 +23,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function ReleaseTasks() {
-  const { t } = useI18n();
   const [, setLocation] = useLocation();
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [showApproveDialog, setShowApproveDialog] = useState(false);

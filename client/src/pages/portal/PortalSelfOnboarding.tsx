@@ -37,7 +37,6 @@ import {
   Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useI18n } from "@/lib/i18n";
 import { BankDetailsForm, BankDetails } from "@/components/forms/BankDetailsForm";
 
 interface StepItem {
@@ -47,10 +46,10 @@ interface StepItem {
 }
 
 const STEPS: StepItem[] = [
-  { id: 1, titleKey: "portal_self_onboarding.steps.personal_info", icon: User },
-  { id: 2, titleKey: "portal_self_onboarding.steps.employment", icon: Briefcase },
-  { id: 3, titleKey: "portal_self_onboarding.steps.documents", icon: FileCheck },
-  { id: 4, titleKey: "portal_self_onboarding.steps.bank_details", icon: Wallet },
+  { id: 1, titleKey: "Personal Information", icon: User },
+  { id: 2, titleKey: "Employment", icon: Briefcase },
+  { id: 3, titleKey: "Documents", icon: FileCheck },
+  { id: 4, titleKey: "Bank Details", icon: Wallet },
 ];
 
 interface SelfOnboardingForm {
@@ -82,7 +81,6 @@ interface DocFile {
 }
 
 export default function PortalSelfOnboarding() {
-  const { t } = useI18n();
   const search = useSearch();
   const params = new URLSearchParams(search);
   const token = params.get("token") || "";
@@ -172,7 +170,7 @@ export default function PortalSelfOnboarding() {
             });
           } catch (err: any) {
             console.error(`Failed to upload document ${doc.name}:`, err);
-            toast.error(`${t("portal_self_onboarding.toasts.upload_failed")}: ${doc.name}`);
+            toast.error(`Failed to upload document: ${doc.name}`);
           }
         }
       }
@@ -189,7 +187,7 @@ export default function PortalSelfOnboarding() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
-      toast.error(t("portal_self_onboarding.toasts.file_size_error"));
+      toast.error("File size must be less than 10MB.");
       return;
     }
 
@@ -245,9 +243,9 @@ export default function PortalSelfOnboarding() {
           <CardContent className="py-12">
             <div className="flex flex-col items-center text-center">
               <AlertCircle className="w-12 h-12 text-destructive mb-4" />
-              <h2 className="text-xl font-bold">{t("portal_self_onboarding.invalid_link.title")}</h2>
+              <h2 className="text-xl font-bold">Invalid Link</h2>
               <p className="text-sm text-muted-foreground mt-2">
-                {t("portal_self_onboarding.invalid_link.description")}
+                The onboarding link is invalid or malformed. Please check the URL or contact your employer.
               </p>
             </div>
           </CardContent>
@@ -263,7 +261,7 @@ export default function PortalSelfOnboarding() {
           <CardContent className="py-12">
             <div className="flex flex-col items-center">
               <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-              <p className="text-sm text-muted-foreground">{t("portal_self_onboarding.loading.title")}</p>
+              <p className="text-sm text-muted-foreground">Loading onboarding invitation...</p>
             </div>
           </CardContent>
         </Card>
@@ -278,9 +276,9 @@ export default function PortalSelfOnboarding() {
           <CardContent className="py-12">
             <div className="flex flex-col items-center text-center">
               <AlertCircle className="w-12 h-12 text-destructive mb-4" />
-              <h2 className="text-xl font-bold">{t("portal_self_onboarding.expired_link.title")}</h2>
+              <h2 className="text-xl font-bold">Link Expired or Invalid</h2>
               <p className="text-sm text-muted-foreground mt-2">
-                {t("portal_self_onboarding.expired_link.description")}
+                The onboarding link has expired or is no longer valid. Please contact your employer for a new link.
               </p>
             </div>
           </CardContent>
@@ -298,9 +296,9 @@ export default function PortalSelfOnboarding() {
               <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
                 <CheckCircle2 className="w-8 h-8 text-emerald-600" />
               </div>
-              <h2 className="text-xl font-bold">{t("portal_self_onboarding.submitted.title")}</h2>
+              <h2 className="text-xl font-bold">Onboarding Submitted!</h2>
               <p className="text-sm text-muted-foreground mt-2">
-                {t("portal_self_onboarding.submitted.description")}
+                Thank you for completing your onboarding. Your information has been successfully submitted.
               </p>
             </div>
           </CardContent>
@@ -311,20 +309,20 @@ export default function PortalSelfOnboarding() {
 
   const isVisaEorSelf = invite?.serviceType === "visa_eor" || (invite?.serviceType === "eor" && formData.nationality && invite?.country && formData.nationality !== invite.country);
   const docTypes = [
-    { type: "national_id", label: t("portal_self_onboarding.form.documents.national_id"), required: true },
-    { type: "passport", label: t("portal_self_onboarding.form.documents.passport"), required: !!isVisaEorSelf },
-    { type: "visa", label: t("portal_self_onboarding.form.documents.visa"), required: false },
-    { type: "resume", label: t("portal_self_onboarding.form.documents.resume"), required: !!isVisaEorSelf },
-    { type: "education", label: t("portal_self_onboarding.form.documents.education_cert"), required: !!isVisaEorSelf },
+    { type: "national_id", label: "National ID", required: true },
+    { type: "passport", label: "Passport", required: !!isVisaEorSelf },
+    { type: "visa", label: "Visa", required: false },
+    { type: "resume", label: "Resume", required: !!isVisaEorSelf },
+    { type: "education", label: "Education Certificate", required: !!isVisaEorSelf },
   ];
 
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="max-w-3xl mx-auto p-4 sm:p-6 pb-28 sm:pb-8 pt-8 sm:pt-10">
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl font-bold tracking-tight">{t("portal_self_onboarding.title")}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Self-Service Onboarding</h1>
           <p className="text-sm text-muted-foreground mt-2">
-            {(t("portal_self_onboarding.welcome") || "").replace("{employeeName}", invite.employeeName ?? "")}
+            {`Welcome, ${invite.employeeName ?? ""}! Please fill in your details to complete your onboarding.`}
           </p>
         </div>
 
@@ -352,7 +350,7 @@ export default function PortalSelfOnboarding() {
                       currentStep === idx + 1 ? "font-medium" : "text-muted-foreground"
                     )}
                   >
-                    {isAorInvite && step.titleKey === "portal_self_onboarding.steps.employment" ? t("portal_self_onboarding.steps.engagement") : t(step.titleKey)}
+                    {isAorInvite && step.titleKey === "Employment" ? "Engagement" : step.titleKey}
                   </span>
                   {idx < activeSteps.length - 1 && <div className="w-6 sm:w-8 h-px bg-border mx-2 sm:mx-3" />}
                 </div>
@@ -367,58 +365,58 @@ export default function PortalSelfOnboarding() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("portal_self_onboarding.form.personal_info.first_name")} <span className="text-destructive">*</span></Label>
-                    <Input value={formData.firstName} onChange={(e) => updateField("firstName", e.target.value)} placeholder={t("portal_self_onboarding.form.personal_info.first_name")} />
+                    <Label>First Name <span className="text-destructive">*</span></Label>
+                    <Input value={formData.firstName} onChange={(e) => updateField("firstName", e.target.value)} placeholder="First Name" />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("portal_self_onboarding.form.personal_info.last_name")} <span className="text-destructive">*</span></Label>
-                    <Input value={formData.lastName} onChange={(e) => updateField("lastName", e.target.value)} placeholder={t("portal_self_onboarding.form.personal_info.last_name")} />
+                    <Label>Last Name <span className="text-destructive">*</span></Label>
+                    <Input value={formData.lastName} onChange={(e) => updateField("lastName", e.target.value)} placeholder="Last Name" />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("portal_self_onboarding.form.personal_info.email")} <span className="text-destructive">*</span></Label>
+                    <Label>Email <span className="text-destructive">*</span></Label>
                     {employerFieldsLocked && invite?.employeeEmail ? (
                       <div className="flex items-center h-10 px-3 bg-muted/30 rounded-md border text-sm">
                         {formData.email}
-                        <span className="ml-2 text-xs text-muted-foreground">({isAorInvite ? t("portal_self_onboarding.provided_by_client") : t("portal_self_onboarding.provided_by_employer")})</span>
+                        <span className="ml-2 text-xs text-muted-foreground">({isAorInvite ? "Provided by Client" : "Provided by Employer"})</span>
                       </div>
                     ) : (
                       <Input type="email" value={formData.email} onChange={(e) => updateField("email", e.target.value)} placeholder="john@example.com" />
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("portal_self_onboarding.form.personal_info.phone")}</Label>
+                    <Label>Phone</Label>
                     <Input value={formData.phone} onChange={(e) => updateField("phone", e.target.value)} placeholder="+65 9123 4567" />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("portal_self_onboarding.form.personal_info.dob")} <span className="text-destructive">*</span></Label>
+                    <Label>Date of Birth <span className="text-destructive">*</span></Label>
                     <DatePicker
                       value={formData.dateOfBirth}
                       onChange={(v: string) => updateField("dateOfBirth", v)}
-                      placeholder={t("portal_self_onboarding.placeholders.select_date")}
+                      placeholder="Select Date"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("portal_self_onboarding.form.personal_info.gender")} <span className="text-destructive">*</span></Label>
+                    <Label>Gender <span className="text-destructive">*</span></Label>
                     <Select value={formData.gender} onValueChange={(v) => updateField("gender", v)}>
-                      <SelectTrigger><SelectValue placeholder={t("portal_self_onboarding.placeholders.select_gender")} /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder="Select Gender" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="male">{t("portal_self_onboarding.gender.male")}</SelectItem>
-                        <SelectItem value="female">{t("portal_self_onboarding.gender.female")}</SelectItem>
-                        <SelectItem value="other">{t("portal_self_onboarding.gender.other")}</SelectItem>
-                        <SelectItem value="prefer_not_to_say">{t("portal_self_onboarding.gender.prefer_not_to_say")}</SelectItem>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("portal_self_onboarding.form.personal_info.nationality")} <span className="text-destructive">*</span></Label>
+                    <Label>Nationality <span className="text-destructive">*</span></Label>
                     <Select value={formData.nationality} onValueChange={(v) => updateField("nationality", v)}>
-                      <SelectTrigger><SelectValue placeholder={t("portal_self_onboarding.placeholders.select_nationality")} /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder="Select Nationality" /></SelectTrigger>
                       <SelectContent>
                         {ALL_COUNTRIES.map((c) => (
                           <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
@@ -427,43 +425,43 @@ export default function PortalSelfOnboarding() {
                     </Select>
                     {formData.nationality && invite?.country && formData.nationality !== invite.country && invite.serviceType === "eor" && (
                       <div className="rounded-lg border border-amber-200/60 bg-amber-50/30 p-2.5 text-xs text-amber-700 mt-1.5">
-                        {t("portal_self_onboarding.visa_eor_auto_detect") || "Your nationality differs from the employment country. This will be automatically processed as a Visa EOR service to ensure work authorization compliance."}
+                        Your nationality differs from the employment country. This will be automatically processed as a Visa EOR service to ensure work authorization compliance.
                       </div>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("portal_self_onboarding.form.personal_info.id_type")} <span className="text-destructive">*</span></Label>
+                    <Label>ID Type <span className="text-destructive">*</span></Label>
                     <Select value={formData.idType} onValueChange={(v) => updateField("idType", v)}>
-                      <SelectTrigger><SelectValue placeholder={t("portal_self_onboarding.placeholders.select_id_type")} /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder="Select ID Type" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="national_id">{t("portal_self_onboarding.id_type.national_id")}</SelectItem>
-                        <SelectItem value="passport">{t("portal_self_onboarding.form.documents.passport")}</SelectItem>
-                        <SelectItem value="driver_license">{t("portal_self_onboarding.id_type.driver_license")}</SelectItem>
-                        <SelectItem value="other">{t("portal_self_onboarding.id_type.other")}</SelectItem>
+                        <SelectItem value="national_id">National ID</SelectItem>
+                        <SelectItem value="passport">Passport</SelectItem>
+                        <SelectItem value="driver_license">Driver's License</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("portal_self_onboarding.form.personal_info.id_number")} <span className="text-destructive">*</span></Label>
-                  <Input value={formData.idNumber} onChange={(e) => updateField("idNumber", e.target.value)} placeholder={t("portal_self_onboarding.placeholders.id_number")} />
+                  <Label>ID Number <span className="text-destructive">*</span></Label>
+                  <Input value={formData.idNumber} onChange={(e) => updateField("idNumber", e.target.value)} placeholder="ID Number" />
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("portal_self_onboarding.form.address.street")} <span className="text-destructive">*</span></Label>
-                  <Textarea value={formData.address} onChange={(e) => updateField("address", e.target.value)} placeholder={t("portal_self_onboarding.placeholders.address")} rows={2} />
+                  <Label>Street Address <span className="text-destructive">*</span></Label>
+                  <Textarea value={formData.address} onChange={(e) => updateField("address", e.target.value)} placeholder="Street Address" rows={2} />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("portal_self_onboarding.form.address.city")}</Label>
-                    <Input value={formData.city} onChange={(e) => updateField("city", e.target.value)} placeholder={t("portal_self_onboarding.form.address.city")} />
+                    <Label>City</Label>
+                    <Input value={formData.city} onChange={(e) => updateField("city", e.target.value)} placeholder="City" />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("portal_self_onboarding.form.address.state")}</Label>
-                    <Input value={formData.state} onChange={(e) => updateField("state", e.target.value)} placeholder={t("portal_self_onboarding.placeholders.state")} />
+                    <Label>State/Province</Label>
+                    <Input value={formData.state} onChange={(e) => updateField("state", e.target.value)} placeholder="State/Province" />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("portal_self_onboarding.form.address.postal_code")}</Label>
-                    <Input value={formData.postalCode} onChange={(e) => updateField("postalCode", e.target.value)} placeholder={t("portal_self_onboarding.placeholders.postal_code")} />
+                    <Label>Postal Code</Label>
+                    <Input value={formData.postalCode} onChange={(e) => updateField("postalCode", e.target.value)} placeholder="Postal Code" />
                   </div>
                 </div>
               </div>
@@ -473,19 +471,19 @@ export default function PortalSelfOnboarding() {
               <div className="space-y-4">
                 {employerFieldsLocked && (
                   <div className="rounded-lg border border-blue-200/60 bg-blue-50/30 p-3 text-sm text-blue-700">
-                    {isAorInvite ? t("portal_self_onboarding.client_prefilled_notice") : t("portal_self_onboarding.employer_prefilled_notice")}
+                    {isAorInvite ? "Some fields have been pre-filled by your client and cannot be edited." : "Some fields have been pre-filled by your employer and cannot be edited."}
                   </div>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{isAorInvite ? t("portal_self_onboarding.form.address.onboarding_country") : t("portal_self_onboarding.form.address.country")}</Label>
+                    <Label>{isAorInvite ? "Onboarding Country" : "Country"}</Label>
                     {employerFieldsLocked && formData.country ? (
                       <div className="flex items-center h-10 px-3 bg-muted/30 rounded-md border text-sm">
                         {(countries || []).find((c) => c.countryCode === formData.country)?.countryName || formData.country}
                       </div>
                     ) : (
                       <Select value={formData.country} onValueChange={(v) => updateField("country", v)}>
-                        <SelectTrigger><SelectValue placeholder={t("portal_self_onboarding.placeholders.select_country")} /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder="Select Country" /></SelectTrigger>
                         <SelectContent>
                           {(countries || []).map((c) => (
                             <SelectItem key={c.countryCode} value={c.countryCode}>{c.countryName}</SelectItem>
@@ -497,19 +495,19 @@ export default function PortalSelfOnboarding() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("portal_self_onboarding.form.employment.job_title")}</Label>
+                    <Label>Job Title</Label>
                     {employerFieldsLocked && formData.jobTitle ? (
                       <div className="flex items-center h-10 px-3 bg-muted/30 rounded-md border text-sm">{formData.jobTitle}</div>
                     ) : (
-                      <Input value={formData.jobTitle} onChange={(e) => updateField("jobTitle", e.target.value)} placeholder={t("portal_self_onboarding.placeholders.job_title")} />
+                      <Input value={formData.jobTitle} onChange={(e) => updateField("jobTitle", e.target.value)} placeholder="Job Title" />
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("portal_self_onboarding.form.employment.department")}</Label>
+                    <Label>Department</Label>
                     {employerFieldsLocked && invite?.department ? (
                       <div className="flex items-center h-10 px-3 bg-muted/30 rounded-md border text-sm">{formData.department}</div>
                     ) : (
-                      <Input value={formData.department} onChange={(e) => updateField("department", e.target.value)} placeholder={t("portal_self_onboarding.placeholders.department")} />
+                      <Input value={formData.department} onChange={(e) => updateField("department", e.target.value)} placeholder="Department" />
                     )}
                   </div>
                 </div>
@@ -519,7 +517,7 @@ export default function PortalSelfOnboarding() {
 
             {currentStep === 3 && !isAorInvite && (
               <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">{t("portal_self_onboarding.form.documents.description")}</p>
+                <p className="text-sm text-muted-foreground">Please upload the required documents. Fields marked with * are mandatory.</p>
                 {docTypes.map((doc) => {
                   const uploaded = documents.find((d) => d.type === doc.type);
                   return (
@@ -550,7 +548,7 @@ export default function PortalSelfOnboarding() {
                         <label className="cursor-pointer">
                           <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => handleFileChange(doc.type, doc.label, e)} />
                           <Button variant={uploaded ? "outline" : "default"} size="sm" asChild>
-                            <span><Upload className="w-4 h-4 mr-1" />{uploaded ? t("portal_self_onboarding.form.documents.change_file") : t("portal_self_onboarding.form.documents.upload")}</span>
+                            <span><Upload className="w-4 h-4 mr-1" />{uploaded ? "Change File" : "Upload"}</span>
                           </Button>
                         </label>
                       </div>
@@ -587,7 +585,7 @@ export default function PortalSelfOnboarding() {
               disabled={currentStep === 1}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              {t("portal_self_onboarding.buttons.previous")}
+              Previous
             </Button>
             {!isLastStep ? (
               <Button
@@ -598,7 +596,7 @@ export default function PortalSelfOnboarding() {
                   ((currentStep === 4 || (currentStep === 3 && isAorInvite)) && (!formData.bankDetails?.accountHolderName || !formData.bankDetails?.bankName || (!formData.bankDetails?.accountNumber && !formData.bankDetails?.iban)))
                 }
               >
-                {t("portal_self_onboarding.buttons.next")}
+                Next
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
@@ -606,12 +604,12 @@ export default function PortalSelfOnboarding() {
                 {submitMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {t("portal_self_onboarding.buttons.submitting")}
+                    Submitting...
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4 mr-2" />
-                    {t("portal_self_onboarding.buttons.submit")}
+                    Submit
                   </>
                 )}
               </Button>

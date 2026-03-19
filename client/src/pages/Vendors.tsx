@@ -31,7 +31,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { useI18n } from "@/lib/i18n";
 const statusColors: Record<string, string> = {
   active: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
   inactive: "bg-gray-500/15 text-gray-400 border-gray-500/30",
@@ -70,7 +69,6 @@ function formatServiceType(raw: string | null | undefined): string {
 
 /* ========== Vendor List ========== */
 function VendorList() {
-  const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -86,7 +84,7 @@ function VendorList() {
 
   const createMutation = trpc.vendors.create.useMutation({
     onSuccess: () => {
-      toast.success(t("vendors.toast.create.success"));
+      toast.success("Vendor created successfully.");
       setCreateOpen(false);
       refetch();
       setFormData(defaultForm);
@@ -109,7 +107,7 @@ function VendorList() {
     if (!formData.country.trim()) errors.country = true;
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
-      toast.error(t("vendors.toast.create.error"));
+      toast.error("Please correct the errors in the form.");
       return;
     }
     setFormErrors({});
@@ -124,87 +122,87 @@ function VendorList() {
       <div className="p-6 space-y-6 page-enter">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t("vendors.title")}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{t("vendors.description")}</p>
+            <h1 className="text-2xl font-bold tracking-tight">Vendors</h1>
+            <p className="text-sm text-muted-foreground mt-1">Manage your external service providers.</p>
           </div>
           <Dialog open={createOpen} onOpenChange={(open) => { setCreateOpen(open); if (!open) setFormErrors({}); }}>
             <DialogTrigger asChild>
-              <Button><Plus className="w-4 h-4 mr-2" />{t("vendors.list.add_button")}</Button>
+              <Button><Plus className="w-4 h-4 mr-2" />Add Vendor</Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{t("vendors.create.title")}</DialogTitle>
+                <DialogTitle>Create Vendor</DialogTitle>
               </DialogHeader>
               <div className="grid grid-cols-2 gap-4 py-4">
                 <div className="col-span-2">
-                  <Label className={formErrors.name ? "text-destructive" : ""}>{t("vendors.form.company_name.label")}</Label>
+                  <Label className={formErrors.name ? "text-destructive" : ""}>Company Name</Label>
                   <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Global Payroll Partner Inc." className={formErrors.name ? "border-destructive" : ""} />
                 </div>
                 <div>
-                  <Label>{t("vendors.form.legal_name.label")}</Label>
+                  <Label>Legal Name</Label>
                   <Input value={formData.legalName} onChange={(e) => setFormData({ ...formData, legalName: e.target.value })} placeholder="Legal entity name" />
                 </div>
                 <div>
-                  <Label>{t("vendors.form.tax_id.label")}</Label>
+                  <Label>Tax ID</Label>
                   <Input value={formData.taxId} onChange={(e) => setFormData({ ...formData, taxId: e.target.value })} placeholder="Tax registration number" />
                 </div>
                 <div>
-                  <Label>{t("vendors.form.contact_name.label")}</Label>
+                  <Label>Contact Name</Label>
                   <Input value={formData.contactName} onChange={(e) => setFormData({ ...formData, contactName: e.target.value })} placeholder="Primary contact person" />
                 </div>
                 <div>
-                  <Label>{t("vendors.form.contact_email.label")}</Label>
+                  <Label>Contact Email</Label>
                   <Input type="email" value={formData.contactEmail} onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })} placeholder="email@example.com" />
                 </div>
                 <div>
-                  <Label>{t("vendors.form.contact_phone.label")}</Label>
+                  <Label>Contact Phone</Label>
                   <Input value={formData.contactPhone} onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })} placeholder="+1-202-555-0178" />
                 </div>
                 <div>
-                  <Label className={formErrors.country ? "text-destructive" : ""}>{t("vendors.form.country.label")}</Label>
+                  <Label className={formErrors.country ? "text-destructive" : ""}>Country</Label>
                   <Input value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })} placeholder="e.g. USA, UK, Singapore" className={formErrors.country ? "border-destructive" : ""} />
                 </div>
                 <div className="col-span-2">
-                  <Label>{t("vendors.form.address.label")}</Label>
+                  <Label>Address</Label>
                   <Input value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} placeholder="Street address" />
                 </div>
                 <div>
-                  <Label>{t("vendors.form.city.label")}</Label>
+                  <Label>City</Label>
                   <Input value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
                 </div>
                 <div>
-                  <Label>{t("vendors.form.state_province.label")}</Label>
+                  <Label>State/Province</Label>
                   <Input value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} />
                 </div>
                 <div>
-                  <Label>{t("vendors.form.postal_code.label")}</Label>
+                  <Label>Postal Code</Label>
                   <Input value={formData.postalCode} onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })} />
                 </div>
                 <div>
-                  <Label>{t("vendors.form.vendor_type.label")}</Label>
+                  <Label>Vendor Type</Label>
                   <Select value={formData.vendorType} onValueChange={(v: any) => setFormData({ ...formData, vendorType: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="client_related">{t("vendors.form.vendor_type.client_related")}</SelectItem>
-                      <SelectItem value="operational">{t("vendors.form.vendor_type.operational")}</SelectItem>
+                      <SelectItem value="client_related">Client Related</SelectItem>
+                      <SelectItem value="operational">Operational</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>{t("vendors.form.service_type.label")}</Label>
+                  <Label>Service Type</Label>
                   <Select value={formData.serviceType} onValueChange={(v) => setFormData({ ...formData, serviceType: v })}>
-                    <SelectTrigger><SelectValue placeholder={t("vendors.form.service_type.label")} /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Service Type" /></SelectTrigger>
                     <SelectContent>
                       {serviceTypeOptions.map((sType) => <SelectItem key={sType} value={sType}>{sType}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>{t("vendors.form.default_currency.label")}</Label>
+                  <Label>Default Currency</Label>
                   <CurrencySelect value={formData.currency} onValueChange={(v) => setFormData({ ...formData, currency: v })} />
                 </div>
                 <div>
-                  <Label>{t("vendors.form.payment_terms.label")}</Label>
+                  <Label>Payment Terms (Days)</Label>
                   <Input type="number" value={formData.paymentTermDays} onChange={(e) => setFormData({ ...formData, paymentTermDays: parseInt(e.target.value) || 30 })} />
                 </div>
                 <div className="col-span-2">
@@ -216,7 +214,7 @@ function VendorList() {
                   />
                 </div>
                 <div className="col-span-2">
-                  <Label>{t("vendors.form.notes.label")}</Label>
+                  <Label>Notes</Label>
                   <Textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Internal notes about this vendor" rows={2} />
                 </div>
               </div>
@@ -234,22 +232,22 @@ function VendorList() {
         <div className="flex items-center gap-3">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder={t("common.search") + "..."} className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input placeholder="Search..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("vendors.list.filter.type.all")}</SelectItem>
-              <SelectItem value="client_related">{t("vendors.list.filter.type.client_related")}</SelectItem>
-              <SelectItem value="operational">{t("vendors.list.filter.type.operational")}</SelectItem>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="client_related">Client Related</SelectItem>
+              <SelectItem value="operational">Operational</SelectItem>
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("common.status.all")}</SelectItem>
-              <SelectItem value="active">{t("vendors.list.filter.status.active")}</SelectItem>
-              <SelectItem value="inactive">{t("vendors.list.filter.status.inactive")}</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -260,13 +258,13 @@ function VendorList() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("vendors.table.header.vendor")}</TableHead>
-                  <TableHead>{t("vendors.detail.field.vendor_type")}</TableHead>
-                  <TableHead className="min-w-[120px]">{t("vendors.table.header.country")}</TableHead>
-                  <TableHead>{t("vendors.form.service_type.label")}</TableHead>
-                  <TableHead>{t("vendors.table.header.contact")}</TableHead>
-                  <TableHead>{t("common.currency")}</TableHead>
-                  <TableHead>{t("vendors.table.header.status")}</TableHead>
+                  <TableHead>Vendor</TableHead>
+                  <TableHead>Vendor Type</TableHead>
+                  <TableHead className="min-w-[120px]">Country</TableHead>
+                  <TableHead>Service Type</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Currency</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -290,7 +288,7 @@ function VendorList() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={vendorTypeColors[vendor.vendorType] || ""}>
-                          {vendor.vendorType === "client_related" ? t("vendors.list.filter.type.client_related") : t("vendors.list.filter.type.operational")}
+                          {vendor.vendorType === "client_related" ? "Client Related" : "Operational"}
                         </Badge>
                       </TableCell>
                       <TableCell>{countryName(vendor.country)}</TableCell>
@@ -304,7 +302,7 @@ function VendorList() {
                       <TableCell>{vendor.currency}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={statusColors[vendor.status] || ""}>
-                          {vendor.status === "active" ? t("vendors.list.filter.status.active") : t("vendors.list.filter.status.inactive")}
+                          {vendor.status === "active" ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
                       <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
@@ -314,7 +312,7 @@ function VendorList() {
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                       <Truck className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                      <div>{t("vendors.table.empty.title")}</div>
+                      <div>No vendors found.</div>
                     </TableCell>
                   </TableRow>
                 )}
@@ -352,26 +350,26 @@ function VendorBillsSection({ vendorId, vendorName, t }: { vendorId: number; ven
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-          <FileText className="w-4 h-4" /> {t("vendorBills.vendor.bills")} ({bills.length})
+          <FileText className="w-4 h-4" /> Vendor Bills ({bills.length})
         </CardTitle>
         <Button size="sm" variant="outline" onClick={() => setLocation("/vendor-bills")}>
-          {t("vendorBills.title")}
+          Vendor Bills
         </Button>
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <Skeleton className="h-20 w-full" />
         ) : bills.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">{t("vendorBills.vendor.noBills")}</p>
+          <p className="text-sm text-muted-foreground text-center py-4">No vendor bills found for this vendor.</p>
         ) : (
           <div className="rounded-lg border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs">{t("vendorBills.table.billNumberHeader")}</TableHead>
-                  <TableHead className="text-xs">{t("vendorBills.table.statusHeader")}</TableHead>
-                  <TableHead className="text-xs">{t("vendorBills.table.billDateHeader")}</TableHead>
-                  <TableHead className="text-xs text-right">{t("vendorBills.table.totalHeader")}</TableHead>
+                  <TableHead className="text-xs">Bill Number</TableHead>
+                  <TableHead className="text-xs">Status</TableHead>
+                  <TableHead className="text-xs">Bill Date</TableHead>
+                  <TableHead className="text-xs text-right">Total</TableHead>
                   <TableHead className="w-8"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -381,7 +379,7 @@ function VendorBillsSection({ vendorId, vendorName, t }: { vendorId: number; ven
                     <TableCell className="font-medium text-sm">{bill.billNumber}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={`text-xs ${statusColorMap[bill.status] || ""}`}>
-                        {t(`vendorBills.status.${bill.status}`)}
+                        {bill.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">{formatDate(bill.billDate)}</TableCell>
@@ -400,7 +398,6 @@ function VendorBillsSection({ vendorId, vendorName, t }: { vendorId: number; ven
 
 /* ========== Vendor Detail ========== */
 function VendorDetail({ id }: { id: number }) {
-  const { t } = useI18n();
   const [, setLocation] = useLocation();
   const [editOpen, setEditOpen] = useState(false);
 
@@ -408,7 +405,7 @@ function VendorDetail({ id }: { id: number }) {
 
   const updateMutation = trpc.vendors.update.useMutation({
     onSuccess: () => {
-      toast.success(t("vendors.toast.update.success"));
+      toast.success("Vendor updated successfully.");
       setEditOpen(false);
       refetch();
     },
@@ -445,7 +442,7 @@ function VendorDetail({ id }: { id: number }) {
 
   if (isLoading) {
     return (
-      <Layout breadcrumb={["EG", "Vendors", t("common.loading") + "..."]}>
+      <Layout breadcrumb={["EG", "Vendors", "Loading..."]}>
         <div className="p-6 space-y-6">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-64 w-full" />
@@ -461,7 +458,7 @@ function VendorDetail({ id }: { id: number }) {
           <Truck className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-30" />
           <h2 className="text-xl font-semibold">Vendor not found</h2>
           <Button variant="outline" className="mt-4" onClick={() => setLocation("/vendors")}>
-            <ArrowLeft className="w-4 h-4 mr-2" />{t("common.back")}
+            <ArrowLeft className="w-4 h-4 mr-2" />Back
           </Button>
         </div>
       </Layout>
@@ -480,16 +477,16 @@ function VendorDetail({ id }: { id: number }) {
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight">{vendor.name}</h1>
               <Badge variant="outline" className={vendorTypeColors[vendor.vendorType] || ""}>
-                {vendor.vendorType === "client_related" ? t("vendors.list.filter.type.client_related") : t("vendors.list.filter.type.operational")}
+                {vendor.vendorType === "client_related" ? "Client Related" : "Operational"}
               </Badge>
               <Badge variant="outline" className={statusColors[vendor.status] || ""}>
-                {vendor.status === "active" ? t("vendors.list.filter.status.active") : t("vendors.list.filter.status.inactive")}
+                {vendor.status === "active" ? "Active" : "Inactive"}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground mt-0.5">{vendor.vendorCode} {vendor.legalName ? `· ${vendor.legalName}` : ""}</p>
           </div>
           <Button variant="outline" onClick={openEdit}>
-            <Pencil className="w-4 h-4 mr-2" />{t("common.edit")}
+            <Pencil className="w-4 h-4 mr-2" />Edit
           </Button>
         </div>
 
@@ -499,21 +496,21 @@ function VendorDetail({ id }: { id: number }) {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Mail className="w-4 h-4" />{t("vendors.table.header.contact")}
+                <Mail className="w-4 h-4" />Contact
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {vendor.contactName && (
-                <div><div className="text-xs text-muted-foreground">{t("vendors.form.contact_name.label")}</div><div className="font-medium">{vendor.contactName}</div></div>
+                <div><div className="text-xs text-muted-foreground">Contact Name</div><div className="font-medium">{vendor.contactName}</div></div>
               )}
               {vendor.contactEmail && (
-                <div><div className="text-xs text-muted-foreground">{t("vendors.detail.field.email")}</div><div className="font-medium">{vendor.contactEmail}</div></div>
+                <div><div className="text-xs text-muted-foreground">Email</div><div className="font-medium">{vendor.contactEmail}</div></div>
               )}
               {vendor.contactPhone && (
-                <div><div className="text-xs text-muted-foreground">{t("vendors.detail.field.phone")}</div><div className="font-medium">{vendor.contactPhone}</div></div>
+                <div><div className="text-xs text-muted-foreground">Phone</div><div className="font-medium">{vendor.contactPhone}</div></div>
               )}
               {!vendor.contactName && !vendor.contactEmail && !vendor.contactPhone && (
-                <p className="text-sm text-muted-foreground">{t("common.no_data")}</p>
+                <p className="text-sm text-muted-foreground">No data</p>
               )}
             </CardContent>
           </Card>
@@ -522,14 +519,14 @@ function VendorDetail({ id }: { id: number }) {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <MapPin className="w-4 h-4" />{t("vendors.form.address.label")}
+                <MapPin className="w-4 h-4" />Address
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div><div className="text-xs text-muted-foreground">{t("vendors.table.header.country")}</div><div className="font-medium">{countryName(vendor.country)}</div></div>
-              {vendor.address && <div><div className="text-xs text-muted-foreground">{t("vendors.form.address.label")}</div><div className="font-medium">{vendor.address}</div></div>}
+              <div><div className="text-xs text-muted-foreground">Country</div><div className="font-medium">{countryName(vendor.country)}</div></div>
+              {vendor.address && <div><div className="text-xs text-muted-foreground">Address</div><div className="font-medium">{vendor.address}</div></div>}
               {(vendor.city || vendor.state || vendor.postalCode) && (
-                <div><div className="text-xs text-muted-foreground">{t("vendors.form.city.label")} / {t("vendors.form.state_province.label")} / {t("vendors.form.postal_code.label")}</div><div className="font-medium">{[vendor.city, vendor.state, vendor.postalCode].filter(Boolean).join(", ")}</div></div>
+                <div><div className="text-xs text-muted-foreground">City / State/Province / Postal Code</div><div className="font-medium">{[vendor.city, vendor.state, vendor.postalCode].filter(Boolean).join(", ")}</div></div>
               )}
             </CardContent>
           </Card>
@@ -538,15 +535,15 @@ function VendorDetail({ id }: { id: number }) {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <CreditCard className="w-4 h-4" />{t("payroll.viewItemDialog.section.summary")}
+                <CreditCard className="w-4 h-4" />Summary
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div><div className="text-xs text-muted-foreground">{t("vendors.detail.field.vendor_type")}</div><div className="font-medium"><Badge variant="outline" className={vendorTypeColors[vendor.vendorType] || ""}>{vendor.vendorType === "client_related" ? t("vendors.list.filter.type.client_related") : t("vendors.list.filter.type.operational")}</Badge></div></div>
-              <div><div className="text-xs text-muted-foreground">{t("vendors.form.service_type.label")}</div><div className="font-medium">{formatServiceType(vendor.serviceType)}</div></div>
-              <div><div className="text-xs text-muted-foreground">{t("vendors.form.default_currency.label")}</div><div className="font-medium">{vendor.currency}</div></div>
-              <div><div className="text-xs text-muted-foreground">{t("vendors.detail.field.payment_terms")}</div><div className="font-medium">{vendor.paymentTermDays} {t("employees.detail.field.days")}</div></div>
-              {vendor.taxId && <div><div className="text-xs text-muted-foreground">{t("vendors.form.tax_id.label")}</div><div className="font-medium">{vendor.taxId}</div></div>}
+              <div><div className="text-xs text-muted-foreground">Vendor Type</div><div className="font-medium"><Badge variant="outline" className={vendorTypeColors[vendor.vendorType] || ""}>{vendor.vendorType === "client_related" ? "Client Related" : "Operational"}</Badge></div></div>
+              <div><div className="text-xs text-muted-foreground">Service Type</div><div className="font-medium">{formatServiceType(vendor.serviceType)}</div></div>
+              <div><div className="text-xs text-muted-foreground">Default Currency</div><div className="font-medium">{vendor.currency}</div></div>
+              <div><div className="text-xs text-muted-foreground">Payment Terms</div><div className="font-medium">{vendor.paymentTermDays} Days</div></div>
+              {vendor.taxId && <div><div className="text-xs text-muted-foreground">Tax ID</div><div className="font-medium">{vendor.taxId}</div></div>}
             </CardContent>
           </Card>
         </div>
@@ -568,7 +565,7 @@ function VendorDetail({ id }: { id: number }) {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <FileText className="w-4 h-4" />{t("vendors.form.notes.label")}
+                  <FileText className="w-4 h-4" />Notes
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -579,97 +576,119 @@ function VendorDetail({ id }: { id: number }) {
         </div>
 
         {/* Vendor Bills */}
-        <VendorBillsSection vendorId={id} vendorName={vendor.name} t={t} />
+        <VendorBillsSection vendorId={id} vendorName={vendor.name} t={(key: string) => {
+          // This is a placeholder for the t function, as it's removed from the component.
+          // In a real scenario, you might pass a simple identity function or remove the prop if not strictly needed.
+          const parts = key.split('.');
+          const lastPart = parts[parts.length - 1];
+          switch (lastPart) {
+            case 'bills': return 'Bills';
+            case 'noBills': return 'No vendor bills found for this vendor.';
+            case 'billNumberHeader': return 'Bill Number';
+            case 'statusHeader': return 'Status';
+            case 'billDateHeader': return 'Bill Date';
+            case 'totalHeader': return 'Total';
+            case 'draft': return 'Draft';
+            case 'pending_approval': return 'Pending Approval';
+            case 'approved': return 'Approved';
+            case 'paid': return 'Paid';
+            case 'partially_paid': return 'Partially Paid';
+            case 'overdue': return 'Overdue';
+            case 'cancelled': return 'Cancelled';
+            case 'void': return 'Void';
+            default: return lastPart.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          }
+        }} />
 
         <div className="text-xs text-muted-foreground">
-          {t("employees.detail.field.createdAt")}: {formatDate(vendor.createdAt)} · {t("employees.detail.field.updatedAt")}: {formatDate(vendor.updatedAt)}
+          Created At: {formatDate(vendor.createdAt)} · Updated At: {formatDate(vendor.updatedAt)}
         </div>
 
         {/* Edit Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{t("vendors.detail.edit_button")}</DialogTitle>
+              <DialogTitle>Edit Vendor</DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-2 gap-4 py-4">
               <div className="col-span-2">
-                <Label>{t("vendors.form.company_name.label")}</Label>
+                <Label>Company Name</Label>
                 <Input value={editData.name || ""} onChange={(e) => setEditData({ ...editData, name: e.target.value })} />
               </div>
               <div>
-                <Label>{t("vendors.form.legal_name.label")}</Label>
+                <Label>Legal Name</Label>
                 <Input value={editData.legalName || ""} onChange={(e) => setEditData({ ...editData, legalName: e.target.value })} />
               </div>
               <div>
-                <Label>{t("vendors.form.tax_id.label")}</Label>
+                <Label>Tax ID</Label>
                 <Input value={editData.taxId || ""} onChange={(e) => setEditData({ ...editData, taxId: e.target.value })} />
               </div>
               <div>
-                <Label>{t("vendors.form.contact_name.label")}</Label>
+                <Label>Contact Name</Label>
                 <Input value={editData.contactName || ""} onChange={(e) => setEditData({ ...editData, contactName: e.target.value })} />
               </div>
               <div>
-                <Label>{t("vendors.form.contact_email.label")}</Label>
+                <Label>Contact Email</Label>
                 <Input value={editData.contactEmail || ""} onChange={(e) => setEditData({ ...editData, contactEmail: e.target.value })} />
               </div>
               <div>
-                <Label>{t("vendors.form.contact_phone.label")}</Label>
+                <Label>Contact Phone</Label>
                 <Input value={editData.contactPhone || ""} onChange={(e) => setEditData({ ...editData, contactPhone: e.target.value })} />
               </div>
               <div>
-                <Label>{t("vendors.form.country.label")}</Label>
+                <Label>Country</Label>
                 <Input value={editData.country || ""} onChange={(e) => setEditData({ ...editData, country: e.target.value })} />
               </div>
               <div className="col-span-2">
-                <Label>{t("vendors.form.address.label")}</Label>
+                <Label>Address</Label>
                 <Input value={editData.address || ""} onChange={(e) => setEditData({ ...editData, address: e.target.value })} />
               </div>
               <div>
-                <Label>{t("vendors.form.city.label")}</Label>
+                <Label>City</Label>
                 <Input value={editData.city || ""} onChange={(e) => setEditData({ ...editData, city: e.target.value })} />
               </div>
               <div>
-                <Label>{t("vendors.form.state_province.label")}</Label>
+                <Label>State/Province</Label>
                 <Input value={editData.state || ""} onChange={(e) => setEditData({ ...editData, state: e.target.value })} />
               </div>
               <div>
-                <Label>{t("vendors.form.postal_code.label")}</Label>
+                <Label>Postal Code</Label>
                 <Input value={editData.postalCode || ""} onChange={(e) => setEditData({ ...editData, postalCode: e.target.value })} />
               </div>
               <div>
-                <Label>{t("vendors.detail.field.vendor_type")}</Label>
+                <Label>Vendor Type</Label>
                 <Select value={editData.vendorType || "client_related"} onValueChange={(v) => setEditData({ ...editData, vendorType: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="client_related">{t("vendors.list.filter.type.client_related")}</SelectItem>
-                    <SelectItem value="operational">{t("vendors.list.filter.type.operational")}</SelectItem>
+                    <SelectItem value="client_related">Client Related</SelectItem>
+                    <SelectItem value="operational">Operational</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label>{t("vendors.form.service_type.label")}</Label>
+                <Label>Service Type</Label>
                 <Select value={editData.serviceType || ""} onValueChange={(v) => setEditData({ ...editData, serviceType: v })}>
-                  <SelectTrigger><SelectValue placeholder={t("vendors.form.service_type.label")} /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Service Type" /></SelectTrigger>
                   <SelectContent>
                     {serviceTypeOptions.map((sType) => <SelectItem key={sType} value={sType}>{sType}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label>{t("vendors.form.default_currency.label")}</Label>
+                <Label>Default Currency</Label>
                 <CurrencySelect value={editData.currency || "USD"} onValueChange={(v) => setEditData({ ...editData, currency: v })} />
               </div>
               <div>
-                <Label>{t("vendors.form.payment_terms.label")}</Label>
+                <Label>Payment Terms (Days)</Label>
                 <Input type="number" value={editData.paymentTermDays || 30} onChange={(e) => setEditData({ ...editData, paymentTermDays: parseInt(e.target.value) || 30 })} />
               </div>
               <div>
-                <Label>{t("vendors.table.header.status")}</Label>
+                <Label>Status</Label>
                 <Select value={editData.status || "active"} onValueChange={(v) => setEditData({ ...editData, status: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">{t("vendors.list.filter.status.active")}</SelectItem>
-                    <SelectItem value="inactive">{t("vendors.list.filter.status.inactive")}</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -682,14 +701,14 @@ function VendorDetail({ id }: { id: number }) {
                 />
               </div>
               <div className="col-span-2">
-                <Label>{t("vendors.form.notes.label")}</Label>
+                <Label>Notes</Label>
                 <Textarea value={editData.notes || ""} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} rows={2} />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setEditOpen(false)}>{t("common.cancel")}</Button>
+              <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
               <Button onClick={() => updateMutation.mutate({ id, ...editData, bankDetails: JSON.stringify(editData.bankDetails) })} disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? t("common.loading") : t("common.save")}
+                {updateMutation.isPending ? "Loading..." : "Save"}
               </Button>
             </DialogFooter>
           </DialogContent>
