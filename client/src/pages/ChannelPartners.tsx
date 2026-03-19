@@ -33,6 +33,9 @@ import {
   ArrowUpRight, ArrowDownLeft, Unlock, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
+import CountrySelect from "@/components/CountrySelect";
+import CurrencySelect from "@/components/CurrencySelect";
+import { DatePicker } from "@/components/DatePicker";
 
 const statusColors: Record<string, string> = {
   active: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -425,7 +428,7 @@ function ChannelPartnerDetail({ id }: { id: number }) {
             <InfoTab cp={cp} onUpdate={refetch} />
           </TabsContent>
           <TabsContent value="contacts">
-            <ContactsTab cpId={id} />
+            <ContactsTab cpId={id} subdomain={cp.subdomain || ""} />
           </TabsContent>
           <TabsContent value="pricing">
             <PricingTab cpId={id} />
@@ -609,14 +612,40 @@ function InfoField({ label, value }: { label: string; value: any }) {
 }
 
 /* ========== Contacts Tab ========== */
-function ContactsTab({ cpId }: { cpId: number }) {
+function ContactsTab({ cpId, subdomain }: { cpId: number; subdomain: string }) {
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteResultOpen, setInviteResultOpen] = useState(false);
+  const [inviteResult, setInviteResult] = useState<{ inviteUrl: string | null; emailSent: boolean } | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [inviteForm, setInviteForm] = useState({ contactName: "", email: "", portalRole: "admin" as "admin" | "finance" | "operations" | "viewer" });
   const { data: contacts, isLoading, refetch } = trpc.channelPartners.contacts.list.useQuery({ channelPartnerId: cpId });
   const inviteMutation = trpc.channelPartners.contacts.invite.useMutation({
-    onSuccess: () => { toast.success("Invitation sent"); setInviteOpen(false); setInviteForm({ contactName: "", email: "", portalRole: "admin" }); refetch(); },
+    onSuccess: (data: any) => {
+      setInviteOpen(false);
+      setInviteForm({ contactName: "", email: "", portalRole: "admin" });
+      refetch();
+      if (data?.inviteUrl) {
+        setInviteResult({ inviteUrl: data.inviteUrl, emailSent: data.emailSent });
+        setInviteResultOpen(true);
+      } else {
+        toast.success("Contact created (no subdomain configured, invite link unavailable)");
+      }
+    },
     onError: (err) => toast.error(err.message),
   });
+
+  const copyInviteLink = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopiedLink(true);
+    toast.success("Invite link copied to clipboard");
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const copyContactInviteLink = (token: string, sub: string) => {
+    const url = `https://${sub}.extendglobal.ai/cp/register?token=${token}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Invite link copied to clipboard");
+  };
   const deactivateMutation = trpc.channelPartners.contacts.deactivate.useMutation({
     onSuccess: () => { toast.success("Contact deactivated"); refetch(); },
     onError: (err) => toast.error(err.message),
@@ -667,6 +696,46 @@ function ContactsTab({ cpId }: { cpId: number }) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Invite Result Dialog — shows invite link after successful creation */}
+        <Dialog open={inviteResultOpen} onOpenChange={setInviteResultOpen}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Invitation Created</DialogTitle></DialogHeader>
+            <div className="space-y-4 py-4">
+              {inviteResult?.emailSent ? (
+                <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                  <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                  <p className="text-sm text-emerald-700">Invite email sent successfully.</p>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  <Mail className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                  <p className="text-sm text-amber-700">Email not sent (SMTP not configured). Share the invite link manually.</p>
+                </div>
+              )}
+              {inviteResult?.inviteUrl && (
+                <div>
+                  <Label className="mb-2 block">Invite Link</Label>
+                  <div className="flex items-center gap-2">
+                    <Input value={inviteResult.inviteUrl} readOnly className="text-xs font-mono bg-slate-50" />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="flex-shrink-0"
+                      onClick={() => copyInviteLink(inviteResult.inviteUrl!)}
+                    >
+                      {copiedLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">This link expires in 7 days.</p>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button onClick={() => setInviteResultOpen(false)}>Done</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardHeader>
       <CardContent>
         {isLoading ? <Skeleton className="h-32 w-full" /> : (
@@ -702,6 +771,12 @@ function ContactsTab({ cpId }: { cpId: number }) {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="w-4 h-4" /></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        {/* Copy invite link if contact has a pending invite token and CP has subdomain */}
+                        {c.inviteToken && subdomain && !c.passwordHash && (
+                          <DropdownMenuItem onClick={() => copyContactInviteLink(c.inviteToken, subdomain)}>
+                            <Copy className="w-4 h-4 mr-2" />Copy Invite Link
+                          </DropdownMenuItem>
+                        )}
                         {c.isPortalActive ? (
                           <DropdownMenuItem onClick={() => deactivateMutation.mutate({ id: c.id })}>
                             <ShieldX className="w-4 h-4 mr-2" />Deactivate
@@ -724,6 +799,95 @@ function ContactsTab({ cpId }: { cpId: number }) {
   );
 }
 
+/* ========== Tier Config Row ========== */
+interface TierRow {
+  min: string;
+  max: string;
+  rate: string;
+}
+
+function TierConfigEditor({ tiers, onChange }: { tiers: TierRow[]; onChange: (tiers: TierRow[]) => void }) {
+  const addTier = () => {
+    const lastMax = tiers.length > 0 ? parseInt(tiers[tiers.length - 1].max) : 0;
+    const newMin = isNaN(lastMax) ? "" : String(lastMax + 1);
+    onChange([...tiers, { min: newMin, max: "", rate: "" }]);
+  };
+
+  const updateTier = (index: number, field: keyof TierRow, value: string) => {
+    const updated = [...tiers];
+    updated[index] = { ...updated[index], [field]: value };
+    onChange(updated);
+  };
+
+  const removeTier = (index: number) => {
+    onChange(tiers.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label>Tier Configuration</Label>
+        <Button type="button" variant="outline" size="sm" onClick={addTier}>
+          <Plus className="w-3 h-3 mr-1" />Add Tier
+        </Button>
+      </div>
+      {tiers.length === 0 && (
+        <p className="text-sm text-muted-foreground py-2">No tiers added. Click "Add Tier" to start.</p>
+      )}
+      {tiers.map((tier, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <div className="flex-1">
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-muted-foreground w-10">From</span>
+              <Input
+                type="number"
+                min="1"
+                value={tier.min}
+                onChange={(e) => updateTier(i, "min", e.target.value)}
+                placeholder="1"
+                className="h-8 text-sm"
+              />
+            </div>
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-muted-foreground w-6">To</span>
+              <Input
+                type="number"
+                min="1"
+                value={tier.max}
+                onChange={(e) => updateTier(i, "max", e.target.value)}
+                placeholder="10"
+                className="h-8 text-sm"
+              />
+            </div>
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-muted-foreground w-10">Price</span>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={tier.rate}
+                onChange={(e) => updateTier(i, "rate", e.target.value)}
+                placeholder="500"
+                className="h-8 text-sm"
+              />
+            </div>
+          </div>
+          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => removeTier(i)}>
+            <Trash2 className="w-3.5 h-3.5 text-red-500" />
+          </Button>
+        </div>
+      ))}
+      {tiers.length > 0 && (
+        <p className="text-xs text-muted-foreground">Each tier: From X employees To Y employees at the given price per employee per month.</p>
+      )}
+    </div>
+  );
+}
+
 /* ========== EG→CP Pricing Tab ========== */
 function PricingTab({ cpId }: { cpId: number }) {
   const [createOpen, setCreateOpen] = useState(false);
@@ -731,20 +895,28 @@ function PricingTab({ cpId }: { cpId: number }) {
     serviceType: "eor" as "eor" | "visa_eor",
     countryCode: "",
     pricingType: "fixed_per_employee" as "fixed_per_employee" | "percentage_markup" | "tiered",
-    fixedFeeAmount: "", markupPercentage: "", tierConfig: "",
+    fixedFeeAmount: "", markupPercentage: "",
     currency: "USD", fxMarkupPercentage: "3.00",
     effectiveFrom: new Date().toISOString().split("T")[0],
     effectiveTo: "",
   });
+  const [tierRows, setTierRows] = useState<TierRow[]>([{ min: "1", max: "10", rate: "" }]);
   const { data: rules, isLoading, refetch } = trpc.channelPartners.pricing.list.useQuery({ channelPartnerId: cpId });
   const createMutation = trpc.channelPartners.pricing.create.useMutation({
-    onSuccess: () => { toast.success("Pricing rule created"); setCreateOpen(false); refetch(); },
+    onSuccess: () => { toast.success("Pricing rule created"); setCreateOpen(false); setTierRows([{ min: "1", max: "10", rate: "" }]); refetch(); },
     onError: (err) => toast.error(err.message),
   });
   const deleteMutation = trpc.channelPartners.pricing.delete.useMutation({
     onSuccess: () => { toast.success("Pricing rule deleted"); refetch(); },
     onError: (err) => toast.error(err.message),
   });
+
+  const buildTierConfig = (): any[] | undefined => {
+    if (form.pricingType !== "tiered") return undefined;
+    return tierRows
+      .filter(t => t.min && t.max && t.rate)
+      .map(t => ({ min: parseInt(t.min), max: parseInt(t.max), rate: t.rate }));
+  };
 
   return (
     <Card>
@@ -768,36 +940,52 @@ function PricingTab({ cpId }: { cpId: number }) {
                     </SelectContent>
                   </Select>
                 </div>
-                <div><Label>Country Code</Label><Input value={form.countryCode} onChange={(e) => setForm({ ...form, countryCode: e.target.value })} placeholder="e.g. SG (or blank for global)" /></div>
+                <div><Label>Country</Label>
+                  <CountrySelect
+                    value={form.countryCode}
+                    onValueChange={(v) => setForm({ ...form, countryCode: v })}
+                    placeholder="Global (all countries)"
+                    scope="all"
+                  />
+                </div>
               </div>
-              <div><Label>Pricing Type</Label>
-                <Select value={form.pricingType} onValueChange={(v: any) => setForm({ ...form, pricingType: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="fixed_per_employee">Fixed Per Employee</SelectItem>
-                    <SelectItem value="percentage_markup">Percentage Markup</SelectItem>
-                    <SelectItem value="tiered">Tiered</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-3">
+                <div><Label>Pricing Type</Label>
+                  <Select value={form.pricingType} onValueChange={(v: any) => setForm({ ...form, pricingType: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fixed_per_employee">Fixed Per Employee</SelectItem>
+                      <SelectItem value="percentage_markup">Percentage Markup</SelectItem>
+                      <SelectItem value="tiered">Tiered</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div><Label>Currency</Label>
+                  <CurrencySelect value={form.currency} onValueChange={(v) => setForm({ ...form, currency: v })} />
+                </div>
               </div>
               {form.pricingType === "fixed_per_employee" && (
                 <div className="grid grid-cols-2 gap-3">
-                  <div><Label>Fixed Fee Amount</Label><Input value={form.fixedFeeAmount} onChange={(e) => setForm({ ...form, fixedFeeAmount: e.target.value })} /></div>
-                  <div><Label>Currency</Label><Input value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} /></div>
+                  <div><Label>Fixed Fee Amount</Label><Input type="number" min="0" step="0.01" value={form.fixedFeeAmount} onChange={(e) => setForm({ ...form, fixedFeeAmount: e.target.value })} placeholder="e.g. 500" /></div>
+                  <div><Label>FX Markup (%)</Label><Input type="number" min="0" step="0.01" value={form.fxMarkupPercentage} onChange={(e) => setForm({ ...form, fxMarkupPercentage: e.target.value })} /></div>
                 </div>
               )}
               {form.pricingType === "percentage_markup" && (
                 <div className="grid grid-cols-2 gap-3">
-                  <div><Label>Markup Percentage (%)</Label><Input value={form.markupPercentage} onChange={(e) => setForm({ ...form, markupPercentage: e.target.value })} /></div>
-                  <div><Label>FX Markup (%)</Label><Input value={form.fxMarkupPercentage} onChange={(e) => setForm({ ...form, fxMarkupPercentage: e.target.value })} /></div>
+                  <div><Label>Markup Percentage (%)</Label><Input type="number" min="0" step="0.01" value={form.markupPercentage} onChange={(e) => setForm({ ...form, markupPercentage: e.target.value })} /></div>
+                  <div><Label>FX Markup (%)</Label><Input type="number" min="0" step="0.01" value={form.fxMarkupPercentage} onChange={(e) => setForm({ ...form, fxMarkupPercentage: e.target.value })} /></div>
                 </div>
               )}
               {form.pricingType === "tiered" && (
-                <div><Label>Tier Config (JSON)</Label><Textarea value={form.tierConfig} onChange={(e) => setForm({ ...form, tierConfig: e.target.value })} rows={4} placeholder='[{"min":1,"max":10,"rate":"500"},{"min":11,"max":50,"rate":"450"}]' /></div>
+                <TierConfigEditor tiers={tierRows} onChange={setTierRows} />
               )}
               <div className="grid grid-cols-2 gap-3">
-                <div><Label>Effective From *</Label><Input type="date" value={form.effectiveFrom} onChange={(e) => setForm({ ...form, effectiveFrom: e.target.value })} /></div>
-                <div><Label>Effective To</Label><Input type="date" value={form.effectiveTo} onChange={(e) => setForm({ ...form, effectiveTo: e.target.value })} /></div>
+                <div><Label>Effective From *</Label>
+                  <DatePicker value={form.effectiveFrom} onChange={(v) => setForm({ ...form, effectiveFrom: v })} placeholder="Start date" />
+                </div>
+                <div><Label>Effective To</Label>
+                  <DatePicker value={form.effectiveTo} onChange={(v) => setForm({ ...form, effectiveTo: v })} placeholder="End date (optional)" minDate={form.effectiveFrom} />
+                </div>
               </div>
             </div>
             <DialogFooter>
@@ -809,7 +997,7 @@ function PricingTab({ cpId }: { cpId: number }) {
                 pricingType: form.pricingType,
                 fixedFeeAmount: form.fixedFeeAmount || undefined,
                 markupPercentage: form.markupPercentage || undefined,
-                tierConfig: form.tierConfig ? JSON.parse(form.tierConfig) : undefined,
+                tierConfig: buildTierConfig(),
                 currency: form.currency,
                 fxMarkupPercentage: form.fxMarkupPercentage,
                 effectiveFrom: form.effectiveFrom,
