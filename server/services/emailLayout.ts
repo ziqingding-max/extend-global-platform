@@ -22,14 +22,14 @@ const BORDER_LIGHT = "#e5e7eb";
 
 /**
  * Build the logo <img> tag using an externally hosted URL.
- * The logo PNG is served from the app's static files at /brand/eg-logo-email.png.
+ * The logo PNG is served from the app's static files at /brand/extg-logo-email.png.
  * The base URL comes from ADMIN_APP_URL in .env (e.g. https://app.extendglobal.ai).
  * This avoids base64 embedding which triggers anti-spam filters on Aliyun DirectMail.
  */
 function getLogoImg(): string {
   const appUrl = (process.env.ADMIN_APP_URL || "").replace(/\/+$/, "");
   if (appUrl) {
-    return `<img src="${appUrl}/brand/eg-logo-email.png" alt="Extend Global" width="220" style="display:block;margin:0 auto;max-width:220px;height:auto;" />`;
+    return `<img src="${appUrl}/brand/extg-logo-email.png" alt="Extend Global" width="220" style="display:block;margin:0 auto;max-width:220px;height:auto;" />`;
   }
   return `<span style="color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:1px;">Extend Global</span>`;
 }

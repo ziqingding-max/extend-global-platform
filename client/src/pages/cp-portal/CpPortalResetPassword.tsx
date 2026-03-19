@@ -77,7 +77,7 @@ export default function CpPortalResetPassword() {
   };
 
   const companyName = branding?.companyName || "Extend Global";
-  const logoUrl = branding?.logoUrl || "/brand/gea-logo-horizontal-green.png";
+  const logoUrl = branding?.logoUrl || "/brand/extg-logo-horizontal.png";
 
   if (tokenLoading) {
     return (

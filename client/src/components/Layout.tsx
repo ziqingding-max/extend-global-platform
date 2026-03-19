@@ -442,8 +442,8 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
           <Link href="/">
             <div className="flex items-center gap-2.5 mr-4 cursor-pointer flex-shrink-0">
               <img
-                src="/brand/gea-logo-icon.png"
-                alt="EG"
+                src="/brand/extg-logo-icon.png"
+                alt="ExtG"
                 className="w-7 h-7 object-contain"
               />
               <span className="hidden md:block font-semibold text-sm tracking-tight text-foreground">

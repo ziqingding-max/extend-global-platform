@@ -77,7 +77,7 @@ export default function CpPortalRegister() {
   }
 
   const companyName = branding?.companyName || "Extend Global";
-  const logoUrl = branding?.logoUrl || "/brand/gea-logo-horizontal-green.png";
+  const logoUrl = branding?.logoUrl || "/brand/extg-logo-horizontal.png";
 
   // Invalid or expired token
   if (!token || tokenError || !tokenData?.valid) {

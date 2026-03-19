@@ -54,9 +54,9 @@ export default function AdminLogin() {
         {/* Logo & Brand */}
         <div className="flex flex-col items-center mb-8">
           <img
-            src="/brand/gea-logo-icon.png"
+            src="/brand/extg-logo-horizontal.png"
             alt="Extend Global"
-            className="w-14 h-14 object-contain mb-4"
+            className="h-14 object-contain mb-4"
           />
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Admin Login
