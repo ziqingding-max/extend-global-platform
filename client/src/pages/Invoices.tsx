@@ -26,6 +26,7 @@ import { InvoiceStats } from "@/components/invoices/InvoiceStats";
 import { InvoiceFilters } from "@/components/invoices/InvoiceFilters";
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"; // You'll need to update this to accept props properly
 import { useInvoices } from "@/hooks/invoices/useInvoices";
+import { useCpContext } from "@/_core/store/cpContextStore";
 
 // Keep existing Generation Panel for now (it's complex enough to be its own component later)
 // Or better yet, move it to a separate file too, but for this refactor step, let's keep it here
@@ -242,8 +243,16 @@ export default function Invoices() {
     filters.setLayer(value === "all" ? "all" : value);
   };
 
-  // Determine if current layer tab is L2 (read-only for Admin)
+  // Task Group B: Global CP Context for EG-DIRECT permission unlock
+  const cpContext = useCpContext();
+  const isDirectMode = cpContext.mode === "direct";
+
+  // Determine read-only mode:
+  // - L2 tab is always read-only for Admin (managed by CP)
+  // - Direct tab is read-only UNLESS Admin is in EG-DIRECT mode
   const isL2ReadOnly = activeLayerTab === "cp_to_client";
+  const isDirectReadOnly = activeLayerTab === "eg_to_client" && !isDirectMode;
+  const isReadOnly = isL2ReadOnly || isDirectReadOnly;
 
   const [showManualCreate, setShowManualCreate] = useState(false);
   const [showBatchPaid, setShowBatchPaid] = useState(false);
@@ -329,7 +338,7 @@ export default function Invoices() {
             >
               <Download className="w-4 h-4 mr-1" /> {t("invoices.list.exportCsvButton")}
             </Button>
-            {!isL2ReadOnly && (
+            {!isReadOnly && (
               <>
                 <Button variant="outline" onClick={() => {
                   setCreditNoteForm({ customerId: 0, originalInvoiceId: 0, isFullCredit: true, amount: "", reason: "" });
@@ -366,7 +375,7 @@ export default function Invoices() {
           </TabsList>
         </Tabs>
 
-        {/* L2 Read-Only Banner */}
+        {/* Read-Only Banners */}
         {isL2ReadOnly && (
           <Card className="border-amber-200 bg-amber-50/50">
             <CardContent className="p-3 flex items-center gap-2">
@@ -375,9 +384,25 @@ export default function Invoices() {
             </CardContent>
           </Card>
         )}
+        {isDirectReadOnly && (
+          <Card className="border-blue-200 bg-blue-50/50">
+            <CardContent className="p-3 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-blue-500" />
+              <span className="text-sm text-blue-700">Direct invoices are managed via EG-DIRECT mode. Switch to EG-DIRECT in the Context Switcher to unlock editing.</span>
+            </CardContent>
+          </Card>
+        )}
+        {isDirectMode && activeLayerTab === "eg_to_client" && (
+          <Card className="border-emerald-200 bg-emerald-50/50">
+            <CardContent className="p-3 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <span className="text-sm text-emerald-700">EG-DIRECT mode active — you have full management access to direct invoices.</span>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Generation Panel - only show for L1 and Direct, not L2 */}
-        {!isL2ReadOnly && <InvoiceGenerationPanel />}
+        {/* Generation Panel - only show for L1 and Direct (when in EG-DIRECT mode), not L2 */}
+        {!isReadOnly && <InvoiceGenerationPanel />}
 
         <Tabs defaultValue="list" className="w-full">
           <TabsList>
@@ -396,8 +421,8 @@ export default function Invoices() {
               layerFilter={filters.layer} setLayerFilter={filters.setLayer}
             />
 
-            {/* Batch action bar - hidden in L2 read-only mode */}
-            {!isL2ReadOnly && selection.selectedIds.size > 0 && (
+            {/* Batch action bar - hidden in read-only mode */}
+            {!isReadOnly && selection.selectedIds.size > 0 && (
               <Card className="border-primary/30 bg-primary/5">
                 <CardContent className="p-3 flex items-center gap-3">
                   <span className="text-sm font-medium">{t("invoices.list.batch.selectedCount").replace("{count}", String(selection.selectedIds.size))}</span>
@@ -424,9 +449,9 @@ export default function Invoices() {
                 <InvoiceTable 
                   invoices={filtered.slice((pagination.activePage - 1) * pagination.pageSize, pagination.activePage * pagination.pageSize)}
                   isLoading={isLoading}
-                  selectedIds={isL2ReadOnly ? new Set<number>() : selection.selectedIds}
-                  toggleSelect={isL2ReadOnly ? undefined : selection.toggleSelect}
-                  toggleSelectAll={isL2ReadOnly ? undefined : (() => selection.toggleSelectAll(filtered))}
+                  selectedIds={isReadOnly ? new Set<number>() : selection.selectedIds}
+                  toggleSelect={isReadOnly ? undefined : selection.toggleSelect}
+                  toggleSelectAll={isReadOnly ? undefined : (() => selection.toggleSelectAll(filtered))}
                   customerMap={customerMap}
                   activePage={pagination.activePage}
                   statusColors={statusColors}

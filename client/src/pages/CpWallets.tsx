@@ -293,53 +293,62 @@ function CpWalletRow({
             </div>
           </div>
 
-          {/* Balances */}
+          {/* Balances — EG-DIRECT wallets show N/A (EG doesn't need to prepay to itself) */}
           <div className="flex items-center gap-8">
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">Prepaid Balance</p>
-              <p className={`text-lg font-bold ${parseFloat(mainBalance) > 0 ? "text-emerald-600" : "text-muted-foreground"}`}>
-                {isLoading ? "..." : formatCurrency(mainBalance, currency)}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">Frozen Deposit</p>
-              <p className={`text-lg font-bold ${parseFloat(frozenBalance) > 0 ? "text-amber-600" : "text-muted-foreground"}`}>
-                {isLoading ? "..." : formatCurrency(frozenBalance, currency)}
-              </p>
-            </div>
+            {cp.isInternal ? (
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground">Wallet Status</p>
+                <p className="text-sm text-muted-foreground italic">N/A — EG internal entity</p>
+              </div>
+            ) : (
+              <>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Prepaid Balance</p>
+                  <p className={`text-lg font-bold ${parseFloat(mainBalance) > 0 ? "text-emerald-600" : "text-muted-foreground"}`}>
+                    {isLoading ? "..." : formatCurrency(mainBalance, currency)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Frozen Deposit</p>
+                  <p className={`text-lg font-bold ${parseFloat(frozenBalance) > 0 ? "text-amber-600" : "text-muted-foreground"}`}>
+                    {isLoading ? "..." : formatCurrency(frozenBalance, currency)}
+                  </p>
+                </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onAction("topUp", currency)}
-                title="Top Up"
-              >
-                <ArrowUpCircle className="w-4 h-4 mr-1.5" />
-                Top Up
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onAction("adjust", currency)}
-                title="Adjust"
-              >
-                <ArrowDownCircle className="w-4 h-4 mr-1.5" />
-                Adjust
-              </Button>
-              {parseFloat(frozenBalance) > 0 && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onAction("release", currency)}
-                  title="Release Frozen"
-                >
-                  <Unlock className="w-4 h-4 mr-1.5" />
-                  Release
-                </Button>
-              )}
-            </div>
+                {/* Actions — hidden for EG-DIRECT */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onAction("topUp", currency)}
+                    title="Top Up"
+                  >
+                    <ArrowUpCircle className="w-4 h-4 mr-1.5" />
+                    Top Up
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onAction("adjust", currency)}
+                    title="Adjust"
+                  >
+                    <ArrowDownCircle className="w-4 h-4 mr-1.5" />
+                    Adjust
+                  </Button>
+                  {parseFloat(frozenBalance) > 0 && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onAction("release", currency)}
+                      title="Release Frozen"
+                    >
+                      <Unlock className="w-4 h-4 mr-1.5" />
+                      Release
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </CardContent>
