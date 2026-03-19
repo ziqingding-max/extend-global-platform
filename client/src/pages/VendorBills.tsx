@@ -64,7 +64,8 @@ const statusColorMap: Record<string, string> = {
 const categoryKeys = [
   "payroll_processing", "social_contributions", "tax_filing", "legal_compliance",
   "visa_immigration", "hr_advisory", "it_services", "office_rent", "insurance",
-  "bank_charges", "consulting", "equipment", "travel", "marketing", "other",
+  "bank_charges", "consulting", "equipment", "travel", "marketing",
+  "penalty", "late_payment_fee", "other",
 ];
 const statusKeys = [
   "draft", "pending_approval", "approved", "paid", "partially_paid", "overdue", "cancelled", "void",
@@ -225,7 +226,7 @@ function VendorBillList() {
                       <TableCell className="text-sm">{bill.vendor?.name || "\u2014"}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={`text-xs ${statusColorMap[bill.status] || ""}`}>
-                          {bill.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                          {bill.status.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{formatDate(bill.billDate)}</TableCell>
@@ -352,6 +353,13 @@ function VendorBillDetail() {
       tax: bill.tax?.toString() || "0",
       totalAmount: bill.totalAmount?.toString() || "",
       description: bill.description || "",
+      // Dual-currency tracking fields
+      localAmount: (bill as any).localAmount || "",
+      localCurrency: (bill as any).localCurrency || "",
+      settlementAmountUsd: (bill as any).settlementAmountUsd || "",
+      fxRateActual: (bill as any).fxRateActual || "",
+      countryCode: (bill as any).countryCode || "",
+      payrollMonth: (bill as any).payrollMonth || "",
     });
     setEditOpen(true);
   }
@@ -370,6 +378,13 @@ function VendorBillDetail() {
       tax: editBill.tax || "0",
       totalAmount: editBill.totalAmount,
       description: editBill.description,
+      // Dual-currency tracking fields
+      localAmount: editBill.localAmount || undefined,
+      localCurrency: editBill.localCurrency || undefined,
+      settlementAmountUsd: editBill.settlementAmountUsd || undefined,
+      fxRateActual: editBill.fxRateActual || undefined,
+      countryCode: editBill.countryCode || undefined,
+      payrollMonth: editBill.payrollMonth || undefined,
     });
   }
 
@@ -441,7 +456,7 @@ function VendorBillDetail() {
               <p className="text-sm text-muted-foreground">{(bill as any).vendor?.name || ""}</p>
             </div>
             <Badge variant="outline" className={statusColorMap[bill.status] || ""}>
-              {bill.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+              {bill.status.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
             </Badge>
           </div>
           <div className="flex gap-2">
@@ -527,6 +542,38 @@ function VendorBillDetail() {
                 <p className="text-sm mt-1">{bill.description}</p>
               </div>
             )}
+            {/* Dual-Currency Tracking Info */}
+            {((bill as any).localAmount || (bill as any).settlementAmountUsd) && (
+              <div className="mt-3 pt-3 border-t">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Dual-Currency Tracking</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  {(bill as any).localAmount && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">Local Amount</p>
+                      <p>{formatAmount(parseFloat((bill as any).localAmount))} {(bill as any).localCurrency || ""}</p>
+                    </div>
+                  )}
+                  {(bill as any).settlementAmountUsd && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">Settlement (USD)</p>
+                      <p className="font-medium">{formatAmount(parseFloat((bill as any).settlementAmountUsd))} USD</p>
+                    </div>
+                  )}
+                  {(bill as any).fxRateActual && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">FX Rate (Actual)</p>
+                      <p>{(bill as any).fxRateActual}</p>
+                    </div>
+                  )}
+                  {(bill as any).countryCode && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">Country</p>
+                      <p>{countryName((bill as any).countryCode)}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -565,7 +612,7 @@ function VendorBillDetail() {
                       <TableRow key={idx}>
                         <TableCell className="text-sm">{item.description}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="text-xs">{(item.itemType || "other").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</Badge>
+                          <Badge variant="outline" className="text-xs">{(item.itemType || "other").replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}</Badge>
                         </TableCell>
                         <TableCell className="text-sm text-right">{item.quantity}</TableCell>
                         <TableCell className="text-sm text-right">{formatAmount(parseFloat(item.unitPrice || "0"))}</TableCell>
@@ -641,6 +688,9 @@ function VendorBillDetail() {
                     <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="operational">Operational</SelectItem>
+                      <SelectItem value="service_fee">Service Fee</SelectItem>
+                      <SelectItem value="pass_through">Pass-through (Gov)</SelectItem>
+                      <SelectItem value="bank_charge">Bank Charge</SelectItem>
                       <SelectItem value="deposit">Deposit</SelectItem>
                       <SelectItem value="deposit_refund">Deposit Refund</SelectItem>
                     </SelectContent>
@@ -673,6 +723,40 @@ function VendorBillDetail() {
                 <div>
                   <Label className="text-xs">Total Amount *</Label>
                   <Input type="number" step="0.01" value={editBill.totalAmount || ""} onChange={(e) => setEditBill({ ...editBill, totalAmount: e.target.value })} className={`h-8 text-sm font-medium ${noSpin}`} />
+                </div>
+              </div>
+              {/* Dual-Currency Tracking Fields */}
+              <div className="border rounded-lg p-3 space-y-3 bg-muted/30">
+                <p className="text-xs font-medium text-muted-foreground">Dual-Currency Tracking (Required for Government Bills)</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Local Amount</Label>
+                    <Input type="number" step="0.01" value={editBill.localAmount || ""} onChange={(e) => setEditBill({ ...editBill, localAmount: e.target.value })} className={`h-8 text-sm ${noSpin}`} placeholder="Amount in local currency" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Local Currency</Label>
+                    <CurrencySelect value={editBill.localCurrency || ""} onValueChange={(v) => setEditBill({ ...editBill, localCurrency: v })} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Settlement Amount (USD)</Label>
+                    <Input type="number" step="0.01" value={editBill.settlementAmountUsd || ""} onChange={(e) => setEditBill({ ...editBill, settlementAmountUsd: e.target.value })} className={`h-8 text-sm ${noSpin}`} placeholder="Actual USD paid" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">FX Rate (Actual)</Label>
+                    <Input type="number" step="0.000001" value={editBill.fxRateActual || ""} onChange={(e) => setEditBill({ ...editBill, fxRateActual: e.target.value })} className={`h-8 text-sm ${noSpin}`} placeholder="e.g. 1.0850" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Country Code</Label>
+                    <Input value={editBill.countryCode || ""} onChange={(e) => setEditBill({ ...editBill, countryCode: e.target.value })} className="h-8 text-sm" placeholder="e.g. JP, DE, GB" maxLength={3} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Payroll Month</Label>
+                    <MonthPicker value={editBill.payrollMonth || ""} onChange={(v: string) => setEditBill({ ...editBill, payrollMonth: v })} placeholder="YYYY-MM" className="h-8 text-sm" />
+                  </div>
                 </div>
               </div>
               <div>

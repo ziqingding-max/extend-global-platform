@@ -37,12 +37,20 @@ const statusColors: Record<string, string> = {
 };
 
 const vendorTypeColors: Record<string, string> = {
-  client_related: "bg-blue-500/15 text-blue-600 border-blue-500/30",
+  government: "bg-red-500/15 text-red-600 border-red-500/30",
+  financial: "bg-blue-500/15 text-blue-600 border-blue-500/30",
+  professional_service: "bg-purple-500/15 text-purple-600 border-purple-500/30",
+  equipment_provider: "bg-cyan-500/15 text-cyan-600 border-cyan-500/30",
+  hr_recruitment: "bg-pink-500/15 text-pink-600 border-pink-500/30",
   operational: "bg-amber-500/15 text-amber-600 border-amber-500/30",
 };
 
 const vendorTypeLabels: Record<string, string> = {
-  client_related: "Client Related",
+  government: "Government",
+  financial: "Financial Institution",
+  professional_service: "Professional Service",
+  equipment_provider: "Equipment Provider",
+  hr_recruitment: "HR / Recruitment",
   operational: "Operational",
 };
 
@@ -96,7 +104,7 @@ function VendorList() {
     name: "", legalName: "", contactName: "", contactEmail: "", contactPhone: "",
     country: "", address: "", city: "", state: "", postalCode: "",
     serviceType: "", currency: "USD", bankDetails: {} as BankDetails, taxId: "",
-    paymentTermDays: 30, vendorType: "client_related" as const, status: "active" as const, notes: "",
+    paymentTermDays: 30, vendorType: "operational" as "government" | "financial" | "professional_service" | "equipment_provider" | "hr_recruitment" | "operational", status: "active" as "active" | "inactive", notes: "",
   };
   const [formData, setFormData] = useState(defaultForm);
   const [formErrors, setFormErrors] = useState<Record<string, boolean>>({});
@@ -183,7 +191,11 @@ function VendorList() {
                   <Select value={formData.vendorType} onValueChange={(v: any) => setFormData({ ...formData, vendorType: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="client_related">Client Related</SelectItem>
+                      <SelectItem value="government">Government</SelectItem>
+                      <SelectItem value="financial">Financial Institution</SelectItem>
+                      <SelectItem value="professional_service">Professional Service</SelectItem>
+                      <SelectItem value="equipment_provider">Equipment Provider</SelectItem>
+                      <SelectItem value="hr_recruitment">HR / Recruitment</SelectItem>
                       <SelectItem value="operational">Operational</SelectItem>
                     </SelectContent>
                   </Select>
@@ -193,7 +205,10 @@ function VendorList() {
                   <Select value={formData.serviceType} onValueChange={(v) => setFormData({ ...formData, serviceType: v })}>
                     <SelectTrigger><SelectValue placeholder="Service Type" /></SelectTrigger>
                     <SelectContent>
-                      {serviceTypeOptions.map((sType) => <SelectItem key={sType} value={sType}>{sType}</SelectItem>)}
+                      {(formData.vendorType === "government"
+                        ? serviceTypeOptions.filter(s => ["Tax Filing", "Social Contributions"].includes(s))
+                        : serviceTypeOptions
+                      ).map((sType) => <SelectItem key={sType} value={sType}>{sType}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -238,7 +253,11 @@ function VendorList() {
             <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="client_related">Client Related</SelectItem>
+              <SelectItem value="government">Government</SelectItem>
+              <SelectItem value="financial">Financial Institution</SelectItem>
+              <SelectItem value="professional_service">Professional Service</SelectItem>
+              <SelectItem value="equipment_provider">Equipment Provider</SelectItem>
+              <SelectItem value="hr_recruitment">HR / Recruitment</SelectItem>
               <SelectItem value="operational">Operational</SelectItem>
             </SelectContent>
           </Select>
@@ -288,7 +307,7 @@ function VendorList() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={vendorTypeColors[vendor.vendorType] || ""}>
-                          {vendor.vendorType === "client_related" ? "Client Related" : "Operational"}
+                          {vendorTypeLabels[vendor.vendorType] || vendor.vendorType}
                         </Badge>
                       </TableCell>
                       <TableCell>{countryName(vendor.country)}</TableCell>
@@ -379,7 +398,7 @@ function VendorBillsSection({ vendorId, vendorName, t }: { vendorId: number; ven
                     <TableCell className="font-medium text-sm">{bill.billNumber}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={`text-xs ${statusColorMap[bill.status] || ""}`}>
-                        {bill.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                        {bill.status.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">{formatDate(bill.billDate)}</TableCell>
@@ -477,7 +496,7 @@ function VendorDetail({ id }: { id: number }) {
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight">{vendor.name}</h1>
               <Badge variant="outline" className={vendorTypeColors[vendor.vendorType] || ""}>
-                {vendor.vendorType === "client_related" ? "Client Related" : "Operational"}
+                {vendorTypeLabels[vendor.vendorType] || vendor.vendorType}
               </Badge>
               <Badge variant="outline" className={statusColors[vendor.status] || ""}>
                 {vendor.status === "active" ? "Active" : "Inactive"}
@@ -539,7 +558,7 @@ function VendorDetail({ id }: { id: number }) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div><div className="text-xs text-muted-foreground">Vendor Type</div><div className="font-medium"><Badge variant="outline" className={vendorTypeColors[vendor.vendorType] || ""}>{vendor.vendorType === "client_related" ? "Client Related" : "Operational"}</Badge></div></div>
+              <div><div className="text-xs text-muted-foreground">Vendor Type</div><div className="font-medium"><Badge variant="outline" className={vendorTypeColors[vendor.vendorType] || ""}>{vendorTypeLabels[vendor.vendorType] || vendor.vendorType}</Badge></div></div>
               <div><div className="text-xs text-muted-foreground">Service Type</div><div className="font-medium">{formatServiceType(vendor.serviceType)}</div></div>
               <div><div className="text-xs text-muted-foreground">Default Currency</div><div className="font-medium">{vendor.currency}</div></div>
               <div><div className="text-xs text-muted-foreground">Payment Terms</div><div className="font-medium">{vendor.paymentTermDays} Days</div></div>
@@ -657,10 +676,14 @@ function VendorDetail({ id }: { id: number }) {
               </div>
               <div>
                 <Label>Vendor Type</Label>
-                <Select value={editData.vendorType || "client_related"} onValueChange={(v) => setEditData({ ...editData, vendorType: v })}>
+                <Select value={editData.vendorType || "operational"} onValueChange={(v) => setEditData({ ...editData, vendorType: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="client_related">Client Related</SelectItem>
+                    <SelectItem value="government">Government</SelectItem>
+                    <SelectItem value="financial">Financial Institution</SelectItem>
+                    <SelectItem value="professional_service">Professional Service</SelectItem>
+                    <SelectItem value="equipment_provider">Equipment Provider</SelectItem>
+                    <SelectItem value="hr_recruitment">HR / Recruitment</SelectItem>
                     <SelectItem value="operational">Operational</SelectItem>
                   </SelectContent>
                 </Select>
@@ -670,7 +693,10 @@ function VendorDetail({ id }: { id: number }) {
                 <Select value={editData.serviceType || ""} onValueChange={(v) => setEditData({ ...editData, serviceType: v })}>
                   <SelectTrigger><SelectValue placeholder="Service Type" /></SelectTrigger>
                   <SelectContent>
-                    {serviceTypeOptions.map((sType) => <SelectItem key={sType} value={sType}>{sType}</SelectItem>)}
+                    {(editData.vendorType === "government"
+                      ? serviceTypeOptions.filter(s => ["Tax Filing", "Social Contributions"].includes(s))
+                      : serviceTypeOptions
+                    ).map((sType) => <SelectItem key={sType} value={sType}>{sType}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>

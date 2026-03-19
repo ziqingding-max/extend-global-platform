@@ -63,7 +63,7 @@ export const vendorsRouter = router({
         bankDetails: z.string().optional(),
         taxId: z.string().optional(),
         paymentTermDays: z.number().default(30),
-        vendorType: z.enum(["client_related", "operational"]).default("client_related"),
+        vendorType: z.enum(["government", "financial", "professional_service", "equipment_provider", "hr_recruitment", "operational"]).default("operational"),
         status: z.enum(["active", "inactive"]).default("active"),
         notes: z.string().optional(),
       })
@@ -103,7 +103,7 @@ export const vendorsRouter = router({
         bankDetails: z.string().optional(),
         taxId: z.string().optional(),
         paymentTermDays: z.number().optional(),
-        vendorType: z.enum(["client_related", "operational"]).optional(),
+        vendorType: z.enum(["government", "financial", "professional_service", "equipment_provider", "hr_recruitment", "operational"]).optional(),
         status: z.enum(["active", "inactive"]).optional(),
         notes: z.string().optional(),
       })

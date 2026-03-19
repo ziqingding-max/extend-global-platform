@@ -1492,7 +1492,7 @@ export const vendors = sqliteTable(
     bankDetails: text("bankDetails"), // Free-text bank info (multiline)
     taxId: text("taxId", { length: 100 }),
     paymentTermDays: integer("paymentTermDays").default(30).notNull(),
-    vendorType: text("vendorType", { enum: ["client_related", "operational"] }).default("client_related").notNull(),
+    vendorType: text("vendorType", { enum: ["government", "financial", "professional_service", "equipment_provider", "hr_recruitment", "operational"] }).default("operational").notNull(),
     status: text("status", { enum: ["active", "inactive"] }).default("active").notNull(),
     notes: text("notes"),
     createdAt: integer("createdAt", { mode: "timestamp_ms" }).defaultNow().notNull(),
@@ -1557,6 +1557,8 @@ export const vendorBills = sqliteTable(
       "equipment",
       "travel",
       "marketing",
+      "penalty",
+      "late_payment_fee",
       "other",
     ] }).default("other").notNull(),
     // Bill type: restructured for EG net-revenue accounting

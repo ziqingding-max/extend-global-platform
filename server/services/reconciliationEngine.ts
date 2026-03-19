@@ -21,9 +21,11 @@ import { eq, and, sql, inArray, isNull } from "drizzle-orm";
 import { getDb } from "../db";
 import {
   invoices,
+  invoiceItems,
   vendorBills,
   vendorBillItems,
   billInvoiceAllocations,
+  vendors,
   employees,
   customers,
   type Invoice,
@@ -373,6 +375,203 @@ export async function getReconciliationSummary(
     totalVariance: parseFloat(matchedBillsCount?.totalVariance?.toString() || "0"),
     totalFxGainLoss: parseFloat(fxTotal?.totalFxGainLoss?.toString() || "0"),
     matches,
+  };
+}
+
+// ────────────────────────────────────────────────────────────────
+// Employment Cost Reconciliation (Country + Month)
+// ────────────────────────────────────────────────────────────────
+
+export interface EmploymentCostReconciliationRow {
+  countryCode: string;
+  payrollMonth: string;
+  // Invoice side (from accountant data)
+  invoiceLocalAmount: number;   // Sum of invoiceItems.localAmount where itemType = 'employment_cost'
+  invoiceUsdAmount: number;     // Sum of invoiceItems.amount (USD) where itemType = 'employment_cost'
+  localCurrency: string;
+  // Vendor Bill side (government actual)
+  govBillLocalAmount: number;   // Sum of vendorBills.localAmount where billType = 'pass_through'
+  govBillUsdAmount: number;     // Sum of vendorBills.settlementAmountUsd where billType = 'pass_through'
+  // Differences
+  localAmountDiff: number;      // invoiceLocalAmount - govBillLocalAmount (should be ~0)
+  usdAmountDiff: number;        // invoiceUsdAmount - govBillUsdAmount (= actual FX markup revenue)
+  // Alert
+  hasMismatch: boolean;         // true if |localAmountDiff| > threshold
+  mismatchSeverity: 'none' | 'warning' | 'critical';
+  mismatchNote: string;
+}
+
+export interface EmploymentCostReconciliationSummary {
+  rows: EmploymentCostReconciliationRow[];
+  totalInvoiceLocalAmount: number;
+  totalInvoiceUsdAmount: number;
+  totalGovBillLocalAmount: number;
+  totalGovBillUsdAmount: number;
+  totalLocalDiff: number;
+  totalUsdDiff: number;         // Total actual FX markup revenue
+  totalMismatches: number;
+}
+
+/**
+ * Employment Cost Reconciliation: compare Invoice Employment Cost vs Government Vendor Bills
+ * by country + month dimension.
+ *
+ * - Local currency comparison: accountant data vs government actual (should be ~0)
+ * - USD comparison: what we charged client vs what we actually paid (= FX markup revenue)
+ */
+export async function getEmploymentCostReconciliation(
+  payrollMonth: string, // YYYY-MM format
+): Promise<EmploymentCostReconciliationSummary> {
+  const db = getDb();
+  if (!db) {
+    return {
+      rows: [],
+      totalInvoiceLocalAmount: 0,
+      totalInvoiceUsdAmount: 0,
+      totalGovBillLocalAmount: 0,
+      totalGovBillUsdAmount: 0,
+      totalLocalDiff: 0,
+      totalUsdDiff: 0,
+      totalMismatches: 0,
+    };
+  }
+
+  const monthStart = `${payrollMonth}-01`;
+  const LOCAL_DIFF_THRESHOLD = 1.00; // Alert if local currency diff > 1.00
+  const CRITICAL_THRESHOLD = 100.00; // Critical if diff > 100.00
+
+  // ── Invoice side: Employment Cost by country ──
+  // Sum invoiceItems where itemType = 'employment_cost', grouped by countryCode
+  const invoiceSide = await db
+    .select({
+      countryCode: invoiceItems.countryCode,
+      localCurrency: invoiceItems.localCurrency,
+      totalLocalAmount: sql<string>`COALESCE(SUM(CAST(${invoiceItems.localAmount} AS REAL)), 0)`,
+      totalUsdAmount: sql<string>`COALESCE(SUM(CAST(${invoiceItems.amount} AS REAL)), 0)`,
+    })
+    .from(invoiceItems)
+    .innerJoin(invoices, sql`${invoiceItems.invoiceId} = ${invoices.id}`)
+    .where(
+      and(
+        eq(invoices.invoiceMonth, monthStart),
+        eq(invoiceItems.itemType, "employment_cost"),
+        sql`${invoices.status} NOT IN ('cancelled', 'void', 'draft')`,
+        sql`${invoices.invoiceType} IN ('monthly_eor', 'monthly_visa_eor', 'monthly_aor')`,
+      )
+    )
+    .groupBy(invoiceItems.countryCode, invoiceItems.localCurrency);
+
+  // ── Vendor Bill side: Government bills by country ──
+  // Sum vendorBills where billType = 'pass_through' (government), grouped by countryCode
+  const govBillSide = await db
+    .select({
+      countryCode: vendorBills.countryCode,
+      totalLocalAmount: sql<string>`COALESCE(SUM(CAST(${vendorBills.localAmount} AS REAL)), 0)`,
+      totalUsdAmount: sql<string>`COALESCE(SUM(CAST(${vendorBills.settlementAmountUsd} AS REAL)), 0)`,
+    })
+    .from(vendorBills)
+    .where(
+      and(
+        eq(vendorBills.payrollMonth, monthStart),
+        eq(vendorBills.billType, "pass_through"),
+        sql`${vendorBills.status} NOT IN ('cancelled', 'void', 'draft')`,
+      )
+    )
+    .groupBy(vendorBills.countryCode);
+
+  // ── Build comparison map ──
+  const countryMap = new Map<string, {
+    invoiceLocal: number;
+    invoiceUsd: number;
+    govLocal: number;
+    govUsd: number;
+    localCurrency: string;
+  }>();
+
+  for (const row of invoiceSide) {
+    const cc = row.countryCode || "UNKNOWN";
+    countryMap.set(cc, {
+      invoiceLocal: parseFloat(row.totalLocalAmount),
+      invoiceUsd: parseFloat(row.totalUsdAmount),
+      govLocal: 0,
+      govUsd: 0,
+      localCurrency: row.localCurrency || "USD",
+    });
+  }
+
+  for (const row of govBillSide) {
+    const cc = row.countryCode || "UNKNOWN";
+    const existing = countryMap.get(cc);
+    if (existing) {
+      existing.govLocal = parseFloat(row.totalLocalAmount);
+      existing.govUsd = parseFloat(row.totalUsdAmount);
+    } else {
+      countryMap.set(cc, {
+        invoiceLocal: 0,
+        invoiceUsd: 0,
+        govLocal: parseFloat(row.totalLocalAmount),
+        govUsd: parseFloat(row.totalUsdAmount),
+        localCurrency: "USD",
+      });
+    }
+  }
+
+  // ── Build result rows ──
+  const rows: EmploymentCostReconciliationRow[] = [];
+  let totalMismatches = 0;
+
+  for (const [cc, data] of Array.from(countryMap.entries())) {
+    const localDiff = Math.round((data.invoiceLocal - data.govLocal) * 100) / 100;
+    const usdDiff = Math.round((data.invoiceUsd - data.govUsd) * 100) / 100;
+    const absLocalDiff = Math.abs(localDiff);
+
+    let hasMismatch = false;
+    let mismatchSeverity: 'none' | 'warning' | 'critical' = 'none';
+    let mismatchNote = '';
+
+    if (absLocalDiff > CRITICAL_THRESHOLD) {
+      hasMismatch = true;
+      mismatchSeverity = 'critical';
+      mismatchNote = `CRITICAL: Local currency mismatch of ${data.localCurrency} ${localDiff.toFixed(2)}. Accountant data differs significantly from Government bill.`;
+      totalMismatches++;
+    } else if (absLocalDiff > LOCAL_DIFF_THRESHOLD) {
+      hasMismatch = true;
+      mismatchSeverity = 'warning';
+      mismatchNote = `WARNING: Local currency mismatch of ${data.localCurrency} ${localDiff.toFixed(2)}. Please verify with accountant.`;
+      totalMismatches++;
+    }
+
+    rows.push({
+      countryCode: cc,
+      payrollMonth,
+      invoiceLocalAmount: data.invoiceLocal,
+      invoiceUsdAmount: data.invoiceUsd,
+      localCurrency: data.localCurrency,
+      govBillLocalAmount: data.govLocal,
+      govBillUsdAmount: data.govUsd,
+      localAmountDiff: localDiff,
+      usdAmountDiff: usdDiff,
+      hasMismatch,
+      mismatchSeverity,
+      mismatchNote,
+    });
+  }
+
+  // Sort: critical first, then warning, then none
+  rows.sort((a, b) => {
+    const severityOrder = { critical: 0, warning: 1, none: 2 };
+    return severityOrder[a.mismatchSeverity] - severityOrder[b.mismatchSeverity];
+  });
+
+  return {
+    rows,
+    totalInvoiceLocalAmount: rows.reduce((s, r) => s + r.invoiceLocalAmount, 0),
+    totalInvoiceUsdAmount: rows.reduce((s, r) => s + r.invoiceUsdAmount, 0),
+    totalGovBillLocalAmount: rows.reduce((s, r) => s + r.govBillLocalAmount, 0),
+    totalGovBillUsdAmount: rows.reduce((s, r) => s + r.govBillUsdAmount, 0),
+    totalLocalDiff: rows.reduce((s, r) => s + r.localAmountDiff, 0),
+    totalUsdDiff: rows.reduce((s, r) => s + r.usdAmountDiff, 0),
+    totalMismatches,
   };
 }
 
