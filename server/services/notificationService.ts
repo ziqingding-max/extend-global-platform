@@ -246,7 +246,8 @@ export const notificationService = {
    *   <EG_INFO_CARD> ... <EG_ROW label="..." value="..." /> ... </EG_INFO_CARD>
    *   <EG_BUTTON text="..." href="..." [color="..."] />
    *   <EG_BANNER type="warning|danger|success|info" text="..." />
-   *   <GEA_AMOUNT currency="..." amount="..." />
+   *   <EG_AMOUNT currency="..." amount="..." />
+   *   <GEA_AMOUNT currency="..." amount="..." />  (legacy alias, still supported)
    */
   processCustomTags(html: string): string {
     // 1. Process <EG_INFO_CARD>...</EG_INFO_CARD>
@@ -270,8 +271,8 @@ export const notificationService = {
       return emailBanner(text, type as any);
     });
 
-    // 4. Process <GEA_AMOUNT currency="..." amount="..." />
-    html = html.replace(/<GEA_AMOUNT\s+currency="([^"]*?)"\s+amount="([^"]*?)"\s*\/>/g, (_match: string, currency: string, amount: string) => {
+    // 4. Process <EG_AMOUNT currency="..." amount="..." /> (and legacy <GEA_AMOUNT> alias)
+    html = html.replace(/<(?:EG|GEA)_AMOUNT\s+currency="([^"]*?)"\s+amount="([^"]*?)"\s*\/>/g, (_match: string, currency: string, amount: string) => {
       return emailAmountDisplay(currency, amount);
     });
 

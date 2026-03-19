@@ -269,7 +269,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
         emailBody: `<EG_BANNER type="success" text="Your payment has been processed and sent successfully." />
 <p>Dear {{workerName}},</p>
 <p>We are pleased to confirm that a payment has been processed for your account:</p>
-<GEA_AMOUNT currency="{{currency}}" amount="{{amount}}" />
+<EG_AMOUNT currency="{{currency}}" amount="{{amount}}" />
 <EG_INFO_CARD>
 <EG_ROW label="Invoice Number" value="#{{invoiceNumber}}" />
 <EG_ROW label="Amount" value="{{currency}} {{amount}}" />
@@ -285,7 +285,7 @@ export const DEFAULT_RULES: Record<string, NotificationConfig> = {
         emailBody: `<EG_BANNER type="success" text="您的付款已处理并成功发送。" />
 <p>尊敬的 {{workerName}}，</p>
 <p>我们很高兴确认您的账户已处理一笔付款：</p>
-<GEA_AMOUNT currency="{{currency}}" amount="{{amount}}" />
+<EG_AMOUNT currency="{{currency}}" amount="{{amount}}" />
 <EG_INFO_CARD>
 <EG_ROW label="发票编号" value="#{{invoiceNumber}}" />
 <EG_ROW label="金额" value="{{currency}} {{amount}}" />
