@@ -47,6 +47,7 @@ import {
 import { cpWalletService } from "../services/cpWalletService";
 import { TRPCError } from "@trpc/server";
 import { generateInviteToken, getInviteExpiryDate } from "../portal/portalAuth";
+import { sendCpPortalInvite } from "../services/cpEmailService";
 
 // ============================================================================
 // Helper: Audit log with CP context
@@ -303,8 +304,27 @@ export const channelPartnersRouter = router({
           inviteExpiresAt,
         });
 
-        // TODO: Send CP invite email (will be implemented in PR 2.2 with white-label email templates)
-        // await sendCpPortalInviteEmail({ ... });
+        // Send CP invite email (if SMTP configured, otherwise silently skips)
+        let emailSent = false;
+        if (cp.subdomain) {
+          try {
+            await sendCpPortalInvite({
+              channelPartnerId: input.channelPartnerId,
+              contactName: input.contactName,
+              email: input.email.toLowerCase().trim(),
+              inviteToken,
+              subdomain: cp.subdomain,
+            });
+            emailSent = true;
+          } catch (err) {
+            console.error("[CP Invite] Failed to send invite email:", err);
+          }
+        }
+
+        // Build invite URL for display in admin UI
+        const inviteUrl = cp.subdomain
+          ? `https://${cp.subdomain}.extendglobal.ai/cp/register?token=${inviteToken}`
+          : null;
 
         await auditCp(
           ctx.user.id,
@@ -315,7 +335,7 @@ export const channelPartnersRouter = router({
           `Invited CP contact: ${input.contactName} (${input.email}) with role ${input.portalRole}`
         );
 
-        return result[0];
+        return { ...result[0], inviteToken, inviteUrl, emailSent };
       }),
 
     updateRole: adminProcedure

@@ -79,18 +79,21 @@ export default function CpContextSwitcher() {
           {partners
             .sort((a: any, b: any) => {
               // Internal (EG-DIRECT) first
-              if (a.isInternal && !b.isInternal) return -1;
-              if (!a.isInternal && b.isInternal) return 1;
+              const aInternal = Boolean(a.isInternal) || a.isInternal === 1;
+              const bInternal = Boolean(b.isInternal) || b.isInternal === 1;
+              if (aInternal && !bInternal) return -1;
+              if (!aInternal && bInternal) return 1;
               return (a.companyName || "").localeCompare(b.companyName || "");
             })
             .map((cp: any) => {
+              const cpIsInternal = Boolean(cp.isInternal) || cp.isInternal === 1;
               const isSelected =
-                (mode === "direct" && cp.isInternal) ||
+                (mode === "direct" && cpIsInternal) ||
                 (mode === "specific" && cp.id === useCpContext.getState().cpId);
               return (
                 <DropdownMenuItem
                   key={cp.id}
-                  onClick={() => setCp(cp.id, cp.companyName, !!cp.isInternal)}
+                  onClick={() => setCp(cp.id, cp.companyName, cpIsInternal)}
                   className={cn(
                     "flex items-center gap-2",
                     isSelected && "bg-accent font-medium"
@@ -98,7 +101,7 @@ export default function CpContextSwitcher() {
                 >
                   <Building2 className="w-4 h-4 opacity-70" />
                   <span className="truncate">{cp.companyName}</span>
-                  {cp.isInternal && (
+                  {cpIsInternal && (
                     <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">
                       Internal
                     </span>
