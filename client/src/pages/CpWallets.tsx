@@ -81,7 +81,7 @@ export default function CpWallets() {
   // For each CP, we'll fetch wallet data individually
   // But for the list view, we'll use a summary approach
   const filteredCps = useMemo(() => {
-    const items = (cpList as any)?.items || cpList || [];
+    const items = (cpList as any)?.data || cpList || [];
     if (!search) return items;
     return items.filter((cp: any) =>
       cp.companyName?.toLowerCase().includes(search.toLowerCase())
