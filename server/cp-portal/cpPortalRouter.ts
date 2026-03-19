@@ -16,8 +16,12 @@
  * - clients: End Client management from CP perspective (PR 2.3)
  * - pricing: CP→Client pricing configuration (PR 2.3)
  * - settings: CP branding, billing info, portal user management (PR 2.3)
- * - invoices: CP-layer invoice viewing (PR 2.3)
+ * - invoices: CP-layer invoice viewing + custom items + markPaid (PR 2.3, Task Group D)
  * - wallet: CP wallet balance and transaction viewing (PR 2.3)
+ * - clientDeposits: End Client deposit (frozen wallet) management (Task Group D)
+ * - quotations: CP quotation creation and management (Task Group E)
+ * - operations: Read-only operations overview — payroll, leave, adjustments (Task Group E)
+ * - dashboard: Profit analytics and KPI dashboard (Task Group E)
  */
 
 import { cpPortalRouter } from "./cpPortalTrpc";
@@ -27,6 +31,10 @@ import { cpPortalPricingRouter } from "./routers/cpPortalPricingRouter";
 import { cpPortalSettingsRouter } from "./routers/cpPortalSettingsRouter";
 import { cpPortalInvoicesRouter } from "./routers/cpPortalInvoicesRouter";
 import { cpPortalWalletRouter } from "./routers/cpPortalWalletRouter";
+import { cpPortalClientDepositsRouter } from "./routers/cpPortalClientDepositsRouter";
+import { cpPortalQuotationsRouter } from "./routers/cpPortalQuotationsRouter";
+import { cpPortalOperationsRouter } from "./routers/cpPortalOperationsRouter";
+import { cpPortalDashboardRouter } from "./routers/cpPortalDashboardRouter";
 
 export const cpPortalAppRouter = cpPortalRouter({
   auth: cpPortalAuthRouter,
@@ -35,6 +43,10 @@ export const cpPortalAppRouter = cpPortalRouter({
   settings: cpPortalSettingsRouter,
   invoices: cpPortalInvoicesRouter,
   wallet: cpPortalWalletRouter,
+  clientDeposits: cpPortalClientDepositsRouter,
+  quotations: cpPortalQuotationsRouter,
+  operations: cpPortalOperationsRouter,
+  dashboard: cpPortalDashboardRouter,
 });
 
 export type CpPortalAppRouter = typeof cpPortalAppRouter;
