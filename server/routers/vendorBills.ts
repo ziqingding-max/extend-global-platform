@@ -97,10 +97,19 @@ export const vendorBillsRouter = router({
             "equipment",
             "travel",
             "marketing",
+            "penalty",
+            "late_payment_fee",
             "other",
           ])
           .default("other"),
-        billType: z.enum(["operational", "deposit", "deposit_refund"]).default("operational"),
+        billType: z.enum(["operational", "deposit", "deposit_refund", "service_fee", "pass_through", "bank_charge"]).default("operational"),
+        // Dual-currency tracking fields
+        localAmount: z.string().optional(),
+        localCurrency: z.string().optional(),
+        settlementAmountUsd: z.string().optional(),
+        fxRateActual: z.string().optional(),
+        countryCode: z.string().optional(),
+        payrollMonth: z.string().optional(),
         description: z.string().optional(),
         internalNotes: z.string().optional(),
         receiptFileUrl: z.string().optional(),
@@ -115,6 +124,19 @@ export const vendorBillsRouter = router({
       const vendor = await getVendorById(billData.vendorId);
       if (!vendor) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Vendor not found" });
+      }
+
+      // Government vendor: enforce pass_through billType and require dual-currency fields
+      if (vendor.vendorType === "government") {
+        if (billData.billType !== "pass_through") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Government vendor bills must use 'pass_through' bill type" });
+        }
+        if (!billData.localAmount || !billData.localCurrency || !billData.settlementAmountUsd) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Government vendor bills require localAmount, localCurrency, and settlementAmountUsd" });
+        }
+        if (!billData.countryCode) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Government vendor bills require a countryCode" });
+        }
       }
 
       // Convert date strings
@@ -186,10 +208,19 @@ export const vendorBillsRouter = router({
             "equipment",
             "travel",
             "marketing",
+            "penalty",
+            "late_payment_fee",
             "other",
           ])
           .optional(),
-        billType: z.enum(["operational", "deposit", "deposit_refund"]).optional(),
+        billType: z.enum(["operational", "deposit", "deposit_refund", "service_fee", "pass_through", "bank_charge"]).optional(),
+        // Dual-currency tracking fields
+        localAmount: z.string().optional().nullable(),
+        localCurrency: z.string().optional().nullable(),
+        settlementAmountUsd: z.string().optional().nullable(),
+        fxRateActual: z.string().optional().nullable(),
+        countryCode: z.string().optional().nullable(),
+        payrollMonth: z.string().optional().nullable(),
         description: z.string().optional(),
         internalNotes: z.string().optional(),
         receiptFileUrl: z.string().optional().nullable(),

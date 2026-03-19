@@ -15,6 +15,8 @@ import {
   payrollRuns,
   invoices,
   invoiceItems,
+  vendorBills,
+  vendors,
   adjustments,
   leaveRecords,
 } from "../../drizzle/schema";
@@ -48,7 +50,7 @@ export const dashboardRouter = router({
   }),
 
   recentActivity: adminProcedure.query(async () => {
-    const { data } = await listAuditLogs(undefined, 20, 0);
+    const { data } = await listAuditLogs({ pageSize: 20 });
     return data;
   }),
 
@@ -200,6 +202,94 @@ export const dashboardRouter = router({
       });
     }
 
+    // ── NEW: Vendor Bills Cost Aggregation ──
+    // Total actual cost (USD) - using settlementAmountUsd for pass_through, totalAmount for others
+    const [totalCostResult] = await db.select({
+      total: sql<string>`COALESCE(SUM(
+        CASE WHEN ${vendorBills.billType} = 'pass_through'
+             THEN COALESCE(${vendorBills.settlementAmountUsd}, 0)
+             ELSE ${vendorBills.totalAmount}
+        END
+      ), 0)`,
+    }).from(vendorBills).where(
+      inArray(vendorBills.status, ["paid", "approved", "partially_paid"])
+    );
+
+    // Government (pass_through) cost in USD
+    const [govCostResult] = await db.select({
+      total: sql<string>`COALESCE(SUM(COALESCE(${vendorBills.settlementAmountUsd}, 0)), 0)`,
+    }).from(vendorBills).where(and(
+      inArray(vendorBills.status, ["paid", "approved", "partially_paid"]),
+      eq(vendorBills.billType, "pass_through"),
+    ));
+
+    // Operating expenses (service_fee + bank_charge + operational + penalty + late_payment_fee)
+    const [opexResult] = await db.select({
+      total: sql<string>`COALESCE(SUM(${vendorBills.totalAmount}), 0)`,
+    }).from(vendorBills).where(and(
+      inArray(vendorBills.status, ["paid", "approved", "partially_paid"]),
+      inArray(vendorBills.billType, ["service_fee", "bank_charge", "operational"]),
+    ));
+
+    // Penalties
+    const [penaltyResult] = await db.select({
+      total: sql<string>`COALESCE(SUM(${vendorBills.totalAmount}), 0)`,
+    }).from(vendorBills).where(and(
+      inArray(vendorBills.status, ["paid", "approved", "partially_paid"]),
+      inArray(vendorBills.category, ["penalty", "late_payment_fee"]),
+    ));
+
+    // Monthly cost breakdown
+    const monthlyCost: { month: string; totalCostUsd: string; govCostUsd: string; opex: string }[] = [];
+    for (const m of months) {
+      const [y, mo] = m.split("-").map(Number);
+      const monthStart = `${m}-01`;
+      const nextMonth = mo === 12 ? `${y + 1}-01-01` : `${y}-${String(mo + 1).padStart(2, "0")}-01`;
+
+      const [monthCost] = await db.select({
+        totalCostUsd: sql<string>`COALESCE(SUM(
+          CASE WHEN ${vendorBills.billType} = 'pass_through'
+               THEN COALESCE(${vendorBills.settlementAmountUsd}, 0)
+               ELSE ${vendorBills.totalAmount}
+          END
+        ), 0)`,
+        govCostUsd: sql<string>`COALESCE(SUM(
+          CASE WHEN ${vendorBills.billType} = 'pass_through'
+               THEN COALESCE(${vendorBills.settlementAmountUsd}, 0)
+               ELSE 0
+          END
+        ), 0)`,
+        opex: sql<string>`COALESCE(SUM(
+          CASE WHEN ${vendorBills.billType} IN ('service_fee', 'bank_charge', 'operational')
+               THEN ${vendorBills.totalAmount}
+               ELSE 0
+          END
+        ), 0)`,
+      }).from(vendorBills).where(and(
+        inArray(vendorBills.status, ["paid", "approved", "partially_paid"]),
+        sql`${vendorBills.billMonth} >= ${monthStart}`,
+        sql`${vendorBills.billMonth} < ${nextMonth}`,
+      ));
+
+      monthlyCost.push({
+        month: m,
+        totalCostUsd: monthCost?.totalCostUsd ?? "0",
+        govCostUsd: monthCost?.govCostUsd ?? "0",
+        opex: monthCost?.opex ?? "0",
+      });
+    }
+
+    // Calculate P&L summary
+    const totalRevenueNum = parseFloat(paidTotal?.total ?? "0");
+    const totalCostNum = parseFloat(totalCostResult?.total ?? "0");
+    const govCostNum = parseFloat(govCostResult?.total ?? "0");
+    const serviceFeeRevenueNum = parseFloat(serviceFeeTotal?.total ?? "0");
+    const opexNum = parseFloat(opexResult?.total ?? "0");
+    const penaltyNum = parseFloat(penaltyResult?.total ?? "0");
+
+    const grossMargin = totalRevenueNum - govCostNum;
+    const netProfit = totalRevenueNum - totalCostNum;
+
     return {
       totalRevenue: paidTotal?.total ?? "0",
       totalServiceFeeRevenue: serviceFeeTotal?.total ?? "0",
@@ -209,6 +299,14 @@ export const dashboardRouter = router({
       totalDeferredRevenue: depositTotal?.total ?? "0",
       totalDepositInvoices: depositTotal?.count ?? 0,
       monthlyRevenue,
+      // NEW: Cost & P&L data
+      totalActualCostUsd: String(Math.round(totalCostNum * 100) / 100),
+      totalGovCostUsd: String(Math.round(govCostNum * 100) / 100),
+      totalOpex: String(Math.round(opexNum * 100) / 100),
+      totalPenalties: String(Math.round(penaltyNum * 100) / 100),
+      grossMargin: String(Math.round(grossMargin * 100) / 100),
+      netProfit: String(Math.round(netProfit * 100) / 100),
+      monthlyCost,
     };
   }),
 

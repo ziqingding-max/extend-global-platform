@@ -29,6 +29,7 @@ import {
   Area,
   BarChart,
   Bar,
+  ComposedChart,
   LineChart,
   Line,
   XAxis,
@@ -514,7 +515,7 @@ function OperationsTab() {
                       <td className="py-2.5">{run.payrollMonth ? formatMonthShort(String(run.payrollMonth).substring(0, 7)) : "-"}</td>
                       <td className="py-2.5">
                         <Badge variant="outline" className="text-xs font-normal">
-                          {(run.status || "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                          {(run.status || "").replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
                         </Badge>
                       </td>
                       <td className="py-2.5 text-right font-mono">{run.totalGrossSalary ? formatCurrencyCompact(run.totalGrossSalary) : "-"}</td>
@@ -542,17 +543,29 @@ function FinanceTab() {
 
   const revenueChartData = useMemo(() => {
     if (!finance) return [];
-    return finance.monthlyRevenue.map(m => ({
-      month: formatMonthShort(m.month),
-      totalRevenue: parseFloat(m.totalRevenue),
-      serviceFeeRevenue: parseFloat(m.serviceFeeRevenue),
-      invoiceCount: m.invoiceCount,
-    }));
+    const costMap = new Map((finance as any).monthlyCost?.map((c: any) => [c.month, c]) || []);
+    return finance.monthlyRevenue.map(m => {
+      const cost = costMap.get(m.month) as any;
+      const revenue = parseFloat(m.totalRevenue);
+      const totalCost = cost ? parseFloat(cost.totalCostUsd || "0") : 0;
+      const govCost = cost ? parseFloat(cost.govCostUsd || "0") : 0;
+      const opex = cost ? parseFloat(cost.opex || "0") : 0;
+      return {
+        month: formatMonthShort(m.month),
+        totalRevenue: revenue,
+        serviceFeeRevenue: parseFloat(m.serviceFeeRevenue),
+        grossMargin: revenue - govCost,
+        netProfit: revenue - totalCost,
+        invoiceCount: m.invoiceCount,
+      };
+    });
   }, [finance]);
 
   const revenueConfig: ChartConfig = {
     totalRevenue: { label: "Total Invoice Revenue", color: "oklch(0.65 0.19 250)" },
     serviceFeeRevenue: { label: "Service Fee Revenue", color: "oklch(0.72 0.17 150)" },
+    grossMargin: { label: "Gross Margin", color: "oklch(0.70 0.18 50)" },
+    netProfit: { label: "Net Profit", color: "oklch(0.65 0.20 145)" },
   };
 
   const invoiceCountConfig: ChartConfig = {
@@ -563,14 +576,21 @@ function FinanceTab() {
 
   return (
     <div className="space-y-6">
-      {/* Finance KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* P&L KPIs - Top Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Revenue"
           value={formatCurrencyCompact(finance?.totalRevenue ?? "0")}
           icon={DollarSign}
           variant="success"
-          description="From paid invoices"
+          description="From paid invoices (USD)"
+        />
+        <StatCard
+          title="Gross Margin"
+          value={formatCurrencyCompact((finance as any)?.grossMargin ?? "0")}
+          icon={TrendingUp}
+          variant={parseFloat((finance as any)?.grossMargin ?? "0") > 0 ? "success" : "danger"}
+          description="Revenue - Employment Cost (USD)"
         />
         <StatCard
           title="Service Fee Revenue"
@@ -578,6 +598,31 @@ function FinanceTab() {
           icon={Wallet}
           variant="success"
           description="Management service fees"
+        />
+        <StatCard
+          title="Net Profit"
+          value={formatCurrencyCompact((finance as any)?.netProfit ?? "0")}
+          icon={parseFloat((finance as any)?.netProfit ?? "0") >= 0 ? TrendingUp : TrendingDown}
+          variant={parseFloat((finance as any)?.netProfit ?? "0") >= 0 ? "success" : "danger"}
+          description="After all costs & expenses"
+        />
+      </div>
+
+      {/* Cost & Outstanding KPIs - Second Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <StatCard
+          title="Employment Cost (USD)"
+          value={formatCurrencyCompact((finance as any)?.totalGovCostUsd ?? "0")}
+          icon={Landmark}
+          variant="default"
+          description="Government pass-through"
+        />
+        <StatCard
+          title="Operating Expenses"
+          value={formatCurrencyCompact((finance as any)?.totalOpex ?? "0")}
+          icon={Briefcase}
+          variant="default"
+          description="Service fees + bank charges"
         />
         <StatCard
           title="Deferred Revenue"
@@ -613,7 +658,7 @@ function FinanceTab() {
         <CardContent>
           {revenueChartData.length > 0 ? (
             <ChartContainer config={revenueConfig} className="h-[320px] w-full">
-              <BarChart data={revenueChartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+              <ComposedChart data={revenueChartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="month" tickLine={false} axisLine={false} fontSize={11} />
                 <YAxis tickLine={false} axisLine={false} fontSize={11} width={50} tickFormatter={(v) => formatCurrencyCompact(v)} />
@@ -629,7 +674,9 @@ function FinanceTab() {
                 <ChartLegend content={<ChartLegendContent />} />
                 <Bar dataKey="totalRevenue" fill="var(--color-totalRevenue)" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="serviceFeeRevenue" fill="var(--color-serviceFeeRevenue)" radius={[4, 4, 0, 0]} />
-              </BarChart>
+                <Line type="monotone" dataKey="grossMargin" stroke="var(--color-grossMargin)" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="netProfit" stroke="var(--color-netProfit)" strokeWidth={2} dot={{ r: 3 }} />
+              </ComposedChart>
             </ChartContainer>
           ) : (
             <Skeleton className="h-[320px] w-full rounded-lg" />

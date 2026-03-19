@@ -79,6 +79,10 @@ export default function ReconciliationPage() {
   const { data: netPnl, isLoading: pnlLoading } =
     trpc.netPnl.report.useQuery({ startMonth, endMonth });
 
+  // Employment Cost Reconciliation data
+  const { data: empCostRecon, isLoading: empCostLoading } =
+    trpc.reconciliation.employmentCostRecon.useQuery({ payrollMonth });
+
   // Mutations
   const executeMutation = trpc.reconciliation.execute.useMutation({
     onSuccess: () => {
@@ -128,6 +132,12 @@ export default function ReconciliationPage() {
             </TabsTrigger>
             <TabsTrigger value="net-pnl">
               <BarChart3 className="h-4 w-4 mr-1" /> Net P&L
+            </TabsTrigger>
+            <TabsTrigger value="emp-cost-recon">
+              <AlertTriangle className="h-4 w-4 mr-1" /> Cost Reconciliation
+              {(empCostRecon?.totalMismatches ?? 0) > 0 && (
+                <Badge variant="destructive" className="ml-1 text-xs px-1.5 py-0">{empCostRecon?.totalMismatches}</Badge>
+              )}
             </TabsTrigger>
           </TabsList>
 
@@ -629,6 +639,160 @@ export default function ReconciliationPage() {
                   </CardContent>
                 </Card>
               </>
+            )}
+          </TabsContent>
+
+          {/* ─── Employment Cost Reconciliation Tab ─── */}
+          <TabsContent value="emp-cost-recon" className="space-y-4">
+            <div className="flex items-center gap-4">
+              <Select value={payrollMonth} onValueChange={setPayrollMonth}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select month" />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthOptions.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Mismatch Alert Banner */}
+            {(empCostRecon?.totalMismatches ?? 0) > 0 && (
+              <Card className="border-red-500/50 bg-red-500/5">
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle className="h-6 w-6 text-red-500" />
+                    <div>
+                      <div className="font-bold text-red-600">
+                        {empCostRecon?.totalMismatches} Mismatch Alert{(empCostRecon?.totalMismatches ?? 0) > 1 ? 's' : ''} Detected
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Accountant data differs from Government actual charges. Please verify with your local accountant.
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Summary cards */}
+            <div className="grid grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="text-sm text-muted-foreground">Invoice Employment Cost (USD)</div>
+                  <div className="text-2xl font-bold">
+                    {empCostLoading ? <Skeleton className="h-8 w-20" /> : formatAmount(empCostRecon?.totalInvoiceUsdAmount || 0)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">What we charged clients</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="text-sm text-muted-foreground">Actual Gov Payment (USD)</div>
+                  <div className="text-2xl font-bold">
+                    {empCostLoading ? <Skeleton className="h-8 w-20" /> : formatAmount(empCostRecon?.totalGovBillUsdAmount || 0)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">What we actually paid</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="text-sm text-muted-foreground">Actual FX Markup Revenue</div>
+                  <div className={`text-2xl font-bold ${(empCostRecon?.totalUsdDiff ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {empCostLoading ? <Skeleton className="h-8 w-20" /> : formatAmount(empCostRecon?.totalUsdDiff || 0)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Invoice USD - Actual USD</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="text-sm text-muted-foreground">Local Currency Diff</div>
+                  <div className={`text-2xl font-bold ${(empCostRecon?.totalMismatches ?? 0) > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    {empCostLoading ? <Skeleton className="h-8 w-20" /> : formatAmount(empCostRecon?.totalLocalDiff || 0)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Should be ~0 (accountant vs gov)</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Country breakdown table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Employment Cost by Country</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {empCostLoading ? <Skeleton className="h-40 w-full" /> : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Country</TableHead>
+                        <TableHead>Currency</TableHead>
+                        <TableHead>Invoice Local Amt</TableHead>
+                        <TableHead>Gov Bill Local Amt</TableHead>
+                        <TableHead>Local Diff</TableHead>
+                        <TableHead>Invoice USD</TableHead>
+                        <TableHead>Gov Bill USD</TableHead>
+                        <TableHead>FX Markup (USD)</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(empCostRecon?.rows || []).length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                            No employment cost data for this month. Ensure both Invoices and Government Vendor Bills are recorded.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        (empCostRecon?.rows || []).map((row: any) => (
+                          <TableRow key={row.countryCode} className={row.mismatchSeverity === 'critical' ? 'bg-red-500/10' : row.mismatchSeverity === 'warning' ? 'bg-amber-500/10' : ''}>
+                            <TableCell className="font-mono font-semibold">{row.countryCode}</TableCell>
+                            <TableCell className="font-mono">{row.localCurrency}</TableCell>
+                            <TableCell>{formatAmount(row.invoiceLocalAmount)}</TableCell>
+                            <TableCell>{formatAmount(row.govBillLocalAmount)}</TableCell>
+                            <TableCell className={Math.abs(row.localAmountDiff) > 1 ? 'text-red-600 font-bold' : 'text-green-600'}>
+                              {formatAmount(row.localAmountDiff)}
+                            </TableCell>
+                            <TableCell>{formatAmount(row.invoiceUsdAmount)}</TableCell>
+                            <TableCell>{formatAmount(row.govBillUsdAmount)}</TableCell>
+                            <TableCell className={row.usdAmountDiff >= 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
+                              {formatAmount(row.usdAmountDiff)}
+                            </TableCell>
+                            <TableCell>
+                              {row.mismatchSeverity === 'critical' ? (
+                                <Badge variant="destructive"><AlertTriangle className="h-3 w-3 mr-1" />Critical</Badge>
+                              ) : row.mismatchSeverity === 'warning' ? (
+                                <Badge variant="secondary" className="bg-amber-500/20 text-amber-700"><AlertTriangle className="h-3 w-3 mr-1" />Warning</Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-green-600"><CheckCircle2 className="h-3 w-3 mr-1" />OK</Badge>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Mismatch detail notes */}
+            {(empCostRecon?.rows || []).filter((r: any) => r.hasMismatch).length > 0 && (
+              <Card className="border-amber-500/30">
+                <CardHeader>
+                  <CardTitle className="text-amber-600">Mismatch Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {(empCostRecon?.rows || []).filter((r: any) => r.hasMismatch).map((r: any) => (
+                    <div key={r.countryCode} className={`p-3 rounded-lg text-sm ${
+                      r.mismatchSeverity === 'critical' ? 'bg-red-500/10 border border-red-500/30' : 'bg-amber-500/10 border border-amber-500/30'
+                    }`}>
+                      <span className="font-semibold">{r.countryCode}:</span> {r.mismatchNote}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
         </Tabs>

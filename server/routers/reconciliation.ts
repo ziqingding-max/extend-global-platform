@@ -17,6 +17,7 @@ import {
   batchReconcile,
   getReconciliationSummary,
   unreconciledVendorBill,
+  getEmploymentCostReconciliation,
 } from "../services/reconciliationEngine";
 import { logAuditAction } from "../services/db/commonService";
 
@@ -102,6 +103,16 @@ export const reconciliationRouter = router({
         matchedCount: results.length,
         results,
       };
+    }),
+
+  /**
+   * Employment Cost Reconciliation: compare Invoice Employment Cost vs Government Vendor Bills
+   * by country + month. Returns local currency mismatch alerts and actual FX markup revenue.
+   */
+  employmentCostRecon: userProcedure
+    .input(z.object({ payrollMonth: z.string().regex(/^\d{4}-\d{2}$/) }))
+    .query(async ({ input }) => {
+      return getEmploymentCostReconciliation(input.payrollMonth);
     }),
 
   /**

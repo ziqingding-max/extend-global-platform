@@ -121,9 +121,16 @@ export const reportsRouter = router({
         const invoiceCount = revenueResult[0]?.cnt ?? 0;
 
         // ── Expenses: sum of paid/approved vendor bills ──
+        // CRITICAL FIX: For pass_through bills (government), use settlementAmountUsd (actual USD paid)
+        // For other bills, use totalAmount (already in USD or operational currency)
         const expenseResult = await db
           .select({
-            total: sql<string>`COALESCE(SUM(${vendorBillsTable.totalAmount}), 0)`,
+            total: sql<string>`COALESCE(SUM(
+              CASE WHEN ${vendorBillsTable.billType} = 'pass_through' 
+                   THEN COALESCE(${vendorBillsTable.settlementAmountUsd}, 0)
+                   ELSE ${vendorBillsTable.totalAmount}
+              END
+            ), 0)`,
             cnt: count(),
           })
           .from(vendorBillsTable)
@@ -180,10 +187,16 @@ export const reportsRouter = router({
         .groupBy(invoicesTable.invoiceType);
 
       // ── Expense breakdown by category ──
+      // CRITICAL FIX: Use settlementAmountUsd for pass_through bills
       const expensesByCategoryResult = await db
         .select({
           category: vendorBillsTable.category,
-          amount: sql<string>`COALESCE(SUM(${vendorBillsTable.totalAmount}), 0)`,
+          amount: sql<string>`COALESCE(SUM(
+            CASE WHEN ${vendorBillsTable.billType} = 'pass_through'
+                 THEN COALESCE(${vendorBillsTable.settlementAmountUsd}, 0)
+                 ELSE ${vendorBillsTable.totalAmount}
+            END
+          ), 0)`,
         })
         .from(vendorBillsTable)
         .where(
@@ -196,11 +209,17 @@ export const reportsRouter = router({
         .groupBy(vendorBillsTable.category);
 
       // ── Expense breakdown by vendor ──
+      // CRITICAL FIX: Use settlementAmountUsd for pass_through bills
       const expensesByVendorResult = await db
         .select({
           vendorId: vendorBillsTable.vendorId,
           vendorName: vendorsTable.name,
-          amount: sql<string>`COALESCE(SUM(${vendorBillsTable.totalAmount}), 0)`,
+          amount: sql<string>`COALESCE(SUM(
+            CASE WHEN ${vendorBillsTable.billType} = 'pass_through'
+                 THEN COALESCE(${vendorBillsTable.settlementAmountUsd}, 0)
+                 ELSE ${vendorBillsTable.totalAmount}
+            END
+          ), 0)`,
         })
         .from(vendorBillsTable)
         .innerJoin(vendorsTable, eq(vendorBillsTable.vendorId, vendorsTable.id))
