@@ -4,6 +4,7 @@ import { useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
+import { useCpContext } from "@/_core/store/cpContextStore";
 
 export function useInvoices() {
   const { t } = useI18n();
@@ -43,10 +44,22 @@ export function useInvoices() {
 
   const utils = trpc.useUtils();
 
+  // Task Group B: Global CP Context overrides local cpFilter
+  const cpContext = useCpContext();
+  const effectiveCpFilter = cpContext.mode !== "all" ? cpContext.mode : cpFilter;
+  const resolvedChannelPartnerId = (() => {
+    if (cpContext.mode === "direct") return null;
+    if (cpContext.mode === "specific") return cpContext.cpId;
+    // Fallback to local filter
+    if (cpFilter === "all") return undefined;
+    if (cpFilter === "direct") return null;
+    return parseInt(cpFilter);
+  })();
+
   const { data, isLoading } = trpc.invoices.list.useQuery({
     status: statusFilter !== "all" ? statusFilter : undefined,
     invoiceMonth: monthFilter || undefined,
-    channelPartnerId: cpFilter === "all" ? undefined : cpFilter === "direct" ? null : parseInt(cpFilter),
+    channelPartnerId: resolvedChannelPartnerId,
     invoiceLayer: layerFilter !== "all" ? layerFilter : undefined,
     excludeCreditNotes: true,
     limit: 200,

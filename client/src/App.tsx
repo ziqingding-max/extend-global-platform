@@ -70,6 +70,9 @@ const CpPortalInvoices = lazy(() => import("./pages/cp-portal/CpPortalInvoices")
 const CpPortalInvoiceDetail = lazy(() => import("./pages/cp-portal/CpPortalInvoiceDetail"));
 const CpPortalWallet = lazy(() => import("./pages/cp-portal/CpPortalWallet"));
 const CpPortalSettings = lazy(() => import("./pages/cp-portal/CpPortalSettings"));
+const CpPortalClientDeposits = lazy(() => import("./pages/cp-portal/CpPortalClientDeposits"));
+const CpPortalQuotations = lazy(() => import("./pages/cp-portal/CpPortalQuotations"));
+const CpPortalOperations = lazy(() => import("./pages/cp-portal/CpPortalOperations"));
 
 // Worker Portal pages
 const WorkerLogin = lazy(() => import("./pages/worker/WorkerLogin"));
@@ -328,6 +331,9 @@ function CpPortalRouter() {
               <Route path="/cp/invoices/:id" component={() => <CpPortalLayout><CpPortalInvoiceDetail /></CpPortalLayout>} />
               <Route path="/cp/invoices" component={() => <CpPortalLayout><CpPortalInvoices /></CpPortalLayout>} />
               <Route path="/cp/wallet" component={() => <CpPortalLayout><CpPortalWallet /></CpPortalLayout>} />
+              <Route path="/cp/deposits" component={() => <CpPortalLayout><CpPortalClientDeposits /></CpPortalLayout>} />
+              <Route path="/cp/quotations" component={() => <CpPortalLayout><CpPortalQuotations /></CpPortalLayout>} />
+              <Route path="/cp/operations" component={() => <CpPortalLayout><CpPortalOperations /></CpPortalLayout>} />
               <Route path="/cp/settings" component={() => <CpPortalLayout><CpPortalSettings /></CpPortalLayout>} />
               <Route path="/cp">{() => <CpPortalLayout><CpPortalDashboard /></CpPortalLayout>}</Route>
               <Route component={NotFound} />

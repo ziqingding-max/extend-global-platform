@@ -384,6 +384,294 @@ export const cpPortalInvoicesRouter = cpPortalRouter({
       };
     }),
 
+  // =========================================================================
+  // Task Group D: CP Invoice Lifecycle — Custom Items & Mark Paid
+  // =========================================================================
+
+  /**
+   * Add a custom line item to a CP→Client (L2) invoice.
+   * Only allowed on draft-status L2 invoices.
+   * CP can add markup, consulting fees, or other charges.
+   * Items with isImmutableCost=true (employment costs from EG) CANNOT be modified.
+   */
+  addCustomItem: cpFinanceProcedure
+    .input(
+      z.object({
+        invoiceId: z.number(),
+        description: z.string().min(1).max(500),
+        quantity: z.string().default("1"),
+        unitPrice: z.string(),
+        itemType: z.enum([
+          "eor_service_fee",
+          "visa_eor_service_fee",
+          "aor_service_fee",
+          "equipment_procurement_fee",
+          "onboarding_fee",
+          "offboarding_fee",
+          "admin_setup_fee",
+          "contract_termination_fee",
+          "payroll_processing_fee",
+          "tax_filing_fee",
+          "hr_advisory_fee",
+          "legal_compliance_fee",
+          "visa_immigration_fee",
+          "relocation_fee",
+          "benefits_admin_fee",
+          "bank_transfer_fee",
+          "consulting_fee",
+          "management_consulting_fee",
+        ]),
+        vatRate: z.string().default("0"),
+        countryCode: z.string().max(3).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      const cpId = ctx.cpUser.channelPartnerId;
+
+      // Verify invoice belongs to this CP, is L2, and is draft
+      const invoice = await db.query.invoices.findFirst({
+        where: and(
+          eq(invoices.id, input.invoiceId),
+          eq(invoices.channelPartnerId, cpId)
+        ),
+      });
+
+      if (!invoice) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found" });
+      }
+      if (invoice.invoiceLayer !== "cp_to_client") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Custom items can only be added to CP→Client (L2) invoices",
+        });
+      }
+      if (invoice.status !== "draft") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Invoice is in '${invoice.status}' status. Custom items can only be added to draft invoices.`,
+        });
+      }
+
+      // Calculate amount
+      const qty = parseFloat(input.quantity) || 1;
+      const price = parseFloat(input.unitPrice) || 0;
+      const amount = (qty * price).toFixed(2);
+
+      // Insert the custom item
+      const result = await db.insert(invoiceItems).values({
+        invoiceId: input.invoiceId,
+        description: input.description,
+        quantity: input.quantity,
+        unitPrice: input.unitPrice,
+        amount,
+        itemType: input.itemType,
+        vatRate: input.vatRate,
+        countryCode: input.countryCode || null,
+        isImmutableCost: false, // CP-added items are always mutable
+      });
+
+      // Recalculate invoice totals
+      const allItems = await db
+        .select({ amount: invoiceItems.amount, vatRate: invoiceItems.vatRate })
+        .from(invoiceItems)
+        .where(eq(invoiceItems.invoiceId, input.invoiceId));
+
+      let newSubtotal = 0;
+      let newTax = 0;
+      for (const item of allItems) {
+        const itemAmount = parseFloat(item.amount) || 0;
+        const itemVat = parseFloat(item.vatRate || "0") || 0;
+        newSubtotal += itemAmount;
+        newTax += itemAmount * (itemVat / 100);
+      }
+      const newTotal = newSubtotal + newTax;
+
+      await db
+        .update(invoices)
+        .set({
+          subtotal: newSubtotal.toFixed(2),
+          tax: newTax.toFixed(2),
+          total: newTotal.toFixed(2),
+          amountDue: newTotal.toFixed(2),
+          updatedAt: new Date(),
+        })
+        .where(eq(invoices.id, input.invoiceId));
+
+      return {
+        success: true,
+        itemId: (result as any).lastInsertRowid || 0,
+        newTotal: newTotal.toFixed(2),
+      };
+    }),
+
+  /**
+   * Remove a custom (mutable) line item from a CP→Client (L2) invoice.
+   * Only items with isImmutableCost=false can be removed.
+   * Only allowed on draft-status invoices.
+   */
+  removeCustomItem: cpFinanceProcedure
+    .input(
+      z.object({
+        invoiceId: z.number(),
+        itemId: z.number(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      const cpId = ctx.cpUser.channelPartnerId;
+
+      // Verify invoice belongs to this CP, is L2, and is draft
+      const invoice = await db.query.invoices.findFirst({
+        where: and(
+          eq(invoices.id, input.invoiceId),
+          eq(invoices.channelPartnerId, cpId)
+        ),
+      });
+
+      if (!invoice) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found" });
+      }
+      if (invoice.invoiceLayer !== "cp_to_client") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Can only modify CP→Client (L2) invoices" });
+      }
+      if (invoice.status !== "draft") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Can only remove items from draft invoices" });
+      }
+
+      // Verify item exists and is mutable
+      const item = await db
+        .select({ id: invoiceItems.id, isImmutableCost: invoiceItems.isImmutableCost })
+        .from(invoiceItems)
+        .where(
+          and(
+            eq(invoiceItems.id, input.itemId),
+            eq(invoiceItems.invoiceId, input.invoiceId)
+          )
+        )
+        .limit(1);
+
+      if (item.length === 0) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Line item not found" });
+      }
+      if (item[0].isImmutableCost) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Cannot remove employment cost items (locked by EG)",
+        });
+      }
+
+      // Delete the item
+      await db.delete(invoiceItems).where(eq(invoiceItems.id, input.itemId));
+
+      // Recalculate invoice totals
+      const remainingItems = await db
+        .select({ amount: invoiceItems.amount, vatRate: invoiceItems.vatRate })
+        .from(invoiceItems)
+        .where(eq(invoiceItems.invoiceId, input.invoiceId));
+
+      let newSubtotal = 0;
+      let newTax = 0;
+      for (const ri of remainingItems) {
+        const riAmount = parseFloat(ri.amount) || 0;
+        const riVat = parseFloat(ri.vatRate || "0") || 0;
+        newSubtotal += riAmount;
+        newTax += riAmount * (riVat / 100);
+      }
+      const newTotal = newSubtotal + newTax;
+
+      await db
+        .update(invoices)
+        .set({
+          subtotal: newSubtotal.toFixed(2),
+          tax: newTax.toFixed(2),
+          total: newTotal.toFixed(2),
+          amountDue: newTotal.toFixed(2),
+          updatedAt: new Date(),
+        })
+        .where(eq(invoices.id, input.invoiceId));
+
+      return { success: true, newTotal: newTotal.toFixed(2) };
+    }),
+
+  /**
+   * Mark a CP→Client (L2) invoice as paid.
+   * This is triggered when the CP confirms they received payment from the End Client
+   * (e.g., via offline bank transfer). 
+   * 
+   * IMPORTANT: This does NOT deduct from any wallet. The customer pays manually,
+   * and the CP marks the invoice as paid after confirming receipt.
+   */
+  markPaid: cpFinanceProcedure
+    .input(
+      z.object({
+        invoiceId: z.number(),
+        paidAmount: z.string().optional(), // If partial payment, specify amount
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      const cpId = ctx.cpUser.channelPartnerId;
+
+      // Verify invoice belongs to this CP and is L2
+      const invoice = await db.query.invoices.findFirst({
+        where: and(
+          eq(invoices.id, input.invoiceId),
+          eq(invoices.channelPartnerId, cpId)
+        ),
+      });
+
+      if (!invoice) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found" });
+      }
+      if (invoice.invoiceLayer !== "cp_to_client") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Only CP→Client (L2) invoices can be marked as paid from CP Portal",
+        });
+      }
+      if (invoice.status !== "sent" && invoice.status !== "overdue") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Invoice is in '${invoice.status}' status. Only sent or overdue invoices can be marked as paid.`,
+        });
+      }
+
+      const totalAmount = parseFloat(invoice.total || "0");
+      const paidAmount = input.paidAmount ? parseFloat(input.paidAmount) : totalAmount;
+      const remainingDue = totalAmount - paidAmount;
+      const newStatus = remainingDue <= 0.01 ? "paid" : "partially_paid";
+
+      await db
+        .update(invoices)
+        .set({
+          status: newStatus,
+          paidDate: new Date(),
+          paidAmount: paidAmount.toFixed(2),
+          amountDue: Math.max(0, remainingDue).toFixed(2),
+          notes: input.notes
+            ? (invoice.notes ? invoice.notes + "\n" + input.notes : input.notes)
+            : invoice.notes,
+          updatedAt: new Date(),
+        })
+        .where(eq(invoices.id, input.invoiceId));
+
+      return {
+        success: true,
+        invoiceId: input.invoiceId,
+        newStatus,
+        paidAmount: paidAmount.toFixed(2),
+        remainingDue: Math.max(0, remainingDue).toFixed(2),
+      };
+    }),
+
   /**
    * Send an overdue reminder for a CP→Client invoice.
    * Only invoices with 'sent' or 'overdue' status can receive reminders.

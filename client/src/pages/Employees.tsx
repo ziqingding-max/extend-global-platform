@@ -11,6 +11,7 @@ import { DatePicker } from "@/components/DatePicker";
 import { formatCurrencyAmount } from "@/components/CurrencyAmount";
 import { formatDate, formatMonth, formatDateISO, formatDateTime, countryName } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
+import { useCpContext } from "@/_core/store/cpContextStore";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useRoute, useLocation, useSearch } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -145,12 +146,23 @@ function EmployeeList() {
     setPage(1);
   }, [search, statusFilter, customerFilter, countryFilter, cpFilter]);
 
+  // Task Group B: Global CP Context overrides local cpFilter
+  const cpContext = useCpContext();
+  const resolvedChannelPartnerId = (() => {
+    if (cpContext.mode === "direct") return null;
+    if (cpContext.mode === "specific") return cpContext.cpId;
+    // Fallback to local filter
+    if (cpFilter === "all") return undefined;
+    if (cpFilter === "direct") return null;
+    return parseInt(cpFilter);
+  })();
+
   const { data, isLoading, refetch } = trpc.employees.list.useQuery({
     search: search || undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
     customerId: customerFilter !== "all" ? parseInt(customerFilter) : undefined,
     country: countryFilter !== "all" ? countryFilter : undefined,
-    channelPartnerId: cpFilter === "all" ? undefined : cpFilter === "direct" ? null : parseInt(cpFilter),
+    channelPartnerId: resolvedChannelPartnerId,
     limit: pageSize,
     offset: (page - 1) * pageSize,
   });

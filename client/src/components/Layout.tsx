@@ -67,6 +67,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
+import CpContextSwitcher from "@/components/CpContextSwitcher";
+import { useCpContext } from "@/_core/store/cpContextStore";
 
 import type { LucideIcon } from "lucide-react";
 
@@ -262,6 +264,33 @@ function NavPill({
   );
 }
 
+/* ─── CP Context Banner ─── */
+function CpContextBanner() {
+  const { mode, cpName, setAll } = useCpContext();
+  if (mode === "all") return null;
+
+  const label = mode === "direct" ? "EG-DIRECT" : cpName || "Selected CP";
+  const bgClass = mode === "direct"
+    ? "bg-amber-500/15 border-amber-500/30 text-amber-700"
+    : "bg-primary/10 border-primary/30 text-primary";
+
+  return (
+    <div className={cn("flex items-center justify-center gap-2 px-4 py-1.5 text-xs font-medium border-b", bgClass)}>
+      <Building2 className="w-3.5 h-3.5" />
+      <span>
+        Viewing as: <strong>{label}</strong>
+        {mode === "direct" && " (Direct Clients — Full Edit Access)"}
+      </span>
+      <button
+        onClick={() => setAll()}
+        className="ml-2 underline hover:no-underline opacity-80 hover:opacity-100"
+      >
+        Clear
+      </button>
+    </div>
+  );
+}
+
 /* ─── Mobile Nav Sheet ─── */
 function MobileNavSheet({
   navGroups,
@@ -447,6 +476,9 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
 
           {/* Right side actions */}
           <div className="flex items-center gap-1.5">
+            {/* CP Context Switcher (Task Group B) */}
+            <CpContextSwitcher />
+
             {/* Language Toggle */}
             <button
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-white/30 transition-all duration-200"
@@ -523,6 +555,9 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
           </div>
         )}
       </header>
+
+      {/* ═══ CP Context Banner (Task Group B) ═══ */}
+      <CpContextBanner />
 
       {/* ═══ Mobile Navigation Sheet ═══ */}
       <MobileNavSheet

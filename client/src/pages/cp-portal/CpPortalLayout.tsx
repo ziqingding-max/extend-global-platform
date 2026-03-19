@@ -23,6 +23,9 @@ import {
   X,
   Loader2,
   Building2,
+  Shield,
+  FileText,
+  Activity,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -44,8 +47,11 @@ function buildCpNavItems(): NavItem[] {
     { label: "Dashboard", icon: LayoutDashboard, href: cpPath("/") },
     { label: "Clients", icon: Users, href: cpPath("/clients") },
     { label: "Pricing", icon: DollarSign, href: cpPath("/pricing") },
+    { label: "Quotations", icon: FileText, href: cpPath("/quotations") },
     { label: "Invoices", icon: Receipt, href: cpPath("/invoices") },
+    { label: "Deposits", icon: Shield, href: cpPath("/deposits") },
     { label: "Wallet", icon: Wallet, href: cpPath("/wallet") },
+    { label: "Operations", icon: Activity, href: cpPath("/operations") },
     { label: "Settings", icon: Settings, href: cpPath("/settings") },
   ];
 }
