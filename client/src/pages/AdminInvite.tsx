@@ -116,7 +116,7 @@ export default function AdminInvite() {
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <img 
-            src="/brand/gea-logo-horizontal-green.png" 
+            src="/brand/extg-logo-horizontal.png" 
             alt="Extend Global" 
             className="h-16 object-contain mb-4"
           />

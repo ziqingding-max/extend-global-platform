@@ -390,8 +390,8 @@ export default function PortalLayout({ children, title }: PortalLayoutProps) {
                 />
               ) : (
                 <img
-                  src="/brand/gea-logo-icon.png"
-                  alt="EG"
+                  src="/brand/extg-logo-icon.png"
+                  alt="ExtG"
                   className="w-7 h-7 object-contain"
                 />
               )}

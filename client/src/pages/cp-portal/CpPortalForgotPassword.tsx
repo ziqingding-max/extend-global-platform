@@ -38,7 +38,7 @@ export default function CpPortalForgotPassword() {
   };
 
   const companyName = branding?.companyName || "Extend Global";
-  const logoUrl = branding?.logoUrl || "/brand/gea-logo-horizontal-green.png";
+  const logoUrl = branding?.logoUrl || "/brand/extg-logo-horizontal.png";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">

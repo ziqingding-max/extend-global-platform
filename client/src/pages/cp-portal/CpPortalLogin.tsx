@@ -52,7 +52,7 @@ export default function CpPortalLogin() {
   }
 
   const companyName = branding?.companyName || "Extend Global";
-  const logoUrl = branding?.logoUrl || "/brand/gea-logo-icon.png";
+  const logoUrl = branding?.logoUrl || "/brand/extg-logo-horizontal.png";
 
   return (
     <div className="min-h-screen flex items-center justify-center aurora-bg p-4">
@@ -64,7 +64,7 @@ export default function CpPortalLogin() {
             alt={companyName}
             className="h-14 object-contain mb-4"
             onError={(e) => {
-              (e.target as HTMLImageElement).src = "/brand/gea-logo-icon.png";
+              (e.target as HTMLImageElement).src = "/brand/extg-logo-horizontal.png";
             }}
           />
           <h1 className="text-2xl font-bold tracking-tight text-foreground">

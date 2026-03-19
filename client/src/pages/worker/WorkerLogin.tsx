@@ -43,7 +43,7 @@ export default function WorkerLogin() {
     loginMutation.mutate({ email: email.trim(), password });
   };
 
-  const logoSrc = isCp && branding?.logoUrl ? branding.logoUrl : "/brand/gea-logo-icon.png";
+  const logoSrc = isCp && branding?.logoUrl ? branding.logoUrl : "/brand/extg-logo-horizontal.png";
   const logoAlt = isCp && branding?.companyName ? branding.companyName : "Extend Global";
 
   return (

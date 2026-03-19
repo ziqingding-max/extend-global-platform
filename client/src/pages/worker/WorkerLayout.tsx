@@ -231,8 +231,8 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
           {/* Logo */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <img
-              src={isCp && branding?.logoUrl ? branding.logoUrl : "/brand/gea-logo-icon.png"}
-              alt={isCp && branding?.companyName ? branding.companyName : "EG"}
+              src={isCp && branding?.logoUrl ? branding.logoUrl : "/brand/extg-logo-icon.png"}
+              alt={isCp && branding?.companyName ? branding.companyName : "ExtG"}
               className="w-7 h-7 flex-shrink-0 object-contain"
             />
             <span className="font-semibold text-sm tracking-tight text-foreground hidden sm:block">
