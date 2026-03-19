@@ -282,7 +282,7 @@ Return a JSON object with these fields:
   - contactPhone: string | null
   - taxId: string | null
   - serviceType: string | null (e.g. "Payroll Processing", "Legal", "IT Services")
-  - vendorType: string ("client_related" if costs relate to specific employees/customers, "operational" if general business cost)
+  - vendorType: string (one of: "government" for tax/social security authorities, "financial" for banks, "professional_service" for accounting/legal firms, "equipment_provider" for IT/equipment suppliers, "hr_recruitment" for recruitment agencies, "operational" for general business costs)
   - confidence: number (0-100)
 - bill: object with:
   - invoiceNumber: string
@@ -294,7 +294,7 @@ Return a JSON object with these fields:
   - tax: number
   - totalAmount: number
   - category: string (one of: payroll_processing, social_contributions, tax_filing, legal_compliance, visa_immigration, hr_advisory, it_services, office_rent, insurance, bank_charges, consulting, equipment, travel, marketing, other)
-  - billType: string (one of: "operational", "deposit", "deposit_refund"). Use "deposit" if the bill is for a security deposit, guarantee deposit, or refundable advance payment to the vendor. Use "deposit_refund" if the vendor is returning a previously paid deposit. Use "operational" for all regular service/expense bills.
+  - billType: string (one of: "operational", "service_fee", "pass_through", "bank_charge", "deposit", "deposit_refund"). Use "pass_through" for government/tax/social security payments. Use "service_fee" for professional service fees (accounting, legal). Use "bank_charge" for bank fees. Use "deposit" for security deposits. Use "deposit_refund" for deposit returns. Use "operational" for all other regular expense bills.
   - description: string
   - confidence: number (0-100)
 - payment: object | null (if POP/receipt is included):
@@ -322,7 +322,7 @@ Return a JSON object with these fields:
   - confidence: number (0-100)
   - matchConfidence: number (0-100, how confident you are specifically about the employee matching. Use 90+ ONLY when employee name/code is explicitly written in the document and clearly matches one employee in SYSTEM DATA. Use 50-89 when matching is based on partial name, country, or inference. Use 0-49 when you are guessing or cannot determine the employee.)
   - matchReason: string | null (explain WHY you matched or didn't match this line item to an employee, e.g. "Name 'John Zhang' exactly matches employee EMP-0012 John Zhang" or "Line item mentions 'China payroll' but cannot determine specific employee" or "No employee information found in this line item")
-  - allocationSuggestion: object | null (only for client_related vendor type):
+  - allocationSuggestion: object | null (only for professional_service or equipment_provider vendor types):
     - invoiceId: number (from our system)
     - employeeId: number (from our system)
     - allocatedAmount: number
@@ -460,7 +460,7 @@ CONFIDENCE SCORING RULES:
               contactPhone: parsed.vendor.contactPhone || undefined,
               taxId: parsed.vendor.taxId || undefined,
               serviceType: parsed.vendor.serviceType || undefined,
-              vendorType: parsed.vendor.vendorType || "client_related",
+              vendorType: parsed.vendor.vendorType || "operational",
               currency: parsed.bill?.currency || "USD",
               paymentTermDays: 30,
               status: "active" as const,
@@ -535,10 +535,18 @@ CONFIDENCE SCORING RULES:
           "payroll_processing", "social_contributions", "tax_filing",
           "legal_compliance", "visa_immigration", "hr_advisory",
           "it_services", "office_rent", "insurance", "bank_charges",
-          "consulting", "equipment", "travel", "marketing", "other",
+          "consulting", "equipment", "travel", "marketing",
+          "penalty", "late_payment_fee", "other",
         ]).default("other"),
-        billType: z.enum(["operational", "deposit", "deposit_refund"]).default("operational"),
+        billType: z.enum(["operational", "service_fee", "pass_through", "bank_charge", "deposit", "deposit_refund"]).default("operational"),
         description: z.string().optional(),
+        // Dual-currency tracking fields
+        localAmount: z.string().optional(),
+        localCurrency: z.string().optional(),
+        settlementAmountUsd: z.string().optional(),
+        fxRateActual: z.string().optional(),
+        countryCode: z.string().optional(),
+        payrollMonth: z.string().optional(),
         receiptFileUrl: z.string().optional(),
         receiptFileKey: z.string().optional(),
         // Payment info (from POP)
@@ -740,7 +748,7 @@ Return a JSON object with these fields:
 - tax: number
 - totalAmount: number
 - category: string (one of: payroll_processing, social_contributions, tax_filing, legal_compliance, visa_immigration, hr_advisory, it_services, office_rent, insurance, bank_charges, consulting, equipment, travel, marketing, other)
-- billType: string (one of: "operational", "deposit", "deposit_refund"). Use "deposit" if the bill is for a security deposit, guarantee deposit, or refundable advance payment. Use "deposit_refund" if the vendor is returning a previously paid deposit. Use "operational" for all regular service/expense bills.
+- billType: string (one of: "operational", "service_fee", "pass_through", "bank_charge", "deposit", "deposit_refund"). Use "pass_through" for government/tax/social security payments. Use "service_fee" for professional service fees (accounting, legal). Use "bank_charge" for bank fees. Use "deposit" for security deposits. Use "deposit_refund" for deposit returns. Use "operational" for all other regular expense bills.
 - description: string
 - lineItems: array of { description: string, employeeName: string | null, quantity: number, unitPrice: number, amount: number, countryCode: string | null }
 
@@ -800,10 +808,18 @@ Be precise with numbers. If a field is not found, use null.`,
           "payroll_processing", "social_contributions", "tax_filing",
           "legal_compliance", "visa_immigration", "hr_advisory",
           "it_services", "office_rent", "insurance", "bank_charges",
-          "consulting", "equipment", "travel", "marketing", "other",
+          "consulting", "equipment", "travel", "marketing",
+          "penalty", "late_payment_fee", "other",
         ]).default("other"),
-        billType: z.enum(["operational", "deposit", "deposit_refund"]).default("operational"),
+        billType: z.enum(["operational", "service_fee", "pass_through", "bank_charge", "deposit", "deposit_refund"]).default("operational"),
         description: z.string().optional(),
+        // Dual-currency tracking fields
+        localAmount: z.string().optional(),
+        localCurrency: z.string().optional(),
+        settlementAmountUsd: z.string().optional(),
+        fxRateActual: z.string().optional(),
+        countryCode: z.string().optional(),
+        payrollMonth: z.string().optional(),
         receiptFileUrl: z.string().optional(),
         receiptFileKey: z.string().optional(),
         items: z.array(
