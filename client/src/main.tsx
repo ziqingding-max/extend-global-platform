@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
+import { useCpContext } from "./_core/store/cpContextStore";
 import "./index.css";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,31 @@ const trpcClient = trpc.createClient({
     httpBatchLink({
       url: "/api/trpc",
       transformer: superjson,
+      headers() {
+        /**
+         * Inject CP Context into every Admin tRPC request.
+         * The backend adminProcedure reads this header to scope queries.
+         *
+         * Header: x-cp-context-id
+         * Values:
+         * - absent / empty      → "all" mode (no filter, god view)
+         * - "direct"            → EG-DIRECT mode (isInternal CP, unlocks edit rights)
+         * - numeric string      → specific external CP id
+         *
+         * Header: x-cp-context-cp-id
+         * - Only sent in "direct" mode, contains the actual CP record ID for EG-DIRECT
+         */
+        const state = useCpContext.getState();
+        const hdrs: Record<string, string> = {};
+        if (state.mode === "direct" && state.cpId) {
+          hdrs["x-cp-context-id"] = "direct";
+          hdrs["x-cp-context-cp-id"] = String(state.cpId);
+        } else if (state.mode === "specific" && state.cpId) {
+          hdrs["x-cp-context-id"] = String(state.cpId);
+        }
+        // "all" mode → no header → backend returns unfiltered data
+        return hdrs;
+      },
       fetch(input, init) {
         return globalThis.fetch(input, {
           ...(init ?? {}),

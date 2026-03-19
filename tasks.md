@@ -60,3 +60,18 @@
 - [x] Enhance `CpPortalDashboard.tsx` — profit cards, monthly trend bar chart, quick stats <!-- id: E6 -->
 - [x] Register all new routers in `cpPortalRouter.ts` <!-- id: E7 -->
 - [x] Add navigation items in `CpPortalLayout.tsx` <!-- id: E8 -->
+
+## Task Group B-fix: Context Switcher 遗漏修复
+- [x] Add `x-cp-context-id` Header injection in Admin tRPC httpBatchLink (`main.tsx`) <!-- id: Bf1 -->
+- [x] Enhance `adminProcedure` in `procedures.ts` to parse `x-cp-context-id` and inject `cpContext` into ctx <!-- id: Bf2 -->
+- [x] Implement EG-DIRECT permission unlock in `Customers.tsx` — show create/edit buttons when mode is "direct" <!-- id: Bf3 -->
+
+## Task Group D-fix: Release Tasks + depositRefundService 修复
+- [x] Create `cpPortalReleaseTasksRouter.ts` — CP can view and approve deposit releases (to_wallet / to_bank) <!-- id: Df1 -->
+- [x] Create `CpPortalReleaseTasks.tsx` — Release Tasks page with pending/history tabs and approval dialog <!-- id: Df2 -->
+- [x] Fix `depositRefundService.ts` — inherit `invoiceLayer` and `channelPartnerId` from original deposit invoice <!-- id: Df3 -->
+- [x] Register Release Tasks in `cpPortalRouter.ts`, `App.tsx`, and `CpPortalLayout.tsx` navigation <!-- id: Df4 -->
+
+## Task Group B-fix: CpWallets 独立页面
+- [x] Create `CpWallets.tsx` — standalone Admin page for managing all CP wallets (top-up, adjust, release) <!-- id: Bf4 -->
+- [x] Register route in `App.tsx` and update `Layout.tsx` Partner Hub navigation <!-- id: Bf5 -->

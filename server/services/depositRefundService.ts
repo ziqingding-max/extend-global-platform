@@ -155,11 +155,17 @@ export async function generateDepositRefund(
     const dueDate = null;
 
     // 7. Create refund invoice (amounts are negative to indicate refund)
+    //
+    // IMPORTANT: Inherit invoiceLayer and channelPartnerId from the original deposit invoice.
+    // This ensures the refund appears in the correct L1/L2/Direct tab in Admin,
+    // and is properly scoped to the CP in CP Portal queries.
     const invoiceData: InsertInvoice = {
       customerId: employee.customerId,
       billingEntityId,
+      channelPartnerId: depositInvoice.channelPartnerId ?? customer.channelPartnerId ?? null,
       invoiceNumber,
       invoiceType: "deposit_refund",
+      invoiceLayer: depositInvoice.invoiceLayer || "legacy",
       currency: originalCurrency,
       exchangeRate: depositInvoice.exchangeRate?.toString() || "1",
       exchangeRateWithMarkup: depositInvoice.exchangeRateWithMarkup?.toString() || "1",

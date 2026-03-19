@@ -26,6 +26,7 @@ import {
   Shield,
   FileText,
   Activity,
+  ArrowDownToLine,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -52,6 +53,7 @@ function buildCpNavItems(): NavItem[] {
     { label: "Deposits", icon: Shield, href: cpPath("/deposits") },
     { label: "Wallet", icon: Wallet, href: cpPath("/wallet") },
     { label: "Operations", icon: Activity, href: cpPath("/operations") },
+    { label: "Releases", icon: ArrowDownToLine, href: cpPath("/release-tasks") },
     { label: "Settings", icon: Settings, href: cpPath("/settings") },
   ];
 }

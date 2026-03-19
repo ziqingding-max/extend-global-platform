@@ -42,6 +42,7 @@ import CountryGuideList from "@/pages/admin/CountryGuideList";
 import CountryGuideEditor from "@/pages/admin/CountryGuideEditor";
 import AdminCountryGuide from "@/pages/admin/AdminCountryGuide";
 import ChannelPartners from "./pages/ChannelPartners";
+import CpWallets from "./pages/CpWallets";
 import Reconciliation from "./pages/Reconciliation";
 
 // Portal pages (lazy loaded to keep admin bundle separate)
@@ -73,6 +74,7 @@ const CpPortalSettings = lazy(() => import("./pages/cp-portal/CpPortalSettings")
 const CpPortalClientDeposits = lazy(() => import("./pages/cp-portal/CpPortalClientDeposits"));
 const CpPortalQuotations = lazy(() => import("./pages/cp-portal/CpPortalQuotations"));
 const CpPortalOperations = lazy(() => import("./pages/cp-portal/CpPortalOperations"));
+const CpPortalReleaseTasks = lazy(() => import("./pages/cp-portal/CpPortalReleaseTasks"));
 
 // Worker Portal pages
 const WorkerLogin = lazy(() => import("./pages/worker/WorkerLogin"));
@@ -303,6 +305,7 @@ function AdminRouter() {
       <Route path="/admin/country-guide" component={AdminCountryGuide} />
       <Route path="/channel-partners/:id" component={ChannelPartners} />
       <Route path="/channel-partners" component={ChannelPartners} />
+      <Route path="/cp-wallets" component={CpWallets} />
       <Route path="/settings" component={Settings} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
@@ -334,6 +337,7 @@ function CpPortalRouter() {
               <Route path="/cp/deposits" component={() => <CpPortalLayout><CpPortalClientDeposits /></CpPortalLayout>} />
               <Route path="/cp/quotations" component={() => <CpPortalLayout><CpPortalQuotations /></CpPortalLayout>} />
               <Route path="/cp/operations" component={() => <CpPortalLayout><CpPortalOperations /></CpPortalLayout>} />
+              <Route path="/cp/release-tasks" component={() => <CpPortalLayout><CpPortalReleaseTasks /></CpPortalLayout>} />
               <Route path="/cp/settings" component={() => <CpPortalLayout><CpPortalSettings /></CpPortalLayout>} />
               <Route path="/cp">{() => <CpPortalLayout><CpPortalDashboard /></CpPortalLayout>}</Route>
               <Route component={NotFound} />
