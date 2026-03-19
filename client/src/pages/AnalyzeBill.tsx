@@ -43,7 +43,8 @@ import { toast } from "sonner";
 const categoryKeys = [
   "payroll_processing", "social_contributions", "tax_filing", "legal_compliance",
   "visa_immigration", "hr_advisory", "it_services", "office_rent", "insurance",
-  "bank_charges", "consulting", "equipment", "travel", "marketing", "other",
+  "bank_charges", "consulting", "equipment", "travel", "marketing",
+  "penalty", "late_payment_fee", "other",
 ];
 const itemTypeKeys = [
   "employment_cost", "service_fee", "visa_fee", "equipment_purchase", "deposit", "deposit_refund", "other",
@@ -127,6 +128,9 @@ function BillFormFields({ bill, onChange, vendors }: {
               <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="operational">Operational</SelectItem>
+                <SelectItem value="service_fee">Service Fee</SelectItem>
+                <SelectItem value="pass_through">Pass-through (Gov)</SelectItem>
+                <SelectItem value="bank_charge">Bank Charge</SelectItem>
                 <SelectItem value="deposit">Deposit</SelectItem>
                 <SelectItem value="deposit_refund">Deposit Refund</SelectItem>
               </SelectContent>
@@ -174,6 +178,36 @@ function BillFormFields({ bill, onChange, vendors }: {
           <div>
             <Label className="text-xs">Total Amount *</Label>
             <Input type="number" step="0.01" value={bill.totalAmount || ""} onChange={(e) => set("totalAmount", e.target.value)} className={`h-8 text-sm font-medium ${noSpin}`} />
+          </div>
+        </div>
+        {/* ─── Dual-Currency Tracking (for Government / Pass-through bills) ─── */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-3 rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20">
+          <div className="col-span-full">
+            <p className="text-xs font-semibold text-muted-foreground">Dual-Currency Tracking {bill.billType === 'pass_through' && <span className="text-red-500">*</span>}</p>
+          </div>
+          <div>
+            <Label className="text-xs">Local Amount</Label>
+            <Input type="number" step="0.01" value={bill.localAmount || ""} onChange={(e) => set("localAmount", e.target.value)} className={`h-8 text-sm ${noSpin}`} placeholder="e.g. 50000" />
+          </div>
+          <div>
+            <Label className="text-xs">Local Currency</Label>
+            <CurrencySelect value={bill.localCurrency || ""} onValueChange={(v) => set("localCurrency", v)} />
+          </div>
+          <div>
+            <Label className="text-xs">Settlement Amount (USD)</Label>
+            <Input type="number" step="0.01" value={bill.settlementAmountUsd || ""} onChange={(e) => set("settlementAmountUsd", e.target.value)} className={`h-8 text-sm ${noSpin}`} placeholder="Actual USD paid" />
+          </div>
+          <div>
+            <Label className="text-xs">FX Rate (Actual)</Label>
+            <Input type="number" step="0.000001" value={bill.fxRateActual || ""} onChange={(e) => set("fxRateActual", e.target.value)} className={`h-8 text-sm ${noSpin}`} placeholder="e.g. 1.0850" />
+          </div>
+          <div>
+            <Label className="text-xs">Country Code</Label>
+            <Input value={bill.countryCode || ""} onChange={(e) => set("countryCode", e.target.value)} className="h-8 text-sm" placeholder="e.g. DE, JP" />
+          </div>
+          <div>
+            <Label className="text-xs">Payroll Month</Label>
+            <MonthPicker value={bill.payrollMonth || ""} onChange={(v: string) => set("payrollMonth", v)} placeholder="Select payroll month" className="h-8 text-sm" />
           </div>
         </div>
         <div>
@@ -723,6 +757,13 @@ export default function AnalyzeBill() {
           tax: bill.tax || "0",
           totalAmount: bill.totalAmount,
           description: bill.description || "",
+          // Dual-currency tracking fields
+          localAmount: bill.localAmount || undefined,
+          localCurrency: bill.localCurrency || undefined,
+          settlementAmountUsd: bill.settlementAmountUsd || undefined,
+          fxRateActual: bill.fxRateActual || undefined,
+          countryCode: bill.countryCode || undefined,
+          payrollMonth: bill.payrollMonth || undefined,
           items: items.map((item) => ({
             description: item.description,
             quantity: item.quantity || "1",
@@ -763,6 +804,13 @@ export default function AnalyzeBill() {
           tax: bill.tax || "0",
           totalAmount: bill.totalAmount,
           description: bill.description || "",
+          // Dual-currency tracking fields
+          localAmount: bill.localAmount || undefined,
+          localCurrency: bill.localCurrency || undefined,
+          settlementAmountUsd: bill.settlementAmountUsd || undefined,
+          fxRateActual: bill.fxRateActual || undefined,
+          countryCode: bill.countryCode || undefined,
+          payrollMonth: bill.payrollMonth || undefined,
           items: items.length > 0 ? items.map((item) => ({
             description: item.description,
             quantity: item.quantity || "1",
