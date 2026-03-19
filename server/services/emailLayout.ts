@@ -2,17 +2,24 @@
  * EG Email Layout — Unified HTML email template with brand identity.
  *
  * Features:
- * - Brand-colored header with EG logo
+ * - Brand-colored header with EG logo (Royal Purple gradient)
  * - Structured content area
- * - Professional footer with "About EG" for client-facing emails
+ * - Professional footer with "About Extend Global" for client-facing emails
  * - Table-based layout for maximum email client compatibility
  * - Inline CSS only (no external stylesheets)
+ *
+ * Brand Color Scheme: Royal Purple
+ * - Primary: #6D28D9
+ * - Primary Light: #8B5CF6
+ * - Accent: #C4B5FD
+ * See docs/08_品牌与UI规范/邮件品牌色规范.md for full specification.
  */
 
-// Brand colors
-const BRAND_GREEN = "#005430";
-const BRAND_GREEN_LIGHT = "#006a3e";
-const BRAND_GOLD = "#D4A843";
+// Brand colors — Royal Purple scheme (aligned with ExtG logo)
+const BRAND_PRIMARY = "#6D28D9";
+const BRAND_PRIMARY_LIGHT = "#8B5CF6";
+const BRAND_ACCENT = "#C4B5FD";
+const BRAND_ACCENT_DARK = "#A78BFA";
 const TEXT_PRIMARY = "#1a1a1a";
 const TEXT_SECONDARY = "#555555";
 const TEXT_MUTED = "#888888";
@@ -23,7 +30,7 @@ const BORDER_LIGHT = "#e5e7eb";
 /**
  * Build the logo <img> tag using an externally hosted URL.
  * The logo PNG is served from the app's static files at /brand/extg-logo-email.png.
- * The base URL comes from ADMIN_APP_URL in .env (e.g. https://app.extendglobal.ai).
+ * The base URL comes from ADMIN_APP_URL in .env (e.g. https://admin.extendglobal.ai).
  * This avoids base64 embedding which triggers anti-spam filters on Aliyun DirectMail.
  */
 function getLogoImg(): string {
@@ -36,7 +43,7 @@ function getLogoImg(): string {
 
 /**
  * Audience type determines footer content:
- * - "client": Shows full "About EG" company introduction
+ * - "client": Shows full "About Extend Global" company introduction
  * - "worker": Shows simplified support info
  * - "admin": Shows minimal internal footer
  */
@@ -66,7 +73,7 @@ export function renderEmailLayout(
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-<title>EG Notification</title>
+<title>Extend Global</title>
 <!--[if mso]>
 <noscript>
 <xml>
@@ -88,16 +95,16 @@ ${preheaderHtml}
 <!-- Email container -->
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;width:100%;background-color:${BG_CARD};border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
 
-<!-- ========== HEADER ========== -->
+<!-- ========== HEADER (Royal Purple gradient) ========== -->
 <tr>
-<td style="background-color:${BRAND_GREEN};padding:28px 32px;text-align:center;">
+<td style="background-color:${BRAND_PRIMARY};background-image:linear-gradient(135deg, ${BRAND_PRIMARY} 0%, ${BRAND_PRIMARY_LIGHT} 100%);padding:28px 32px;text-align:center;">
 ${logoImg}
 </td>
 </tr>
 
-<!-- Gold accent line -->
+<!-- Accent line (lavender gradient) -->
 <tr>
-<td style="background-color:${BRAND_GOLD};height:3px;font-size:0;line-height:0;">&nbsp;</td>
+<td style="background-color:${BRAND_ACCENT};background-image:linear-gradient(90deg, ${BRAND_ACCENT}, ${BRAND_ACCENT_DARK});height:3px;font-size:0;line-height:0;">&nbsp;</td>
 </tr>
 
 <!-- ========== BODY ========== -->
@@ -125,17 +132,17 @@ ${footerContent}
 function buildFooter(audience: EmailAudience): string {
   const year = new Date().getFullYear();
 
-  // About EG section — only for client-facing emails
+  // About Extend Global section — only for client/worker-facing emails
   const aboutSection =
-    audience === "client"
+    audience === "client" || audience === "worker"
       ? `
 <tr>
 <td style="padding:0 32px;">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
 <tr>
 <td style="border-top:1px solid ${BORDER_LIGHT};padding:20px 0 0 0;">
-<p style="margin:0 0 8px 0;font-size:13px;font-weight:bold;color:${BRAND_GREEN};">About EG (Global Employment Advisors)</p>
-<p style="margin:0;font-size:12px;line-height:1.6;color:${TEXT_MUTED};">As CGL Group overseas business sub-brand, EG helps enterprises navigate emerging markets across the full lifecycle — from Access to Implementation, from Development to Reorganization — providing comprehensive, end-to-end human resources services and solutions.</p>
+<p style="margin:0 0 8px 0;font-size:13px;font-weight:bold;color:${BRAND_PRIMARY};">About Extend Global</p>
+<p style="margin:0;font-size:12px;line-height:1.6;color:${TEXT_MUTED};">Founded in 2021, Extend Global (EG) is a leading provider of employer-of-record (EOR) and global workforce management solutions. With direct operations in over 35 countries spanning the Asia-Pacific, North America, and Europe, EG empowers businesses to expand into emerging markets seamlessly — delivering end-to-end compliant employment, payroll processing, and comprehensive HR services across borders.</p>
 </td>
 </tr>
 </table>
@@ -147,7 +154,7 @@ function buildFooter(audience: EmailAudience): string {
   const supportLine =
     audience === "admin"
       ? `This is an internal system notification.`
-      : `Questions? Contact us at <a href="mailto:support@extendglobal.ai" style="color:${BRAND_GREEN};text-decoration:none;">support@extendglobal.ai</a>`;
+      : `Questions? Contact us at <a href="mailto:support@extendglobal.ai" style="color:${BRAND_PRIMARY};text-decoration:none;">support@extendglobal.ai</a>`;
 
   return `
 ${aboutSection}
@@ -170,7 +177,7 @@ ${aboutSection}
 // ─── Reusable HTML snippet builders for email templates ───
 
 /** CTA button */
-export function emailButton(text: string, href: string, color: string = BRAND_GREEN): string {
+export function emailButton(text: string, href: string, color: string = BRAND_PRIMARY): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0;">
 <tr>
 <td align="center" style="background-color:${color};border-radius:6px;">
@@ -222,7 +229,7 @@ export function emailAmountDisplay(currency: string, amount: string): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:16px 0;">
 <tr>
 <td align="center" style="padding:16px;background-color:#f9fafb;border-radius:6px;">
-<p style="margin:0;font-size:28px;font-weight:bold;color:${BRAND_GREEN};">${currency} ${amount}</p>
+<p style="margin:0;font-size:28px;font-weight:bold;color:${BRAND_PRIMARY};">${currency} ${amount}</p>
 </td>
 </tr>
 </table>`;
