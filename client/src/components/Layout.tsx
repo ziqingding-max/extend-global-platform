@@ -95,17 +95,7 @@ function useNavGroups(user: any): NavGroup[] {
   return useMemo(
     () =>
       [
-        /* ── 1. Partner Hub (B2B2B 第一公民) ── */
-        {
-          label: "Partner Hub",
-          icon: Handshake,
-          items: [
-            { label: "Partners", icon: Handshake, href: "/channel-partners" },
-            { label: "CP Wallets", icon: Landmark, href: "/cp-wallets" },
-            { label: "CP Pricing", icon: DollarSign, href: "/channel-partners?tab=pricing" },
-          ].filter(() => hasRole(["admin"])),
-        },
-        /* ── 2. Overview ── */
+        /* ── 1. Overview ── */
         {
           label: "Overview",
           icon: LayoutDashboard,
@@ -114,6 +104,16 @@ function useNavGroups(user: any): NavGroup[] {
             { label: "Profit & Loss", icon: BarChart3, href: "/reports/profit-loss" },
             { label: "Reconciliation", icon: ArrowLeftRight, href: "/reports/reconciliation" },
           ].filter(() => hasRole(["admin", "finance_manager", "operations_manager"])),
+        },
+        /* ── 2. Partner Hub (B2B2B) ── */
+        {
+          label: "Partner Hub",
+          icon: Handshake,
+          items: [
+            { label: "Partners", icon: Handshake, href: "/channel-partners" },
+            { label: "CP Wallets", icon: Landmark, href: "/cp-wallets" },
+            { label: "CP Pricing", icon: DollarSign, href: "/channel-partners?tab=pricing" },
+          ].filter(() => hasRole(["admin"])),
         },
         /* ── 3. Operations (EG 核心交付) ── */
         {
