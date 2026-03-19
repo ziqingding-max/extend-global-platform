@@ -33,7 +33,9 @@ import {
   customers,
   employees,
   customerContacts,
+  customerContracts,
 } from "../../../drizzle/schema";
+import { storagePut, storageGet } from "../../storage";
 
 // ── Helper: Generate client code ──────────────────────────────────────
 async function generateClientCode(db: any): Promise<string> {
@@ -790,4 +792,152 @@ export const cpPortalClientsRouter = cpPortalRouter({
       activeEmployees: Number(empStats[0]?.active ?? 0),
     };
   }),
+
+  // ════════════════════════════════════════════════════════════════════
+  // CLIENT CONTRACTS — CP manages commercial contracts with their clients
+  // ════════════════════════════════════════════════════════════════════
+
+  /**
+   * List all contracts for a specific client.
+   * Scoped: only clients belonging to this CP.
+   */
+  listContracts: protectedCpProcedure
+    .input(z.object({ customerId: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const db = getDb();
+      if (!db) return [];
+      const cpId = ctx.cpUser.channelPartnerId;
+      await verifyCpOwnership(db, input.customerId, cpId);
+      return await db
+        .select()
+        .from(customerContracts)
+        .where(eq(customerContracts.customerId, input.customerId))
+        .orderBy(desc(customerContracts.createdAt));
+    }),
+
+  /**
+   * Upload / create a contract record for a client.
+   * Accepts base64-encoded file content, uploads to S3, and stores the record.
+   */
+  uploadContract: cpHrProcedure
+    .input(
+      z.object({
+        customerId: z.number(),
+        contractName: z.string().min(1),
+        contractType: z.string().optional(),
+        signedDate: z.string().optional(),
+        effectiveDate: z.string().optional(),
+        expiryDate: z.string().optional(),
+        status: z.enum(["draft", "signed", "expired", "terminated"]).default("draft"),
+        // File upload fields
+        fileBase64: z.string().optional(),
+        fileName: z.string().optional(),
+        fileContentType: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      const cpId = ctx.cpUser.channelPartnerId;
+      await verifyCpOwnership(db, input.customerId, cpId);
+
+      let fileUrl: string | undefined;
+      let fileKey: string | undefined;
+
+      // Upload file to S3 if provided
+      if (input.fileBase64 && input.fileName) {
+        const buffer = Buffer.from(input.fileBase64, "base64");
+        const ext = input.fileName.split(".").pop() || "pdf";
+        const sanitizedName = input.contractName.replace(/[^a-zA-Z0-9]/g, "_");
+        const key = `cp-portal/${cpId}/clients/${input.customerId}/contracts/${Date.now()}_${sanitizedName}.${ext}`;
+        const result = await storagePut(key, buffer, input.fileContentType || "application/pdf");
+        fileUrl = result.url;
+        fileKey = result.key;
+      }
+
+      const result = await db
+        .insert(customerContracts)
+        .values({
+          customerId: input.customerId,
+          contractName: input.contractName,
+          contractType: input.contractType,
+          fileUrl,
+          fileKey,
+          signedDate: input.signedDate,
+          effectiveDate: input.effectiveDate,
+          expiryDate: input.expiryDate,
+          status: input.status,
+        })
+        .returning();
+
+      return result[0];
+    }),
+
+  /**
+   * Get a signed download URL for a contract file.
+   */
+  getContractDownloadUrl: protectedCpProcedure
+    .input(z.object({ contractId: z.number(), customerId: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      const cpId = ctx.cpUser.channelPartnerId;
+      await verifyCpOwnership(db, input.customerId, cpId);
+
+      const contracts = await db
+        .select()
+        .from(customerContracts)
+        .where(
+          and(
+            eq(customerContracts.id, input.contractId),
+            eq(customerContracts.customerId, input.customerId)
+          )
+        )
+        .limit(1);
+
+      if (contracts.length === 0) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Contract not found" });
+      }
+
+      const contract = contracts[0];
+      if (!contract.fileKey) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "No file attached to this contract" });
+      }
+
+      const signed = await storageGet(contract.fileKey);
+      return { url: signed.url };
+    }),
+
+  /**
+   * Delete a contract record.
+   * Only contracts belonging to this CP's clients can be deleted.
+   */
+  deleteContract: cpHrProcedure
+    .input(z.object({ contractId: z.number(), customerId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const db = getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      const cpId = ctx.cpUser.channelPartnerId;
+      await verifyCpOwnership(db, input.customerId, cpId);
+
+      // Verify contract belongs to this customer
+      const contracts = await db
+        .select()
+        .from(customerContracts)
+        .where(
+          and(
+            eq(customerContracts.id, input.contractId),
+            eq(customerContracts.customerId, input.customerId)
+          )
+        )
+        .limit(1);
+
+      if (contracts.length === 0) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Contract not found" });
+      }
+
+      await db.delete(customerContracts).where(eq(customerContracts.id, input.contractId));
+
+      return { success: true };
+    }),
 });

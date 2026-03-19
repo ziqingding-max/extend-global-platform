@@ -163,3 +163,41 @@
 - [x] Also inherits `channelPartnerId` (falls back to customer's CP if deposit has none).
 - [x] Ensures deposit_refund invoices appear in correct L1/L2/Direct tab in Admin.
 - [x] Ensures deposit_refund invoices are visible in CP Portal queries.
+
+---
+
+# Task Group B-fix2: Invoices.tsx EG-DIRECT 权限解锁 Checklist
+
+## Bf6. Invoices.tsx cpContext Integration
+- [x] `Invoices.tsx` — imports `useCpContext` from cpContextStore.
+- [x] Computes `isDirectMode` when `cpContext.mode === "direct"`.
+- [x] Direct Tab (`eg_to_client`) editing unlocked when `isDirectMode` is true.
+- [x] Unified `isReadOnly` flag replaces `isL2ReadOnly` — covers both L2 and Direct-without-EG-DIRECT.
+- [x] Blue info banner on Direct Tab: "Direct invoices are read-only. Switch to EG-DIRECT to edit."
+- [x] Green confirmation banner when EG-DIRECT is active: "EG-DIRECT mode active — full editing enabled."
+
+## Bf9. CpWallets EG-DIRECT Wallet Hiding
+- [x] `CpWallets.tsx` — EG-DIRECT (isInternal) CP entries show "N/A — EG internal entity" instead of balances.
+- [x] Action buttons (Top Up, Adjust, Release) are hidden for EG-DIRECT entries.
+
+---
+
+# Task Group C-fix: CP Portal 合同上传 S3 Checklist
+
+## Cf1. Backend Contract Management
+- [x] `cpPortalClientsRouter.ts` — `listContracts` procedure scoped to CP's clients.
+- [x] `uploadContract` procedure — accepts base64 file, uploads to S3 via `storagePut`.
+- [x] S3 key format: `cp-portal/{cpId}/clients/{customerId}/contracts/{timestamp}_{name}.{ext}`.
+- [x] `getContractDownloadUrl` procedure — generates signed download URL via `storageGet`.
+- [x] `deleteContract` procedure — deletes contract record (scoped to CP's clients).
+- [x] All procedures verify CP ownership via `verifyCpOwnership` helper.
+
+## Cf2. Frontend Contracts Tab
+- [x] "Contracts" Tab added to client detail view in `CpPortalClients.tsx`.
+- [x] Tab type expanded from `"info" | "contacts" | "employees"` to include `"contracts"`.
+- [x] `ContractsTab` component — table view with name, type, status, dates, actions.
+- [x] Upload dialog — contract name, type, status, dates, file picker (max 10MB).
+- [x] File upload via FileReader → base64 encoding → tRPC mutation.
+- [x] `ContractDownloadButton` — lazy-loaded signed URL download on click.
+- [x] Delete confirmation dialog before removing contracts.
+- [x] Status badges with color coding: draft (gray), signed (green), expired (amber), terminated (red).

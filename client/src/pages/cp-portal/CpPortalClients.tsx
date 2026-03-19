@@ -49,7 +49,12 @@ import {
   Trash2,
   Lock,
   AlertCircle,
+  FileText,
+  Upload,
+  Download,
+  Calendar,
 } from "lucide-react";
+import { toast } from "sonner";
 
 // ── Types ──────────────────────────────────────────────────────────────
 type ViewMode = "list" | "detail" | "create";
@@ -557,7 +562,7 @@ function ClientDetail({
   clientId: number;
   onBack: () => void;
 }) {
-  const [activeTab, setActiveTab] = useState<"info" | "contacts" | "employees">("info");
+  const [activeTab, setActiveTab] = useState<"info" | "contacts" | "employees" | "contracts">("info");
   const [isEditing, setIsEditing] = useState(false);
 
   const { data: client, isLoading } = cpTrpc.clients.get.useQuery({ id: clientId });
@@ -617,7 +622,7 @@ function ClientDetail({
 
       {/* Tabs */}
       <div className="flex gap-1 border-b">
-        {(["info", "contacts", "employees"] as const).map((tab) => (
+        {(["info", "contacts", "employees", "contracts"] as const).map((tab) => (
           <button
             key={tab}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
@@ -630,7 +635,7 @@ function ClientDetail({
               setIsEditing(false);
             }}
           >
-            {tab === "info" ? "Company Info" : tab === "contacts" ? "Contacts" : "Employees"}
+            {tab === "info" ? "Company Info" : tab === "contacts" ? "Contacts" : tab === "employees" ? "Employees" : "Contracts"}
           </button>
         ))}
       </div>
@@ -645,6 +650,7 @@ function ClientDetail({
       )}
       {activeTab === "contacts" && <ContactsTab clientId={clientId} />}
       {activeTab === "employees" && <EmployeesTab clientId={clientId} />}
+      {activeTab === "contracts" && <ContractsTab clientId={clientId} />}
     </div>
   );
 }
@@ -1299,5 +1305,298 @@ function EditEmployeeDialog({
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ── Contracts Tab ─────────────────────────────────────────────────────
+function ContractsTab({ clientId }: { clientId: number }) {
+  const utils = cpTrpc.useUtils();
+  const { data: contracts, isLoading } = cpTrpc.clients.listContracts.useQuery({ customerId: clientId });
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploadForm, setUploadForm] = useState({
+    contractName: "",
+    contractType: "service_agreement",
+    signedDate: "",
+    effectiveDate: "",
+    expiryDate: "",
+    status: "draft" as "draft" | "signed" | "expired" | "terminated",
+    fileBase64: "",
+    fileName: "",
+    fileContentType: "",
+  });
+
+  const uploadMutation = cpTrpc.clients.uploadContract.useMutation({
+    onSuccess: () => {
+      toast.success("Contract uploaded successfully");
+      utils.clients.listContracts.invalidate({ customerId: clientId });
+      setShowUpload(false);
+      setUploadForm({
+        contractName: "", contractType: "service_agreement", signedDate: "",
+        effectiveDate: "", expiryDate: "", status: "draft",
+        fileBase64: "", fileName: "", fileContentType: "",
+      });
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const deleteMutation = cpTrpc.clients.deleteContract.useMutation({
+    onSuccess: () => {
+      toast.success("Contract deleted");
+      utils.clients.listContracts.invalidate({ customerId: clientId });
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size must be less than 10MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = (reader.result as string).split(",")[1];
+      setUploadForm((prev) => ({
+        ...prev,
+        fileBase64: base64,
+        fileName: file.name,
+        fileContentType: file.type,
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const statusColors: Record<string, string> = {
+    draft: "bg-gray-100 text-gray-700",
+    signed: "bg-emerald-100 text-emerald-700",
+    expired: "bg-amber-100 text-amber-700",
+    terminated: "bg-red-100 text-red-700",
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <FileText className="h-5 w-5" />
+          Contracts
+        </h3>
+        <Button size="sm" onClick={() => setShowUpload(true)}>
+          <Upload className="h-4 w-4 mr-1.5" />
+          Upload Contract
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>
+      ) : contracts && contracts.length > 0 ? (
+        <div className="border rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50">
+              <tr>
+                <th className="text-left px-4 py-3 font-medium">Contract Name</th>
+                <th className="text-left px-4 py-3 font-medium">Type</th>
+                <th className="text-left px-4 py-3 font-medium">Status</th>
+                <th className="text-left px-4 py-3 font-medium">Effective</th>
+                <th className="text-left px-4 py-3 font-medium">Expiry</th>
+                <th className="text-left px-4 py-3 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {contracts.map((contract: any) => (
+                <tr key={contract.id} className="border-t hover:bg-muted/30">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">{contract.contractName}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {contract.contractType?.replace(/_/g, " ") || "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[contract.status] || ""}`}>
+                      {contract.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {contract.effectiveDate || "—"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {contract.expiryDate || "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1">
+                      {contract.fileKey && (
+                        <ContractDownloadButton contractId={contract.id} customerId={clientId} />
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => {
+                          if (confirm("Are you sure you want to delete this contract?")) {
+                            deleteMutation.mutate({ contractId: contract.id, customerId: clientId });
+                          }
+                        }}
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="py-8 text-center text-muted-foreground">
+            <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p>No contracts uploaded yet.</p>
+            <p className="text-xs mt-1">Click "Upload Contract" to add a service agreement or other document.</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Upload Contract Dialog */}
+      {showUpload && (
+        <Dialog open onOpenChange={() => setShowUpload(false)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Upload Contract</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Contract Name *</Label>
+                <Input
+                  value={uploadForm.contractName}
+                  onChange={(e) => setUploadForm({ ...uploadForm, contractName: e.target.value })}
+                  placeholder="e.g., Service Agreement 2026"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Contract Type</Label>
+                  <Select
+                    value={uploadForm.contractType}
+                    onValueChange={(v) => setUploadForm({ ...uploadForm, contractType: v })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="service_agreement">Service Agreement</SelectItem>
+                      <SelectItem value="nda">NDA</SelectItem>
+                      <SelectItem value="amendment">Amendment</SelectItem>
+                      <SelectItem value="sow">Statement of Work</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select
+                    value={uploadForm.status}
+                    onValueChange={(v: any) => setUploadForm({ ...uploadForm, status: v })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="signed">Signed</SelectItem>
+                      <SelectItem value="expired">Expired</SelectItem>
+                      <SelectItem value="terminated">Terminated</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Signed Date</Label>
+                  <Input
+                    type="date"
+                    value={uploadForm.signedDate}
+                    onChange={(e) => setUploadForm({ ...uploadForm, signedDate: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Effective Date</Label>
+                  <Input
+                    type="date"
+                    value={uploadForm.effectiveDate}
+                    onChange={(e) => setUploadForm({ ...uploadForm, effectiveDate: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Expiry Date</Label>
+                  <Input
+                    type="date"
+                    value={uploadForm.expiryDate}
+                    onChange={(e) => setUploadForm({ ...uploadForm, expiryDate: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Contract File (PDF, max 10MB)</Label>
+                <Input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleFileChange}
+                />
+                {uploadForm.fileName && (
+                  <p className="text-xs text-muted-foreground">Selected: {uploadForm.fileName}</p>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowUpload(false)}>Cancel</Button>
+              <Button
+                onClick={() => uploadMutation.mutate({
+                  customerId: clientId,
+                  contractName: uploadForm.contractName,
+                  contractType: uploadForm.contractType,
+                  signedDate: uploadForm.signedDate || undefined,
+                  effectiveDate: uploadForm.effectiveDate || undefined,
+                  expiryDate: uploadForm.expiryDate || undefined,
+                  status: uploadForm.status,
+                  fileBase64: uploadForm.fileBase64 || undefined,
+                  fileName: uploadForm.fileName || undefined,
+                  fileContentType: uploadForm.fileContentType || undefined,
+                })}
+                disabled={!uploadForm.contractName || uploadMutation.isPending}
+              >
+                {uploadMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Upload
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
+
+// ── Contract Download Button ──────────────────────────────────────────
+function ContractDownloadButton({ contractId, customerId }: { contractId: number; customerId: number }) {
+  const { data, refetch, isFetching } = cpTrpc.clients.getContractDownloadUrl.useQuery(
+    { contractId, customerId },
+    { enabled: false }
+  );
+
+  const handleDownload = async () => {
+    const result = await refetch();
+    if (result.data?.url) {
+      window.open(result.data.url, "_blank");
+    }
+  };
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={handleDownload}
+      disabled={isFetching}
+    >
+      {isFetching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+    </Button>
   );
 }

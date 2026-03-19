@@ -75,3 +75,19 @@
 ## Task Group B-fix: CpWallets 独立页面
 - [x] Create `CpWallets.tsx` — standalone Admin page for managing all CP wallets (top-up, adjust, release) <!-- id: Bf4 -->
 - [x] Register route in `App.tsx` and update `Layout.tsx` Partner Hub navigation <!-- id: Bf5 -->
+
+## Task Group B-fix2: Invoices.tsx EG-DIRECT 权限解锁
+- [x] Integrate `useCpContext` into `Invoices.tsx` — EG-DIRECT mode unlocks Direct Tab editing <!-- id: Bf6 -->
+- [x] Add read-only banners for Direct Tab (blue hint) and EG-DIRECT active banner (green confirmation) <!-- id: Bf7 -->
+- [x] Replace all `isL2ReadOnly` guards with unified `isReadOnly` (covers both L2 and Direct-without-EG-DIRECT) <!-- id: Bf8 -->
+
+## Task Group B-fix2: CpWallets EG-DIRECT 钱包隐藏
+- [x] Hide wallet balances and action buttons for EG-DIRECT (isInternal) CP entries — show "N/A — EG internal entity" <!-- id: Bf9 -->
+
+## Task Group C-fix: CP Portal 合同上传 S3
+- [x] Add `listContracts` procedure to `cpPortalClientsRouter.ts` — list contracts scoped to CP's clients <!-- id: Cf1 -->
+- [x] Add `uploadContract` procedure — accept base64 file, upload to S3 via `storagePut`, store record <!-- id: Cf2 -->
+- [x] Add `getContractDownloadUrl` procedure — generate signed URL via `storageGet` <!-- id: Cf3 -->
+- [x] Add `deleteContract` procedure — delete contract record (scoped to CP's clients) <!-- id: Cf4 -->
+- [x] Add "Contracts" Tab to `CpPortalClients.tsx` client detail view <!-- id: Cf5 -->
+- [x] Implement `ContractsTab` component — table view, upload dialog with file picker, download button <!-- id: Cf6 -->
