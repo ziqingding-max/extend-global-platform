@@ -51,7 +51,7 @@ export default function PortalLogin() {
           <img
             src={logoSrc}
             alt={logoAlt}
-            className={isCp ? "h-14 object-contain mb-4" : "w-14 h-14 object-contain mb-4"}
+            className="h-14 object-contain mb-4"
           />
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             {isCp ? `${displayName} Portal` : "Portal Login"}

@@ -340,6 +340,8 @@ function CpPortalRouter() {
               <Route path="/cp/release-tasks" component={() => <CpPortalLayout><CpPortalReleaseTasks /></CpPortalLayout>} />
               <Route path="/cp/settings" component={() => <CpPortalLayout><CpPortalSettings /></CpPortalLayout>} />
               <Route path="/cp">{() => <CpPortalLayout><CpPortalDashboard /></CpPortalLayout>}</Route>
+              {/* Redirect bare root to /cp for CP subdomain access */}
+              <Route path="/">{() => <Redirect to="/cp" />}</Route>
               <Route component={NotFound} />
             </Switch>
           </Suspense>
