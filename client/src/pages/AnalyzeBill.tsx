@@ -18,7 +18,6 @@ import CurrencySelect from "@/components/CurrencySelect";
 import { DatePicker, MonthPicker } from "@/components/DatePicker";
 import { formatDate, formatAmount } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
-import { useI18n } from "@/lib/i18n";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useLocation, useSearch } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -76,19 +75,19 @@ function ConfidenceBadge({ score }: { score: number | null | undefined }) {
   return <Badge variant="outline" className="bg-red-500/15 text-red-600 border-red-500/30 text-[10px] px-1.5 whitespace-nowrap">{s}%</Badge>;
 }
 
-function OverallConfidenceBanner({ cv, t }: { cv: any; t: (k: string) => string }) {
+function OverallConfidenceBanner({ cv }: { cv: any }) {
   if (!cv) return null;
   const score = typeof cv.overallConfidence === "number" ? cv.overallConfidence : 0;
   const warnings = Array.isArray(cv.warnings) ? cv.warnings : [];
   const bgClass = score >= 85 ? "bg-emerald-50 border-emerald-200" : score >= 50 ? "bg-amber-50 border-amber-200" : "bg-red-50 border-red-200";
   return (
     <div className={`flex items-center gap-3 p-3 rounded-lg border ${bgClass}`}>
-      <span className="text-sm font-medium">{t("vendorBills.review.overallConfidence")}</span>
+      <span className="text-sm font-medium">Overall Confidence</span>
       <ConfidenceBadge score={score} />
       {warnings.length > 0 && (
         <span className="text-xs text-amber-600 ml-auto flex items-center gap-1">
           <AlertTriangle className="w-3.5 h-3.5" />
-          {t("vendorBills.review.warningsCount").replace("{count}", String(warnings.length))}
+          {`Warnings: ${warnings.length}`}
         </span>
       )}
     </div>
@@ -96,21 +95,21 @@ function OverallConfidenceBanner({ cv, t }: { cv: any; t: (k: string) => string 
 }
 
 /* ========== Bill Form Fields ========== */
-function BillFormFields({ bill, onChange, vendors, t }: {
-  bill: any; onChange: (b: any) => void; vendors: any[]; t: (k: string) => string;
+function BillFormFields({ bill, onChange, vendors }: {
+  bill: any; onChange: (b: any) => void; vendors: any[];
 }) {
   const set = (key: string, val: any) => onChange({ ...bill, [key]: val });
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold">{t("vendorBills.details.title")}</CardTitle>
+        <CardTitle className="text-sm font-semibold">Vendor Bills</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="col-span-1">
-            <Label className="text-xs">{t("vendorBills.detail.vendor")} *</Label>
+            <Label className="text-xs">Vendor *</Label>
             <Select value={bill.vendorId?.toString() || ""} onValueChange={(v) => set("vendorId", v)}>
-              <SelectTrigger className="h-8 text-sm"><SelectValue placeholder={t("vendorBills.createBill.selectVendor")} /></SelectTrigger>
+              <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Select Vendor" /></SelectTrigger>
               <SelectContent>
                 {vendors.map((v: any) => (
                   <SelectItem key={v.id} value={v.id.toString()}>{v.name}</SelectItem>
@@ -119,27 +118,27 @@ function BillFormFields({ bill, onChange, vendors, t }: {
             </Select>
           </div>
           <div className="col-span-1">
-            <Label className="text-xs">{t("vendorBills.table.billNumberHeader")} *</Label>
+            <Label className="text-xs">Bill Number *</Label>
             <Input value={bill.billNumber || ""} onChange={(e) => set("billNumber", e.target.value)} className="h-8 text-sm" />
           </div>
           <div className="col-span-1">
-            <Label className="text-xs">{t("vendorBills.createBill.billType")}</Label>
+            <Label className="text-xs">Bill Type</Label>
             <Select value={bill.billType || "operational"} onValueChange={(v) => set("billType", v)}>
               <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="operational">{t("vendorBills.billType.operational")}</SelectItem>
-                <SelectItem value="deposit">{t("vendorBills.billType.deposit")}</SelectItem>
-                <SelectItem value="deposit_refund">{t("vendorBills.billType.deposit_refund")}</SelectItem>
+                <SelectItem value="operational">Operational</SelectItem>
+                <SelectItem value="deposit">Deposit</SelectItem>
+                <SelectItem value="deposit_refund">Deposit Refund</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="col-span-1">
-            <Label className="text-xs">{t("vendorBills.filters.allCategories")}</Label>
+            <Label className="text-xs">All Categories</Label>
             <Select value={bill.category || "other"} onValueChange={(v) => set("category", v)}>
               <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {categoryKeys.map((c) => (
-                  <SelectItem key={c} value={c}>{t(`vendorBills.category.${c}`)}</SelectItem>
+                  <SelectItem key={c} value={c}>{c.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -147,38 +146,38 @@ function BillFormFields({ bill, onChange, vendors, t }: {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div>
-            <Label className="text-xs">{t("vendorBills.details.serviceMonthLabel")}</Label>
-            <MonthPicker value={bill.billMonth || ""} onChange={(v: string) => set("billMonth", v)} placeholder={t("vendorBills.details.serviceMonthPlaceholder")} className="h-8 text-sm" />
+            <Label className="text-xs">Service Month</Label>
+            <MonthPicker value={bill.billMonth || ""} onChange={(v: string) => set("billMonth", v)} placeholder="Select service month" className="h-8 text-sm" />
           </div>
           <div>
-            <Label className="text-xs">{t("vendorBills.details.billDateLabel")}</Label>
-            <DatePicker value={bill.billDate || ""} onChange={(d: string) => set("billDate", d)} placeholder={t("vendorBills.details.billDatePlaceholder")} />
+            <Label className="text-xs">Bill Date</Label>
+            <DatePicker value={bill.billDate || ""} onChange={(d: string) => set("billDate", d)} placeholder="Select bill date" />
           </div>
           <div>
-            <Label className="text-xs">{t("vendorBills.details.dueDateLabel")}</Label>
-            <DatePicker value={bill.dueDate || ""} onChange={(d: string) => set("dueDate", d)} placeholder={t("vendorBills.details.dueDatePlaceholder")} />
+            <Label className="text-xs">Due Date</Label>
+            <DatePicker value={bill.dueDate || ""} onChange={(d: string) => set("dueDate", d)} placeholder="Select due date" />
           </div>
           <div>
-            <Label className="text-xs">{t("vendorBills.details.currencyLabel")}</Label>
+            <Label className="text-xs">Currency</Label>
             <CurrencySelect value={bill.currency || "USD"} onValueChange={(v) => set("currency", v)} />
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <Label className="text-xs">{t("vendorBills.details.subtotalLabel")}</Label>
+            <Label className="text-xs">Subtotal</Label>
             <Input type="number" step="0.01" value={bill.subtotal || ""} onChange={(e) => set("subtotal", e.target.value)} className={`h-8 text-sm ${noSpin}`} />
           </div>
           <div>
-            <Label className="text-xs">{t("vendorBills.details.taxLabel")}</Label>
+            <Label className="text-xs">Tax</Label>
             <Input type="number" step="0.01" value={bill.tax || "0"} onChange={(e) => set("tax", e.target.value)} className={`h-8 text-sm ${noSpin}`} />
           </div>
           <div>
-            <Label className="text-xs">{t("vendorBills.details.totalAmountLabel")} *</Label>
+            <Label className="text-xs">Total Amount *</Label>
             <Input type="number" step="0.01" value={bill.totalAmount || ""} onChange={(e) => set("totalAmount", e.target.value)} className={`h-8 text-sm font-medium ${noSpin}`} />
           </div>
         </div>
         <div>
-          <Label className="text-xs">{t("vendorBills.details.descriptionLabel")}</Label>
+          <Label className="text-xs">Description</Label>
           <Textarea value={bill.description || ""} onChange={(e) => set("description", e.target.value)} rows={2} className="text-sm" />
         </div>
       </CardContent>
@@ -187,10 +186,9 @@ function BillFormFields({ bill, onChange, vendors, t }: {
 }
 
 /* ========== Line Items Editor (Full-width) ========== */
-function LineItemsEditor({ items, onChange, t, showConfidence = false }: {
+function LineItemsEditor({ items, onChange, showConfidence = false }: {
   items: LineItem[];
   onChange: (items: LineItem[]) => void;
-  t: (k: string) => string;
   showConfidence?: boolean;
 }) {
   function addItem() {
@@ -217,10 +215,10 @@ function LineItemsEditor({ items, onChange, t, showConfidence = false }: {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <FileText className="w-4 h-4" /> {t("vendorBills.createBill.lineItemsTitle")} ({items.length})
+            <FileText className="w-4 h-4" /> Line Items ({items.length})
           </CardTitle>
           <Button variant="outline" size="sm" onClick={addItem}>
-            <Plus className="w-3.5 h-3.5 mr-1" /> {t("vendorBills.createBill.addLineItem")}
+            <Plus className="w-3.5 h-3.5 mr-1" /> Add Line Item
           </Button>
         </div>
       </CardHeader>
@@ -230,13 +228,13 @@ function LineItemsEditor({ items, onChange, t, showConfidence = false }: {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30">
-                  <TableHead className="text-xs min-w-[240px]">{t("vendorBills.details.descriptionLabel")}</TableHead>
-                  <TableHead className="text-xs w-[150px]">{t("vendorBills.createBill.costType")}</TableHead>
-                  <TableHead className="text-xs text-right w-[80px]">{t("vendorBills.lineItems.quantityHeader")}</TableHead>
-                  <TableHead className="text-xs text-right w-[120px]">{t("vendorBills.lineItems.unitPriceHeader")}</TableHead>
-                  <TableHead className="text-xs text-right w-[120px]">{t("vendorBills.lineItems.amountHeader")}</TableHead>
-                  {showConfidence && <TableHead className="text-xs w-[200px]">{t("vendorBills.lineItems.employeeHeader")}</TableHead>}
-                  {showConfidence && <TableHead className="text-xs text-center w-[70px]">{t("vendorBills.lineItems.confidenceHeader")}</TableHead>}
+                  <TableHead className="text-xs min-w-[240px]">Description</TableHead>
+                  <TableHead className="text-xs w-[150px]">Cost Type</TableHead>
+                  <TableHead className="text-xs text-right w-[80px]">Quantity</TableHead>
+                  <TableHead className="text-xs text-right w-[120px]">Unit Price</TableHead>
+                  <TableHead className="text-xs text-right w-[120px]">Amount</TableHead>
+                  {showConfidence && <TableHead className="text-xs w-[200px]">Employee</TableHead>}
+                  {showConfidence && <TableHead className="text-xs text-center w-[70px]">Confidence</TableHead>}
                   <TableHead className="w-[44px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -263,7 +261,7 @@ function LineItemsEditor({ items, onChange, t, showConfidence = false }: {
                           className="h-8 text-sm border rounded px-2 w-full bg-background"
                         >
                           {itemTypeKeys.map((k) => (
-                            <option key={k} value={k}>{t(`vendorBills.itemType.${k}`)}</option>
+                            <option key={k} value={k}>{k.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}</option>
                           ))}
                         </select>
                       </TableCell>
@@ -332,7 +330,7 @@ function LineItemsEditor({ items, onChange, t, showConfidence = false }: {
               <TableFooter>
                 <TableRow>
                   <TableCell colSpan={4} className="text-right text-sm font-semibold">
-                    {t("common.total")}
+                    Total
                   </TableCell>
                   <TableCell className="text-right text-sm font-bold">{total.toFixed(2)}</TableCell>
                   {showConfidence && <TableCell colSpan={2}></TableCell>}
@@ -344,9 +342,9 @@ function LineItemsEditor({ items, onChange, t, showConfidence = false }: {
         ) : (
           <div className="text-center py-8 text-muted-foreground border rounded-lg border-dashed">
             <FileText className="w-8 h-8 mx-auto mb-2 opacity-40" />
-            <p className="text-sm">{t("vendorBills.analyze.noLineItems")}</p>
+            <p className="text-sm">No line items found</p>
             <Button variant="outline" size="sm" className="mt-3" onClick={addItem}>
-              <Plus className="w-3.5 h-3.5 mr-1" /> {t("vendorBills.createBill.addLineItem")}
+              <Plus className="w-3.5 h-3.5 mr-1" /> Add Line Item
             </Button>
           </div>
         )}
@@ -356,8 +354,8 @@ function LineItemsEditor({ items, onChange, t, showConfidence = false }: {
 }
 
 /* ========== Payment Info Card ========== */
-function PaymentInfoCard({ payment, onChange, onRemove, t }: {
-  payment: any; onChange: (p: any) => void; onRemove: () => void; t: (k: string) => string;
+function PaymentInfoCard({ payment, onChange, onRemove }: {
+  payment: any; onChange: (p: any) => void; onRemove: () => void;
 }) {
   if (!payment) return null;
   return (
@@ -365,33 +363,33 @@ function PaymentInfoCard({ payment, onChange, onRemove, t }: {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <DollarSign className="w-4 h-4" /> {t("vendorBills.payment.title")}
+            <DollarSign className="w-4 h-4" /> Payment
           </CardTitle>
           <Button variant="ghost" size="sm" className="text-xs text-destructive" onClick={onRemove}>
-            <X className="w-3.5 h-3.5 mr-1" />{t("vendorBills.payment.removeButton")}
+            <X className="w-3.5 h-3.5 mr-1" />Remove Payment
           </Button>
         </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <div>
-            <Label className="text-xs">{t("vendorBills.payment.dateLabel")}</Label>
-            <DatePicker value={payment.paidDate || ""} onChange={(d: string) => onChange({ ...payment, paidDate: d })} placeholder={t("vendorBills.payment.datePlaceholder")} />
+            <Label className="text-xs">Date</Label>
+            <DatePicker value={payment.paidDate || ""} onChange={(d: string) => onChange({ ...payment, paidDate: d })} placeholder="Select payment date" />
           </div>
           <div>
-            <Label className="text-xs">{t("vendorBills.payment.paidAmountLabel")}</Label>
+            <Label className="text-xs">Paid Amount</Label>
             <Input type="number" step="0.01" value={payment.paidAmount || ""} onChange={(e) => onChange({ ...payment, paidAmount: e.target.value })} className={`h-8 text-sm ${noSpin}`} />
           </div>
           <div>
-            <Label className="text-xs">{t("vendorBills.payment.bankNameLabel")}</Label>
+            <Label className="text-xs">Bank Name</Label>
             <Input value={payment.bankName || ""} onChange={(e) => onChange({ ...payment, bankName: e.target.value })} className="h-8 text-sm" />
           </div>
           <div>
-            <Label className="text-xs">{t("vendorBills.payment.transactionRefLabel")}</Label>
+            <Label className="text-xs">Transaction Reference</Label>
             <Input value={payment.bankReference || ""} onChange={(e) => onChange({ ...payment, bankReference: e.target.value })} className="h-8 text-sm" />
           </div>
           <div>
-            <Label className="text-xs">{t("vendorBills.payment.bankFeeLabel")}</Label>
+            <Label className="text-xs">Bank Fee</Label>
             <Input type="number" step="0.01" value={payment.bankFee || "0"} onChange={(e) => onChange({ ...payment, bankFee: e.target.value })} className={`h-8 text-sm ${noSpin}`} />
           </div>
         </div>
@@ -401,8 +399,8 @@ function PaymentInfoCard({ payment, onChange, onRemove, t }: {
 }
 
 /* ========== Allocation Suggestions Card ========== */
-function AllocationSuggestions({ allocations, onChange, t }: {
-  allocations: any[]; onChange: (a: any[]) => void; t: (k: string) => string;
+function AllocationSuggestions({ allocations, onChange }: {
+  allocations: any[]; onChange: (a: any[]) => void;
 }) {
   if (!allocations || allocations.length === 0) return null;
   const enabledCount = allocations.filter((a) => a.enabled).length;
@@ -411,22 +409,20 @@ function AllocationSuggestions({ allocations, onChange, t }: {
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-semibold flex items-center gap-2">
           <Users className="w-4 h-4" />
-          {t("vendorBills.review.aiAllocationsTitle")
-            .replace("{enabled}", String(enabledCount))
-            .replace("{total}", String(allocations.length))}
+          {`AI Allocations (${enabledCount} of ${allocations.length} enabled)`}
         </CardTitle>
-        <p className="text-xs text-muted-foreground mt-1">{t("vendorBills.review.aiAllocationsHint")}</p>
+        <p className="text-xs text-muted-foreground mt-1">Review and adjust AI suggested allocations</p>
       </CardHeader>
       <CardContent>
         <div className="rounded-lg border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30">
-                <TableHead className="text-xs w-10">{t("vendorBills.review.useHeader")}</TableHead>
-                <TableHead className="text-xs">{t("vendorBills.lineItems.employeeHeader")}</TableHead>
-                <TableHead className="text-xs">{t("vendorBills.review.invoiceHeader")}</TableHead>
-                <TableHead className="text-xs text-right w-[140px]">{t("vendorBills.lineItems.amountHeader")}</TableHead>
-                <TableHead className="text-xs">{t("vendorBills.review.reasonHeader")}</TableHead>
+                <TableHead className="text-xs w-10">Use</TableHead>
+                <TableHead className="text-xs">Employee</TableHead>
+                <TableHead className="text-xs">Invoice</TableHead>
+                <TableHead className="text-xs text-right w-[140px]">Amount</TableHead>
+                <TableHead className="text-xs">Reason</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -475,9 +471,8 @@ function AllocationSuggestions({ allocations, onChange, t }: {
 }
 
 /* ========== AI Upload Step ========== */
-function AIUploadStep({ onParsed, t }: {
+function AIUploadStep({ onParsed }: {
   onParsed: (result: any, serviceMonth: string) => void;
-  t: (k: string) => string;
 }) {
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [serviceMonth, setServiceMonth] = useState(() => {
@@ -493,7 +488,7 @@ function AIUploadStep({ onParsed, t }: {
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
     if (pendingFiles.length + files.length > 10) {
-      toast.error(t("vendorBills.toast.maxFiles"));
+      toast.error("Maximum 10 files allowed");
       return;
     }
     setPendingFiles((prev) => [...prev, ...files]);
@@ -502,8 +497,8 @@ function AIUploadStep({ onParsed, t }: {
   }
 
   async function handleAnalyze() {
-    if (!serviceMonth) { toast.error(t("vendorBills.toast.selectMonth")); return; }
-    if (pendingFiles.length === 0) { toast.error(t("vendorBills.toast.addFile")); return; }
+    if (!serviceMonth) { toast.error("Please select a service month"); return; }
+    if (pendingFiles.length === 0) { toast.error("Please add at least one file"); return; }
 
     setIsParsing(true);
     try {
@@ -540,7 +535,7 @@ function AIUploadStep({ onParsed, t }: {
 
       onParsed(result, serviceMonth);
     } catch (err: any) {
-      toast.error(err.message || t("vendorBills.toast.analysisFailed"));
+      toast.error(err.message || "Analysis failed");
       setIsParsing(false);
     }
   }
@@ -549,8 +544,8 @@ function AIUploadStep({ onParsed, t }: {
     return (
       <div className="flex flex-col items-center justify-center py-24">
         <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-        <p className="text-sm text-muted-foreground">{t("vendorBills.review.aiAnalyzingDocs")}</p>
-        <p className="text-xs text-muted-foreground mt-1">{t("vendorBills.analyze.parsingHint")}</p>
+        <p className="text-sm text-muted-foreground">Analyzing documents with AI...</p>
+        <p className="text-xs text-muted-foreground mt-1">Parsing in progress, please wait.</p>
       </div>
     );
   }
@@ -561,28 +556,28 @@ function AIUploadStep({ onParsed, t }: {
       <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800">
         <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-medium">{t("vendorBills.analyze.singleVendorWarningTitle")}</p>
-          <p className="text-xs mt-1 text-amber-700">{t("vendorBills.analyze.singleVendorWarningDesc")}</p>
+          <p className="text-sm font-medium">Single Vendor Warning</p>
+          <p className="text-xs mt-1 text-amber-700">Please upload files for one vendor only, one batch per upload.</p>
         </div>
       </div>
 
       {/* Service month */}
       <div>
-        <Label className="text-sm font-medium">{t("vendorBills.details.serviceMonthLabel")}</Label>
-        <p className="text-xs text-muted-foreground mb-2">{t("vendorBills.analyze.serviceMonthHint")}</p>
-        <MonthPicker value={serviceMonth} onChange={(v: string) => setServiceMonth(v)} placeholder={t("vendorBills.details.serviceMonthPlaceholder")} className="max-w-[200px]" />
+        <Label className="text-sm font-medium">Service Month</Label>
+        <p className="text-xs text-muted-foreground mb-2">Select the month for which the bill applies</p>
+        <MonthPicker value={serviceMonth} onChange={(v: string) => setServiceMonth(v)} placeholder="Select service month" className="max-w-[200px]" />
       </div>
 
       {/* Upload area */}
       <div>
-        <Label className="text-sm font-medium">{t("vendorBills.analyze.uploadTitle")}</Label>
+        <Label className="text-sm font-medium">Upload Files</Label>
         <div
           className="mt-2 border-2 border-dashed rounded-lg p-10 text-center cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors"
           onClick={() => fileInputRef.current?.click()}
         >
           <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">{t("vendorBills.aiUpload.dropzone")}</p>
-          <p className="text-xs text-muted-foreground mt-1">{t("vendorBills.aiUpload.dropzoneHint")}</p>
+          <p className="text-sm text-muted-foreground">Drag and drop files here, or click to select</p>
+          <p className="text-xs text-muted-foreground mt-1">Supported formats: PDF, PNG, JPG, JPEG, WEBP</p>
           <input
             ref={fileInputRef}
             type="file"
@@ -598,18 +593,18 @@ function AIUploadStep({ onParsed, t }: {
       {pendingFiles.length > 0 && (
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">
-            {t("vendorBills.analyze.filesSelected").replace("{count}", String(pendingFiles.length))}
+            {`Files selected: ${pendingFiles.length}`}
           </Label>
           {pendingFiles.map((f, i) => (
             <div key={i} className="flex items-center justify-between text-sm p-2.5 rounded-lg bg-muted/50 border">
               <div className="flex items-center gap-2">
                 {i === 0 ? (
                   <Badge variant="outline" className="bg-blue-500/15 text-blue-600 border-blue-500/30 text-[10px]">
-                    {t("vendorBills.analyze.primaryFile")}
+                    Primary File
                   </Badge>
                 ) : (
                   <Badge variant="outline" className="bg-gray-100 text-gray-500 border-gray-300 text-[10px]">
-                    <Paperclip className="w-2.5 h-2.5 mr-0.5" />{t("vendorBills.analyze.attachment")}
+                    <Paperclip className="w-2.5 h-2.5 mr-0.5" />Attachment
                   </Badge>
                 )}
                 <span className="truncate max-w-[300px]">{f.name}</span>
@@ -625,7 +620,7 @@ function AIUploadStep({ onParsed, t }: {
 
       {/* Analyze button */}
       <Button onClick={handleAnalyze} disabled={pendingFiles.length === 0} className="w-full" size="lg">
-        <FileUp className="w-5 h-5 mr-2" />{t("vendorBills.actions.analyzeWithAI")}
+        <FileUp className="w-5 h-5 mr-2" />Analyze with AI
       </Button>
     </div>
   );
@@ -633,7 +628,6 @@ function AIUploadStep({ onParsed, t }: {
 
 /* ========== Main Page Component ========== */
 export default function AnalyzeBill() {
-  const { t } = useI18n();
   const [, setLocation] = useLocation();
   const searchStr = useSearch();
   const params = new URLSearchParams(searchStr);
@@ -709,9 +703,9 @@ export default function AnalyzeBill() {
 
   // Save bill
   async function handleSave() {
-    if (!bill.vendorId) { toast.error(t("vendorBills.toast.selectVendor")); return; }
-    if (!bill.billNumber) { toast.error(t("vendorBills.toast.billNumberRequired")); return; }
-    if (!bill.totalAmount) { toast.error(t("vendorBills.toast.totalRequired")); return; }
+    if (!bill.vendorId) { toast.error("Please select a vendor"); return; }
+    if (!bill.billNumber) { toast.error("Bill number is required"); return; }
+    if (!bill.totalAmount) { toast.error("Total amount is required"); return; }
 
     try {
       if (parsedResult) {
@@ -779,20 +773,20 @@ export default function AnalyzeBill() {
         });
       }
 
-      toast.success(t("vendorBills.toast.createdSuccess"));
+      toast.success("Vendor Bill created successfully");
       setLocation("/vendor-bills");
     } catch (err: any) {
-      toast.error(err.message || t("vendorBills.toast.createFailed"));
+      toast.error(err.message || "Failed to create vendor bill");
     }
   }
 
   const isSaving = applyMutation.isPending || createMutation.isPending;
   const cv = parsedResult?.parsed?.crossValidation;
   const isAIMode = mode === "ai";
-  const pageTitle = isAIMode ? t("vendorBills.analyze.aiTitle") : t("vendorBills.analyze.manualTitle");
+  const pageTitle = isAIMode ? "Analyze Vendor Bill with AI" : "Create Vendor Bill Manually";
 
   return (
-    <Layout breadcrumb={["EG", t("vendorBills.title"), pageTitle]}>
+    <Layout breadcrumb={["EG", "Vendor Bills", pageTitle]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -803,7 +797,7 @@ export default function AnalyzeBill() {
             <div>
               <h1 className="text-xl font-bold">{pageTitle}</h1>
               <p className="text-sm text-muted-foreground">
-                {isAIMode ? t("vendorBills.analyze.aiSubtitle") : t("vendorBills.analyze.manualSubtitle")}
+                {isAIMode ? "Upload and analyze bills using AI" : "Fill in the vendor bill details manually"}
               </p>
             </div>
           </div>
@@ -818,14 +812,14 @@ export default function AnalyzeBill() {
                   setAllocations([]);
                   setPayment(null);
                 }}>
-                  <Upload className="w-4 h-4 mr-2" />{t("vendorBills.actions.backToUpload")}
+                  <Upload className="w-4 h-4 mr-2" />Back to Upload
                 </Button>
               )}
               <Button onClick={handleSave} disabled={isSaving}>
                 {isSaving ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t("vendorBills.actions.creatingBill")}</>
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating Bill...</>
                 ) : (
-                  <><Check className="w-4 h-4 mr-2" />{t("vendorBills.actions.createBill")}</>
+                  <><Check className="w-4 h-4 mr-2" />Create Bill</>
                 )}
               </Button>
             </div>
@@ -834,19 +828,19 @@ export default function AnalyzeBill() {
 
         {/* AI Upload Step */}
         {step === "upload" && (
-          <AIUploadStep onParsed={handleAIParsed} t={t} />
+          <AIUploadStep onParsed={handleAIParsed} />
         )}
 
         {/* Form Step (shared by AI review + manual) */}
         {step === "form" && (
           <div className="space-y-5">
             {/* Overall confidence (AI only) */}
-            <OverallConfidenceBanner cv={cv} t={t} />
+            <OverallConfidenceBanner cv={cv} />
 
             {/* AI Notes (if any) */}
             {cv?.notes?.length > 0 && (
               <div className="p-3 rounded-lg bg-muted/50 border space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">{t("vendorBills.review.aiNotes")}</p>
+                <p className="text-xs font-medium text-muted-foreground">AI Notes</p>
                 {cv.notes.map((n: string, i: number) => (
                   <p key={i} className="text-xs text-muted-foreground">{n}</p>
                 ))}
@@ -854,27 +848,27 @@ export default function AnalyzeBill() {
             )}
 
             {/* Bill Details */}
-            <BillFormFields bill={bill} onChange={setBill} vendors={vendors} t={t} />
+            <BillFormFields bill={bill} onChange={setBill} vendors={vendors} />
 
             {/* Payment Info (AI detected) */}
-            <PaymentInfoCard payment={payment} onChange={setPayment} onRemove={() => setPayment(null)} t={t} />
+            <PaymentInfoCard payment={payment} onChange={setPayment} onRemove={() => setPayment(null)} />
 
             {/* Line Items */}
-            <LineItemsEditor items={items} onChange={setItems} t={t} showConfidence={!!parsedResult} />
+            <LineItemsEditor items={items} onChange={setItems} showConfidence={!!parsedResult} />
 
             {/* Allocation Suggestions (AI only) */}
-            <AllocationSuggestions allocations={allocations} onChange={setAllocations} t={t} />
+            <AllocationSuggestions allocations={allocations} onChange={setAllocations} />
 
             {/* Bottom save button (for long forms) */}
             <div className="flex justify-end gap-2 pt-4 border-t">
               <Button variant="outline" onClick={() => setLocation("/vendor-bills")}>
-                {t("common.cancel")}
+                Cancel
               </Button>
               <Button onClick={handleSave} disabled={isSaving} size="lg">
                 {isSaving ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t("vendorBills.actions.creatingBill")}</>
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating Bill...</>
                 ) : (
-                  <><Check className="w-4 h-4 mr-2" />{t("vendorBills.actions.createBill")}</>
+                  <><Check className="w-4 h-4 mr-2" />Create Bill</>
                 )}
               </Button>
             </div>

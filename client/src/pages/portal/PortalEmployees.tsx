@@ -50,7 +50,6 @@ import { Users, Search, ChevronLeft, ChevronRight, Trash2, Loader2 } from "lucid
 import { formatStatusLabel, countryName, formatDate } from "@/lib/format";
 import { toast } from "sonner";
 
-import { useI18n } from "@/lib/i18n";
 const statusColors: Record<string, string> = {
   active: "bg-green-100 text-green-800 border-green-200",
   onboarding: "bg-blue-100 text-blue-800 border-blue-200",
@@ -61,7 +60,6 @@ const statusColors: Record<string, string> = {
 };
 
 export default function PortalEmployees() {
-  const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
@@ -80,7 +78,7 @@ export default function PortalEmployees() {
 
   const deleteMutation = portalTrpc.employees.delete.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_employees.toasts.delete_success"));
+      toast.success("Employee deleted successfully");
       setDeleteTarget(null);
       utils.employees.list.invalidate();
     },
@@ -104,10 +102,10 @@ export default function PortalEmployees() {
   }
 
   return (
-    <PortalLayout title={t("portal_employees.title")}>
+    <PortalLayout title="Employees">
       <div className="p-6 space-y-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">{t("portal_employees.title")}</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Employees</h2>
           <p className="text-sm text-muted-foreground mt-1">
             Your global workforce directory
           </p>
@@ -129,13 +127,13 @@ export default function PortalEmployees() {
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("portal_employees.filters.all_statuses")}</SelectItem>
-              <SelectItem value="active">{t("portal_employees.filters.status_active")}</SelectItem>
-              <SelectItem value="onboarding">{t("portal_employees.filters.status_onboarding")}</SelectItem>
-              <SelectItem value="pending_review">{t("portal_employees.filters.status_pending_review")}</SelectItem>
-              <SelectItem value="documents_incomplete">{t("portal_employees.filters.status_documents_incomplete")}</SelectItem>
-              <SelectItem value="offboarding">{t("portal_employees.filters.status_offboarding")}</SelectItem>
-              <SelectItem value="terminated">{t("portal_employees.filters.status_terminated")}</SelectItem>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="onboarding">Onboarding</SelectItem>
+              <SelectItem value="pending_review">Pending Review</SelectItem>
+              <SelectItem value="documents_incomplete">Documents Incomplete</SelectItem>
+              <SelectItem value="offboarding">Offboarding</SelectItem>
+              <SelectItem value="terminated">Terminated</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -152,7 +150,7 @@ export default function PortalEmployees() {
             ) : employees.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                 <Users className="w-10 h-10 mb-3" />
-                <p className="text-lg font-medium">{t("portal_employees.empty_state.title")}</p>
+                <p className="text-lg font-medium">No employees found</p>
                 <p className="text-sm mt-1">
                   {search ? "Try adjusting your search criteria" : "No employees have been onboarded yet"}
                 </p>
@@ -161,12 +159,12 @@ export default function PortalEmployees() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("portal_employees.table.header_name")}</TableHead>
-                    <TableHead>{t("portal_employees.table.header_job_title")}</TableHead>
-                    <TableHead className="min-w-[120px]">{t("portal_employees.table.header_country")}</TableHead>
-                    <TableHead>{t("portal_employees.table.header_department")}</TableHead>
-                    <TableHead>{t("portal_employees.table.header_start_date")}</TableHead>
-                    <TableHead>{t("portal_employees.table.header_status")}</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Job Title</TableHead>
+                    <TableHead className="min-w-[120px]">Country</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead>Start Date</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="w-12"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -252,7 +250,7 @@ export default function PortalEmployees() {
       <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("portal_employees.delete_dialog.title")}</AlertDialogTitle>
+            <AlertDialogTitle>Delete Employee</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This will permanently remove the employee record and all associated documents. This action cannot be undone.
             </AlertDialogDescription>

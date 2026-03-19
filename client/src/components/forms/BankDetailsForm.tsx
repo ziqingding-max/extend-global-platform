@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { useI18n } from "@/lib/i18n";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -30,7 +29,6 @@ interface BankDetailsFormProps {
 }
 
 export function BankDetailsForm({ value, onChange, countryCode, currency, readOnly = false }: BankDetailsFormProps) {
-  const { t } = useI18n();
 
   // Auto-fill currency if provided and not set
   useEffect(() => {
@@ -63,7 +61,7 @@ export function BankDetailsForm({ value, onChange, countryCode, currency, readOn
     <Card className="border-dashed">
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          {t("common.bankDetails")}
+          Bank Details
           {readOnly && <span className="text-xs font-normal text-muted-foreground">(Read Only)</span>}
         </CardTitle>
       </CardHeader>

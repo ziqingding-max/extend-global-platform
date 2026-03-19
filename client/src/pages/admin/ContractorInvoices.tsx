@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { useI18n } from "@/lib/i18n";
 import Layout from "@/components/Layout";
 import {
   Card, CardContent
@@ -28,7 +27,6 @@ import { formatCurrencyAmount } from "@/components/CurrencyAmount";
 import { Textarea } from "@/components/ui/textarea";
 
 export function ContractorInvoicesContent() {
-  const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [, setLocation] = useLocation();

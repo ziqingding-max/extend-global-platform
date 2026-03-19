@@ -32,7 +32,6 @@ import {
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatDate } from "@/lib/format";
 
-import { useI18n } from "@/lib/i18n";
 /* ─── Status Config ──────────────────────────────────────────────────────── */
 
 // statusLabels built with t() inside component
@@ -51,28 +50,27 @@ const statusColors: Record<string, string> = {
 /* ─── Main Component ─────────────────────────────────────────────────────── */
 
 export default function PortalInvoiceDetail() {
-  const { t } = useI18n();
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const invoiceId = parseInt(params.id || "0", 10);
 
   const statusLabels: Record<string, string> = {
-    sent: t("portal_invoices.status.issued"),
-    paid: t("portal_invoices.status.paid"),
-    overdue: t("portal_invoices.status.overdue"),
-    cancelled: t("portal_invoices.status.cancelled"),
-    void: t("portal_invoices.status.void"),
-    applied: t("portal_invoices.status.applied"),
+    sent: "Issued",
+    paid: "Paid",
+    overdue: "Overdue",
+    cancelled: "Cancelled",
+    void: "Void",
+    applied: "Applied",
   };
   const invoiceTypeLabels: Record<string, string> = {
-    deposit: t("portal_invoices.type.deposit"),
-    monthly_eor: t("portal_invoices.type.monthly_eor"),
-    monthly_visa_eor: t("portal_invoices.type.monthly_visa_eor"),
-    monthly_aor: t("portal_invoices.type.monthly_aor"),
-    visa_service: t("portal_invoices.type.visa_service"),
-    deposit_refund: t("portal_invoices.type.deposit_refund"),
-    credit_note: t("portal_invoices.type.credit_note"),
-    manual: t("portal_invoices.type.manual"),
+    deposit: "Deposit",
+    monthly_eor: "Monthly EOR",
+    monthly_visa_eor: "Monthly Visa EOR",
+    monthly_aor: "Monthly AOR",
+    visa_service: "Visa Service",
+    deposit_refund: "Deposit Refund",
+    credit_note: "Credit Note",
+    manual: "Manual Invoice",
   };
 
   const { data, isLoading } = portalTrpc.invoices.detail.useQuery(
@@ -91,7 +89,6 @@ export default function PortalInvoiceDetail() {
   const walletPayMutation = portalTrpc.wallet.payWithWallet.useMutation({
     onSuccess: (result) => {
       toast.success(
-        t("portal_invoice_detail.wallet_payment.success") ||
         `Payment of ${data?.currency || ""} ${result.deducted} applied successfully`
       );
       // Refresh invoice detail and wallet balance
@@ -99,7 +96,7 @@ export default function PortalInvoiceDetail() {
       utils.wallet.get.invalidate();
     },
     onError: (err: any) => {
-      toast.error(err.message || t("portal_invoice_detail.wallet_payment.error") || "Payment failed");
+      toast.error(err.message || "Payment failed");
     },
   });
 
@@ -114,7 +111,7 @@ export default function PortalInvoiceDetail() {
   // Loading state
   if (isLoading) {
     return (
-      <PortalLayout title={t("portal_invoice_detail.page_title")}>
+      <PortalLayout title="Invoice Details">
         <div className="p-6 max-w-5xl mx-auto space-y-6">
           <div className="flex items-center gap-3">
             <Skeleton className="h-9 w-9" />
@@ -135,16 +132,16 @@ export default function PortalInvoiceDetail() {
   // Not found
   if (!data) {
     return (
-      <PortalLayout title={t("portal_invoice_detail.page_title")}>
+      <PortalLayout title="Invoice Details">
         <div className="p-6 max-w-5xl mx-auto">
           <Button variant="ghost" size="sm" onClick={() => setLocation(portalPath("/invoices"))} className="mb-6 gap-2 text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="w-4 h-4" /> {t("portal_invoice_detail.back_to_finance")}
+            <ArrowLeft className="w-4 h-4" /> Back to Finance
           </Button>
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16">
               <FileText className="w-12 h-12 text-muted-foreground/40 mb-4" />
-              <h3 className="text-lg font-semibold mb-1">{t("portal_invoice_detail.not_found.title")}</h3>
-              <p className="text-sm text-muted-foreground">{t("portal_invoice_detail.not_found.description")}</p>
+              <h3 className="text-lg font-semibold mb-1">Invoice Not Found</h3>
+              <p className="text-sm text-muted-foreground">The invoice you are looking for does not exist or you do not have permission to view it.</p>
             </CardContent>
           </Card>
         </div>
@@ -162,10 +159,10 @@ export default function PortalInvoiceDetail() {
   let statusColor = statusColors[data.status] || "";
 
   if (data.isPartiallyPaid) {
-    statusLabel = t("portal_invoices.status.partially_paid");
+    statusLabel = "Partially Paid";
     statusColor = "bg-orange-50 text-orange-700 border-orange-200";
   } else if (data.isOverpaid) {
-    statusLabel = t("portal_invoices.status.paid");
+    statusLabel = "Paid";
     statusColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
   }
 
@@ -189,24 +186,24 @@ export default function PortalInvoiceDetail() {
             : "from-primary to-primary/90";
 
   // Banner label and value
-  let bannerLabel = t("portal_invoice_detail.banner.amount_due");
+  let bannerLabel = "Amount Due";
   let bannerValue = formatCurrency(data.currency, data.balanceDue);
 
   if (isCreditNote) {
-    bannerLabel = t("portal_invoice_detail.banner.credit_amount");
+    bannerLabel = "Credit Amount";
     bannerValue = formatCurrency(data.currency, Math.abs(Number(data.total)));
   } else if (isDepositRefund) {
-    bannerLabel = t("portal_invoice_detail.banner.refund_amount");
+    bannerLabel = "Refund Amount";
     bannerValue = formatCurrency(data.currency, Math.abs(Number(data.total)));
   } else if (data.status === "paid" && !data.isPartiallyPaid) {
-    bannerLabel = t("portal_invoice_detail.banner.total_paid");
+    bannerLabel = "Total Paid";
     bannerValue = formatCurrency(data.currency, data.paidAmount || data.total);
   } else if (data.isPartiallyPaid) {
-    bannerLabel = t("portal_invoice_detail.banner.remaining_balance");
+    bannerLabel = "Remaining Balance";
     const remaining = Number(data.amountDue || data.total) - Number(data.paidAmount || 0);
     bannerValue = formatCurrency(data.currency, Math.max(0, remaining));
   } else if (data.status === "cancelled" || data.status === "void") {
-    bannerLabel = t("portal_invoice_detail.banner.total_amount");
+    bannerLabel = "Total Amount";
     bannerValue = formatCurrency(data.currency, data.total);
   }
 
@@ -214,7 +211,7 @@ export default function PortalInvoiceDetail() {
   const effectiveDue = data.amountDue != null ? Number(data.amountDue) : Number(data.total);
 
   return (
-    <PortalLayout title={t("portal_invoice_detail.page_title")}>
+    <PortalLayout title="Invoice Details">
       <div className="p-6 max-w-5xl mx-auto space-y-6">
         {/* Back Navigation */}
         <Button
@@ -223,7 +220,7 @@ export default function PortalInvoiceDetail() {
           onClick={() => setLocation(portalPath("/invoices"))}
           className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
         >
-          <ArrowLeft className="w-4 h-4" /> {t("portal_invoice_detail.back_to_finance")}
+          <ArrowLeft className="w-4 h-4" /> Back to Finance
         </Button>
 
         {/* Invoice Header */}
@@ -245,7 +242,7 @@ export default function PortalInvoiceDetail() {
             </p>
           </div>
           <Button onClick={handleDownload} className="gap-2 shrink-0">
-            <Download className="w-4 h-4" /> {t("portal_invoice_detail.actions.download_pdf")}
+            <Download className="w-4 h-4" /> Download PDF
           </Button>
         </div>
 
@@ -257,10 +254,10 @@ export default function PortalInvoiceDetail() {
             <Card>
               <CardContent className="pt-6">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                  <MetaField icon={CalendarDays} label={t("portal_invoice_detail.meta.issue_date")} value={formatDate(data.sentDate)} />
-                  <MetaField icon={Clock} label={t("portal_invoice_detail.meta.due_date")} value={formatDate(data.dueDate)} />
-                  <MetaField icon={CreditCard} label={t("portal_invoice_detail.meta.currency")} value={data.currency || "USD"} />
-                  <MetaField icon={FileText} label={t("portal_invoice_detail.meta.reference")} value={data.invoiceNumber || "-"} mono />
+                  <MetaField icon={CalendarDays} label="Issue Date" value={formatDate(data.sentDate)} />
+                  <MetaField icon={Clock} label="Due Date" value={formatDate(data.dueDate)} />
+                  <MetaField icon={CreditCard} label="Currency" value={data.currency || "USD"} />
+                  <MetaField icon={FileText} label="Reference" value={data.invoiceNumber || "-"} mono />
                 </div>
               </CardContent>
             </Card>
@@ -270,7 +267,7 @@ export default function PortalInvoiceDetail() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Receipt className="w-4 h-4 text-muted-foreground" />
-                  {t("portal_invoice_detail.line_items.title")}
+                  Line Items
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
@@ -278,18 +275,18 @@ export default function PortalInvoiceDetail() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/30">
-                        <TableHead className="pl-6 min-w-[240px]">{t("portal_invoice_detail.line_items.description")}</TableHead>
-                        <TableHead className="text-center">{t("portal_invoice_detail.line_items.currency")}</TableHead>
-                        <TableHead className="text-right">{t("portal_invoice_detail.line_items.quantity")}</TableHead>
-                        <TableHead className="text-right">{t("portal_invoice_detail.line_items.unit_price")}</TableHead>
-                        <TableHead className="text-right pr-6">{t("portal_invoice_detail.line_items.amount")}</TableHead>
+                        <TableHead className="pl-6 min-w-[240px]">Description</TableHead>
+                        <TableHead className="text-center">Currency</TableHead>
+                        <TableHead className="text-right">Quantity</TableHead>
+                        <TableHead className="text-right">Unit Price</TableHead>
+                        <TableHead className="text-right pr-6">Amount</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {(data.items || []).length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                            {t("portal_invoice_detail.line_items.empty")}
+                            No line items found.
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -334,7 +331,7 @@ export default function PortalInvoiceDetail() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Link2 className="w-4 h-4 text-muted-foreground" />
-                    {t("portal_invoice_detail.related_documents.title")}
+                    Related Documents
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -379,7 +376,7 @@ export default function PortalInvoiceDetail() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Info className="w-4 h-4 text-muted-foreground" />
-                    {t("portal_invoice_detail.notes.title")}
+                    Notes
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -409,20 +406,20 @@ export default function PortalInvoiceDetail() {
                 {/* Breakdown */}
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">{t("portal_invoice_detail.summary.subtotal")}</span>
+                    <span className="text-sm text-muted-foreground">Subtotal</span>
                     <span className="text-sm font-mono tabular-nums">{formatCurrency(data.currency, data.subtotal)}</span>
                   </div>
 
                   {Number(data.serviceFeeTotal) > 0 && (
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">{t("portal_invoice_detail.summary.service_fees")}</span>
+                      <span className="text-sm text-muted-foreground">Service Fees</span>
                       <span className="text-sm font-mono tabular-nums">{formatCurrency(data.currency, data.serviceFeeTotal)}</span>
                     </div>
                   )}
 
                   {Number(data.tax) > 0 && (
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">{t("portal_invoice_detail.summary.tax_vat")}</span>
+                      <span className="text-sm text-muted-foreground">Tax / VAT</span>
                       <span className="text-sm font-mono tabular-nums">{formatCurrency(data.currency, data.tax)}</span>
                     </div>
                   )}
@@ -430,7 +427,7 @@ export default function PortalInvoiceDetail() {
                   <Separator />
 
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-semibold">{t("portal_invoice_detail.summary.total")}</span>
+                    <span className="text-sm font-semibold">Total</span>
                     <span className={cn("text-sm font-mono font-semibold tabular-nums", isCredit && "text-emerald-600")}>
                       {isCredit && "-"}{formatCurrency(data.currency, Math.abs(Number(data.total)))}
                     </span>
@@ -439,7 +436,7 @@ export default function PortalInvoiceDetail() {
                   {/* Wallet Applied */}
                   {data.walletAppliedAmount != null && Number(data.walletAppliedAmount) > 0 && (
                     <div className="flex justify-between items-center text-blue-600">
-                      <span className="text-sm">{t("portal_invoice_detail.summary.wallet_applied")}</span>
+                      <span className="text-sm">Wallet Applied</span>
                       <span className="text-sm font-mono tabular-nums">- {formatCurrency(data.currency, data.walletAppliedAmount)}</span>
                     </div>
                   )}
@@ -449,7 +446,7 @@ export default function PortalInvoiceDetail() {
                     <>
                       <Separator />
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-semibold">{t("portal_invoice_detail.banner.amount_due")}</span>
+                        <span className="text-sm font-semibold">Amount Due</span>
                         <span className="text-sm font-mono font-semibold tabular-nums text-amber-600">
                           {formatCurrency(data.currency, data.amountDue)}
                         </span>
@@ -460,7 +457,7 @@ export default function PortalInvoiceDetail() {
                   {/* Paid */}
                   {paidAmt > 0 && (
                     <div className="flex justify-between items-center text-emerald-600">
-                      <span className="text-sm">{t("portal_invoice_detail.status.paid")}</span>
+                      <span className="text-sm">Paid</span>
                       <span className="text-sm font-mono tabular-nums">{formatCurrency(data.currency, paidAmt)}</span>
                     </div>
                   )}
@@ -473,7 +470,7 @@ export default function PortalInvoiceDetail() {
                         "flex justify-between items-center",
                         data.status === "overdue" ? "text-red-600" : "text-amber-600"
                       )}>
-                        <span className="text-sm font-semibold">{t("portal_invoice_detail.summary.balance_due")}</span>
+                        <span className="text-sm font-semibold">Balance Due</span>
                         <span className="text-sm font-mono font-semibold tabular-nums">{formatCurrency(data.currency, data.balanceDue)}</span>
                       </div>
                     </>
@@ -486,9 +483,9 @@ export default function PortalInvoiceDetail() {
                     <div className="flex gap-2">
                       <AlertCircle className="w-4 h-4 text-orange-600 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-xs font-medium text-orange-800">{t("portal_invoice_detail.alert.partial_payment.title")}</p>
+                        <p className="text-xs font-medium text-orange-800">Partial Payment Received</p>
                         <p className="text-xs text-orange-600 mt-0.5">
-                          {t("portal_invoice_detail.alert.partial_payment.description")}
+                          A partial payment has been received for this invoice. The remaining balance is due by the due date.
                         </p>
                       </div>
                     </div>
@@ -501,9 +498,9 @@ export default function PortalInvoiceDetail() {
                     <div className="flex gap-2">
                       <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-xs font-medium text-emerald-800">{t("portal_invoice_detail.alert.overpayment.title")}</p>
+                        <p className="text-xs font-medium text-emerald-800">Overpayment Received</p>
                         <p className="text-xs text-emerald-600 mt-0.5">
-                          {t("portal_invoice_detail.alert.overpayment.description")}
+                          An overpayment has been received for this invoice. The excess amount has been credited to your wallet.
                         </p>
                       </div>
                     </div>
@@ -519,17 +516,17 @@ export default function PortalInvoiceDetail() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                    {t("portal_invoice_detail.payment_details.title")}
+                    Payment Details
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">{t("portal_invoice_detail.payment_details.payment_date")}</span>
+                    <span className="text-sm text-muted-foreground">Payment Date</span>
                     <span className="text-sm">{formatDate(data.paidDate)}</span>
                   </div>
                   {paidAmt > 0 && (
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">{t("portal_invoice_detail.payment_details.amount_received")}</span>
+                      <span className="text-sm text-muted-foreground">Amount Received</span>
                       <span className="text-sm font-mono tabular-nums">{formatCurrency(data.currency, paidAmt)}</span>
                     </div>
                   )}
@@ -542,16 +539,16 @@ export default function PortalInvoiceDetail() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                    {t("portal_invoice_detail.wallet_payment.title")}
+                    Pay with Wallet
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">{t("portal_invoice_detail.wallet_payment.available_balance")}</span>
+                    <span className="text-sm text-muted-foreground">Available Balance</span>
                     <span className="text-sm font-mono tabular-nums text-emerald-600">{formatCurrency(data.currency, walletBalance)}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">{t("portal_invoice_detail.wallet_payment.will_deduct")}</span>
+                    <span className="text-sm text-muted-foreground">Will Deduct</span>
                     <span className="text-sm font-mono tabular-nums">
                       {formatCurrency(data.currency, Math.min(walletBalance, data.balanceDue))}
                     </span>
@@ -561,15 +558,15 @@ export default function PortalInvoiceDetail() {
                     variant="default"
                     disabled={walletPayMutation.isPending}
                     onClick={() => {
-                      if (confirm(t("portal_invoice_detail.wallet_payment.confirm_message") || `Apply ${formatCurrency(data.currency, Math.min(walletBalance, data.balanceDue))} from wallet to this invoice?`)) {
+                      if (confirm(`Apply ${formatCurrency(data.currency, Math.min(walletBalance, data.balanceDue))} from wallet to this invoice?`)) {
                         walletPayMutation.mutate({ invoiceId: data.id });
                       }
                     }}
                   >
                     <CreditCard className="w-4 h-4" />
                     {walletPayMutation.isPending
-                      ? (t("common.processing") || "Processing...")
-                      : t("portal_invoice_detail.wallet_payment.pay_button")}
+                      ? "Processing..."
+                      : "Pay with Wallet"}
                   </Button>
                 </CardContent>
               </Card>
@@ -577,7 +574,7 @@ export default function PortalInvoiceDetail() {
 
             {/* Download */}
             <Button onClick={handleDownload} variant="outline" className="w-full gap-2">
-              <Download className="w-4 h-4" /> {t("portal_invoice_detail.actions.download_pdf")}
+              <Download className="w-4 h-4" /> Download PDF
             </Button>
           </div>
         </div>

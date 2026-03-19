@@ -1,4 +1,3 @@
-import { useI18n } from "@/lib/i18n";
 import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -32,7 +31,6 @@ interface QuotationItem {
 }
 
 export default function QuotationCreatePage({ params }: { params?: { id?: string } }) {
-  const { t } = useI18n();
   const [, setLocation] = useLocation();
   const editId = params?.id ? parseInt(params.id) : undefined;
   const isEditMode = !!editId;
@@ -93,7 +91,7 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
 
   const createMutation = trpc.quotations.create.useMutation({
     onSuccess: () => {
-      toast.success(t("common.create") + " ✓");
+      toast.success("Create" + " ✓");
       setLocation("/quotations");
     },
     onError: (err) => toast.error(err.message)
@@ -101,7 +99,7 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
 
   const updateMutation = trpc.quotations.update.useMutation({
     onSuccess: () => {
-      toast.success(t("common.updated") || "Updated ✓");
+      toast.success("Updated ✓");
       setLocation("/quotations");
     },
     onError: (err) => toast.error(err.message)
@@ -260,18 +258,18 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
 
     setItems(updatedItems);
     setShowCostPreview(true);
-    if (!hasError) toast.success(t("quotations.create.calc_success"));
-    else toast.warning(t("quotations.create.calc_warning"));
+    if (!hasError) toast.success("Calculation successful");
+    else toast.warning("Calculation encountered some issues");
   };
 
   const handleSubmit = () => {
     if (!leadId && !customerId) {
-        toast.error(t("quotations.create.select_customer_error"));
+        toast.error("Please select a lead or customer");
         return;
     }
     // Basic validation
     if (items.some(i => !i.countryCode || i.salary <= 0)) {
-        toast.error(t("quotations.create.fill_details_error"));
+        toast.error("Please fill in all required details");
         return;
     }
 
@@ -296,24 +294,24 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
   const totalQuotationValue = items.reduce((sum, item) => sum + (item.totalMonthly || 0), 0);
 
   return (
-    <Layout breadcrumb={["EG", t("nav.sales"), t("nav.quotations"), isEditMode ? "Edit Quotation" : t("quotations.create.title")]}>
+    <Layout breadcrumb={["EG", "Sales", "Quotations", isEditMode ? "Edit Quotation" : "Create Quotation"]}>
       <div className="p-6 space-y-6 max-w-7xl mx-auto">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => setLocation("/quotations")}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <h1 className="text-2xl font-bold tracking-tight">{isEditMode ? "Edit Quotation" : t("quotations.create.title")}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{isEditMode ? "Edit Quotation" : "Create Quotation"}</h1>
         </div>
 
         <div className="grid grid-cols-3 gap-6">
           <div className="col-span-2 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">{t("quotations.create.basic_info")}</CardTitle>
+                <CardTitle className="text-base">Basic Information</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>{t("quotations.create.customerLabel")}</Label>
+                  <Label>Customer</Label>
                   <Select 
                     value={leadId ? `lead-${leadId}` : customerId ? `cust-${customerId}` : ""} 
                     onValueChange={(val) => {
@@ -326,19 +324,19 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
                         }
                     }}
                   >
-                    <SelectTrigger><SelectValue placeholder={t("quotations.create.select_placeholder")} /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Select a lead or customer" /></SelectTrigger>
                     <SelectContent>
                         {leads?.data.filter((l: any) => l.status !== "closed_won" && l.status !== "closed_lost").map((l: any) => (
-                            <SelectItem key={`lead-${l.id}`} value={`lead-${l.id}`}>{t("quotations.create.lead_prefix")} {l.companyName}</SelectItem>
+                            <SelectItem key={`lead-${l.id}`} value={`lead-${l.id}`}>Lead: {l.companyName}</SelectItem>
                         ))}
                         {customers?.data.map((c: any) => (
-                            <SelectItem key={`cust-${c.id}`} value={`cust-${c.id}`}>{t("quotations.create.customer_prefix")} {c.companyName}</SelectItem>
+                            <SelectItem key={`cust-${c.id}`} value={`cust-${c.id}`}>Customer: {c.companyName}</SelectItem>
                         ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("quotations.create.validUntil")}</Label>
+                  <Label>Valid Until</Label>
                   <DatePicker value={validUntil} onChange={setValidUntil} />
                 </div>
               </CardContent>
@@ -346,9 +344,9 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                  <h3 className="font-medium text-lg">{t("quotations.items.title")}</h3>
+                  <h3 className="font-medium text-lg">Quotation Items</h3>
                   <Button variant="outline" size="sm" onClick={handleAddItem}>
-                    <Plus className="w-4 h-4 mr-2" />{t("quotations.items.add")}
+                    <Plus className="w-4 h-4 mr-2" />Add Item
                   </Button>
               </div>
               
@@ -360,7 +358,7 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
                         <span className="text-xs font-medium text-muted-foreground">Item #{index + 1}</span>
                         <Button variant="ghost" size="sm" className="text-destructive h-7 px-2 text-xs" onClick={() => handleRemoveItem(index)} disabled={items.length === 1}>
                             <Trash2 className="w-3.5 h-3.5 mr-1" />
-                            {t("common.delete")}
+                            Delete
                         </Button>
                       </div>
 
@@ -368,22 +366,22 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
                         {/* Row 1: Country + Service Type + Headcount */}
                         <div className="grid grid-cols-3 gap-4">
                             <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">{t("quotations.items.country")}</Label>
+                                <Label className="text-xs text-muted-foreground">Country</Label>
                                 <CountrySelect value={item.countryCode} onValueChange={(v) => handleCountryChange(index, v)} />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">{t("quotations.items.serviceType")}</Label>
+                                <Label className="text-xs text-muted-foreground">Service Type</Label>
                                 <Select value={item.serviceType} onValueChange={(v) => handleServiceTypeChange(index, v as any)}>
                                     <SelectTrigger><SelectValue /></SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="eor">{t("quotations.create.service_eor")}</SelectItem>
-                                        <SelectItem value="visa_eor">{t("quotations.create.service_visa_eor")}</SelectItem>
-                                        <SelectItem value="aor">{t("quotations.create.service_aor")}</SelectItem>
+                                        <SelectItem value="eor">EOR</SelectItem>
+                                        <SelectItem value="visa_eor">Visa EOR</SelectItem>
+                                        <SelectItem value="aor">AOR</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">{t("quotations.items.headcount")}</Label>
+                                <Label className="text-xs text-muted-foreground">Headcount</Label>
                                 <Input type="number" min={1} value={item.headcount} onChange={(e) => updateItem(index, "headcount", parseInt(e.target.value))} />
                             </div>
                         </div>
@@ -392,9 +390,9 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
                         {item.countryCode === "CN" && (
                           <div className="grid grid-cols-3 gap-4">
                             <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">{t("quotations.create.city_region")}</Label>
+                                <Label className="text-xs text-muted-foreground">City / Region</Label>
                                 <Select value={item.regionCode} onValueChange={(v) => updateItem(index, "regionCode", v)}>
-                                    <SelectTrigger><SelectValue placeholder={t("quotations.create.select_city")} /></SelectTrigger>
+                                    <SelectTrigger><SelectValue placeholder="Select a city" /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="CN-BJ">Beijing</SelectItem>
                                         <SelectItem value="CN-SH">Shanghai</SelectItem>
@@ -409,8 +407,8 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
                         {/* Row 2: Salary/Rate + Service Fee + One Time Fee (if visa_eor) */}
                         <div className={`grid gap-4 ${item.serviceType === "visa_eor" ? "grid-cols-3" : "grid-cols-2"}`}>
                             <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground truncate block" title={item.serviceType === "aor" ? t("quotations.create.contractor_rate") : t("quotations.items.salary")}>
-                                  {item.serviceType === "aor" ? t("quotations.create.contractor_rate") : t("quotations.items.salary")}
+                                <Label className="text-xs text-muted-foreground truncate block" title={item.serviceType === "aor" ? "Contractor Rate" : "Salary"}>
+                                  {item.serviceType === "aor" ? "Contractor Rate" : "Salary"}
                                 </Label>
                                 <div className="relative">
                                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium">{item.currency || "USD"}</span>
@@ -418,8 +416,8 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
                                 </div>
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground truncate block" title={t("quotations.items.fee")}>
-                                  {t("quotations.items.fee")}
+                                <Label className="text-xs text-muted-foreground truncate block" title={"Service Fee"}>
+                                  Service Fee
                                 </Label>
                                 <div className="relative">
                                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium">USD</span>
@@ -440,14 +438,14 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
                         {/* Cost preview row */}
                         {item.serviceType === "aor" && item.totalMonthly !== undefined && (
                             <div className="bg-green-50 dark:bg-green-950/20 p-3 rounded-lg text-sm flex justify-between items-center border border-green-200/50 dark:border-green-800/30">
-                                <span className="text-xs text-muted-foreground">{t("quotations.create.aor_no_employer_cost")}</span>
-                                <span className="font-semibold text-green-700 dark:text-green-400">{t("quotations.create.total_monthly")}: <span className="font-mono">{formatCurrency("USD", item.totalMonthly || 0)}</span></span>
+                                <span className="text-xs text-muted-foreground">AOR service does not include employer cost</span>
+                                <span className="font-semibold text-green-700 dark:text-green-400">Total Monthly: <span className="font-mono">{formatCurrency("USD", item.totalMonthly || 0)}</span></span>
                             </div>
                         )}
                         {item.serviceType !== "aor" && item.employerCost !== undefined && (
                             <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg text-sm flex justify-between items-center border border-blue-200/50 dark:border-blue-800/30">
-                                <span className="text-muted-foreground">{t("quotations.create.employer_cost")}: <span className="font-mono font-medium text-foreground">{formatCurrency(item.currency, item.employerCost)}</span></span>
-                                <span className="font-semibold text-blue-700 dark:text-blue-400">{t("quotations.create.total_monthly")}: <span className="font-mono">{formatCurrency("USD", item.totalMonthly || 0)}</span></span>
+                                <span className="text-muted-foreground">Employer Cost: <span className="font-mono font-medium text-foreground">{formatCurrency(item.currency, item.employerCost)}</span></span>
+                                <span className="font-semibold text-blue-700 dark:text-blue-400">Total Monthly: <span className="font-mono">{formatCurrency("USD", item.totalMonthly || 0)}</span></span>
                             </div>
                         )}
                       </div>
@@ -459,7 +457,7 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
             <div className="flex justify-start pt-4">
                 <Button variant="secondary" onClick={handleCalculateCosts} disabled={calculateMutation.isPending}>
                     {calculateMutation.isPending ? <Calculator className="w-4 h-4 mr-2 animate-spin" /> : <Calculator className="w-4 h-4 mr-2" />}
-                    {t("quotations.create.preview_costs")}
+                    Preview Costs
                 </Button>
             </div>
           </div>
@@ -470,18 +468,18 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
                 <CardHeader className="bg-primary/5 pb-3 border-b border-primary/10">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <Info className="w-4 h-4 text-primary" />
-                    {t("quotations.create.summary_title")}
+                    Summary
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 space-y-4">
                     <div className="space-y-3 text-sm">
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">{t("quotations.create.total_headcount")}</span>
+                            <span className="text-muted-foreground">Total Headcount</span>
                             <span className="font-medium">{items.reduce((sum, i) => sum + i.headcount, 0)}</span>
                         </div>
                         {showCostPreview && (
                             <div className="flex justify-between items-end pt-3 border-t border-border">
-                                <span className="font-medium">{t("quotations.create.est_monthly_total")}</span>
+                                <span className="font-medium">Estimated Monthly Total</span>
                                 <span className="text-xl font-bold text-primary">{formatCurrency("USD", totalQuotationValue)}</span>
                             </div>
                         )}
@@ -499,7 +497,7 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
                               htmlFor="include-guide" 
                               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                           >
-                              {t("quotations.create.include_guide")}
+                              Include country guide in PDF
                           </label>
                           <p className="text-xs text-muted-foreground">
                             Append country guide to the final PDF
@@ -508,9 +506,9 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
                     </div>
                     
                     <div className="pt-4 flex gap-2">
-                      <Button variant="outline" className="flex-1" onClick={() => setLocation("/quotations")}>{t("common.cancel")}</Button>
+                      <Button variant="outline" className="flex-1" onClick={() => setLocation("/quotations")}>Cancel</Button>
                       <Button className="flex-1" onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending}>
-                          {createMutation.isPending || updateMutation.isPending ? t("common.loading") : (isEditMode ? "Update" : t("common.create"))}
+                          {createMutation.isPending || updateMutation.isPending ? "Loading..." : (isEditMode ? "Update" : "Create")}
                       </Button>
                     </div>
                 </CardContent>
@@ -518,7 +516,7 @@ export default function QuotationCreatePage({ params }: { params?: { id?: string
 
              {items.length === 1 && items[0].countryCode && guideChapters && guideChapters.length > 0 && (
                  <div className="space-y-3">
-                    <h3 className="font-medium text-sm text-muted-foreground px-1">{t("quotations.create.guide_preview")}: {items[0].countryCode}</h3>
+                    <h3 className="font-medium text-sm text-muted-foreground px-1">Guide Preview: {items[0].countryCode}</h3>
                     <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                         {guideChapters.slice(0, 3).map(chapter => (
                             <Card key={chapter.id} className="text-xs bg-muted/30">

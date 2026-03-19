@@ -46,7 +46,6 @@ import {
 } from "lucide-react";
 import { formatStatusLabel, formatDate, countryName } from "@/lib/format";
 import { portalPath } from "@/lib/portalBasePath";
-import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -76,8 +75,6 @@ function InfoItem({ label, value, icon: Icon }: { label: string; value: string |
 }
 
 export default function PortalContractorDetail() {
-  const { t, locale } = useI18n();
-
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const contractorId = Number(params.id);
@@ -93,7 +90,7 @@ export default function PortalContractorDetail() {
 
   const requestTerminationMutation = portalTrpc.contractors.requestTermination.useMutation({
     onSuccess: () => {
-      toast.success(t("portal.termination.dialog.success"));
+      toast.success("Termination request submitted successfully");
       setTerminateRequestOpen(false);
     },
     onError: (err) => toast.error(err.message),
@@ -111,7 +108,7 @@ export default function PortalContractorDetail() {
 
   if (isLoading) {
     return (
-      <PortalLayout title={t("portal_contractor_detail.title")}>
+      <PortalLayout title="Contractor Detail">
         <div className="p-6 space-y-6 max-w-5xl mx-auto">
           <Skeleton className="h-10 w-64" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -125,12 +122,12 @@ export default function PortalContractorDetail() {
 
   if (!contractor) {
     return (
-      <PortalLayout title={t("portal_contractor_detail.title")}>
+      <PortalLayout title="Contractor Detail">
         <div className="p-6 flex flex-col items-center justify-center py-20 text-muted-foreground">
           <FileText className="w-10 h-10 mb-3" />
-          <p className="text-lg font-medium">{t("portal_contractor_detail.not_found")}</p>
+          <p className="text-lg font-medium">Contractor not found</p>
           <Button variant="outline" className="mt-4" onClick={() => setLocation(portalPath("/people?tab=contractors"))}>
-            <ArrowLeft className="w-4 h-4 mr-2" /> {t("portal_contractor_detail.back_to_people")}
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to People
           </Button>
         </div>
       </PortalLayout>
@@ -184,7 +181,7 @@ export default function PortalContractorDetail() {
                 setTerminateRequestOpen(true);
               }}
             >
-              {t("portal.termination.requestButton")}
+              Request Termination
             </Button>
           )}
           {isPendingReview && (
@@ -192,29 +189,28 @@ export default function PortalContractorDetail() {
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="sm" className="gap-2">
                   <Trash2 className="w-4 h-4" />
-                  {t("portal_contractor_detail.delete") || "Delete"}
+                  Delete
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    {t("portal_contractor_detail.delete_confirm_title") || "Delete Contractor Request?"}
+                    Delete Contractor Request?
                   </AlertDialogTitle>
                   <AlertDialogDescription>
-                    {t("portal_contractor_detail.delete_confirm_desc") ||
-                      `Are you sure you want to delete the contractor request for ${contractor.firstName} ${contractor.lastName}? This action cannot be undone.`}
+                    {`Are you sure you want to delete the contractor request for ${contractor.firstName} ${contractor.lastName}? This action cannot be undone.`}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>{t("common.cancel") || "Cancel"}</AlertDialogCancel>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     onClick={() => deleteMutation.mutate({ id: contractorId })}
                     disabled={deleteMutation.isPending}
                   >
                     {deleteMutation.isPending
-                      ? (t("common.deleting") || "Deleting...")
-                      : (t("common.delete") || "Delete")}
+                      ? "Deleting..."
+                      : "Delete"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -226,25 +222,25 @@ export default function PortalContractorDetail() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <Card className="border-l-4 border-l-blue-500">
             <CardContent className="p-4">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("portal_contractor_detail.country")}</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Country</p>
               <p className="text-sm font-semibold mt-1">{countryName(contractor.country) || "—"}</p>
             </CardContent>
           </Card>
           <Card className="border-l-4 border-l-green-500">
             <CardContent className="p-4">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("portal_contractor_detail.payment_frequency")}</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Payment Frequency</p>
               <p className="text-sm font-semibold mt-1">{paymentLabel || "—"}</p>
             </CardContent>
           </Card>
           <Card className="border-l-4 border-l-amber-500">
             <CardContent className="p-4">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("portal_contractor_detail.start_date")}</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Start Date</p>
               <p className="text-sm font-semibold mt-1">{contractor.startDate ? formatDate(contractor.startDate) : "—"}</p>
             </CardContent>
           </Card>
           <Card className="border-l-4 border-l-purple-500">
             <CardContent className="p-4">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("portal_contractor_detail.amount")}</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Amount</p>
               <p className="text-sm font-semibold mt-1">{amountDisplay || "—"}</p>
             </CardContent>
           </Card>
@@ -255,19 +251,19 @@ export default function PortalContractorDetail() {
           <Card className="lg:col-span-1">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <User className="w-4 h-4 text-primary" /> {t("portal_contractor_detail.personal_info")}
+                <User className="w-4 h-4 text-primary" /> Personal Information
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-0 pt-0">
-              <InfoItem label={t("portal_contractor_detail.email")} value={contractor.email} icon={Mail} />
+              <InfoItem label="Email" value={contractor.email} icon={Mail} />
               <Separator />
-              <InfoItem label={t("portal_contractor_detail.phone")} value={contractor.phone} icon={Phone} />
+              <InfoItem label="Phone" value={contractor.phone} icon={Phone} />
               <Separator />
-              <InfoItem label={t("portal_contractor_detail.dob")} value={contractor.dateOfBirth ? formatDate(contractor.dateOfBirth) : null} icon={Calendar} />
+              <InfoItem label="Date Of Birth" value={contractor.dateOfBirth ? formatDate(contractor.dateOfBirth) : null} icon={Calendar} />
               <Separator />
-              <InfoItem label={t("portal_contractor_detail.nationality")} value={contractor.nationality} icon={Globe} />
+              <InfoItem label="Nationality" value={contractor.nationality} icon={Globe} />
               <Separator />
-              <InfoItem label={t("portal_contractor_detail.address")} value={[contractor.address, contractor.city, contractor.state, contractor.postalCode].filter(Boolean).join(", ") || null} icon={MapPin} />
+              <InfoItem label="Address" value={[contractor.address, contractor.city, contractor.state, contractor.postalCode].filter(Boolean).join(", ") || null} icon={MapPin} />
             </CardContent>
           </Card>
 
@@ -277,15 +273,15 @@ export default function PortalContractorDetail() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Briefcase className="w-4 h-4 text-primary" /> {t("portal_contractor_detail.service_details")}
+                  <Briefcase className="w-4 h-4 text-primary" /> Service Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-                  <InfoItem label={t("portal_contractor_detail.job_title")} value={contractor.jobTitle} icon={Briefcase} />
-                  <InfoItem label={t("portal_contractor_detail.department")} value={contractor.department} icon={Building2} />
-                  <InfoItem label={t("portal_contractor_detail.start_date")} value={contractor.startDate ? formatDate(contractor.startDate) : null} icon={Calendar} />
-                  <InfoItem label={t("portal_contractor_detail.end_date")} value={contractor.endDate ? formatDate(contractor.endDate) : null} icon={Calendar} />
+                  <InfoItem label="Job Title" value={contractor.jobTitle} icon={Briefcase} />
+                  <InfoItem label="Department" value={contractor.department} icon={Building2} />
+                  <InfoItem label="Start Date" value={contractor.startDate ? formatDate(contractor.startDate) : null} icon={Calendar} />
+                  <InfoItem label="End Date" value={contractor.endDate ? formatDate(contractor.endDate) : null} icon={Calendar} />
                 </div>
               </CardContent>
             </Card>
@@ -294,15 +290,15 @@ export default function PortalContractorDetail() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-primary" /> {t("portal_contractor_detail.financial_config") || "Financial Configuration"}
+                  <CreditCard className="w-4 h-4 text-primary" /> Financial Configuration
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-                  <InfoItem label={t("portal_contractor_detail.payment_frequency")} value={paymentLabel} icon={DollarSign} />
-                  <InfoItem label={t("portal_contractor_detail.amount")} value={amountDisplay} icon={DollarSign} />
-                  <InfoItem label={t("portal_contractor_detail.currency")} value={contractor.currency} icon={Coins} />
-                  <InfoItem label={t("portal_contractor_detail.country")} value={countryName(contractor.country)} icon={Globe} />
+                  <InfoItem label="Payment Frequency" value={paymentLabel} icon={DollarSign} />
+                  <InfoItem label="Amount" value={amountDisplay} icon={DollarSign} />
+                  <InfoItem label="Currency" value={contractor.currency} icon={Coins} />
+                  <InfoItem label="Country" value={countryName(contractor.country)} icon={Globe} />
                 </div>
               </CardContent>
             </Card>
@@ -312,7 +308,7 @@ export default function PortalContractorDetail() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
-                    <StickyNote className="w-4 h-4 text-primary" /> {t("portal_contractor_detail.notes")}
+                    <StickyNote className="w-4 h-4 text-primary" /> Notes
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
@@ -326,32 +322,32 @@ export default function PortalContractorDetail() {
         <Dialog open={terminateRequestOpen} onOpenChange={setTerminateRequestOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{t("portal.termination.dialog.title.contractor")}</DialogTitle>
+              <DialogTitle>Request Termination</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <p className="text-sm text-muted-foreground">
-                {t("portal.termination.dialog.description")}
+                Please provide the termination end date and reason.
               </p>
               <div className="space-y-2">
-                <Label>{t("portal.termination.dialog.endDate")}</Label>
+                <Label>End Date</Label>
                 <DatePicker
                   value={terminateEndDate}
                   onChange={(d) => setTerminateEndDate(d || "")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>{t("portal.termination.dialog.reason")}</Label>
+                <Label>Reason</Label>
                 <Textarea
                   value={terminateReason}
                   onChange={(e) => setTerminateReason(e.target.value)}
-                  placeholder={t("portal.termination.dialog.reasonPlaceholder")}
+                  placeholder="Enter reason for termination"
                   rows={3}
                 />
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setTerminateRequestOpen(false)}>
-                {t("common.cancel")}
+                Cancel
               </Button>
               <Button
                 variant="destructive"
@@ -365,8 +361,8 @@ export default function PortalContractorDetail() {
                 }}
               >
                 {requestTerminationMutation.isPending
-                  ? t("portal.termination.dialog.submitting")
-                  : t("portal.termination.dialog.submit")}
+                  ? "Submitting..."
+                  : "Submit"}
               </Button>
             </DialogFooter>
           </DialogContent>

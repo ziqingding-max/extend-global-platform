@@ -1,7 +1,6 @@
 import Layout from "@/components/Layout";
 import { useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, Calendar, DollarSign, User, Briefcase, FileText, CreditCard, Pencil, MapPin, UserPlus, CheckCircle, Send } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -387,7 +386,6 @@ function EditContractorDialog({ contractor, open, onOpenChange, onSuccess }: {
 }
 
 export default function ContractorDetail() {
-  const { t, locale } = useI18n();
   const [, setLocation] = useLocation();
   const params = useParams<{ id: string }>();
   const id = params?.id ? parseInt(params.id, 10) : 0;
@@ -439,7 +437,7 @@ export default function ContractorDetail() {
 
   const statusUpdateMutation = trpc.contractors.update.useMutation({
     onSuccess: () => {
-      toast.success(t("common.updated"));
+      toast.success("Updated");
       refetch();
     },
     onError: (err) => toast.error(err.message),
@@ -455,14 +453,14 @@ export default function ContractorDetail() {
 
   const contractorTransitions: Record<string, { label: string; value: string; variant?: string }[]> = {
     pending_review: [
-      { label: t("contractors.actions.activate") || "Activate", value: "active" },
-      { label: t("contractors.actions.terminate") || "Terminate", value: "terminated", variant: "destructive" },
+      { label: "Activate", value: "active" },
+      { label: "Terminate", value: "terminated", variant: "destructive" },
     ],
     active: [
-      { label: t("contractors.actions.terminate") || "Terminate", value: "terminated", variant: "destructive" },
+      { label: "Terminate", value: "terminated", variant: "destructive" },
     ],
     terminated: [
-      { label: t("contractors.actions.reactivate") || "Reactivate", value: "active", variant: "outline" },
+      { label: "Reactivate", value: "active", variant: "outline" },
     ],
   };
 
@@ -563,16 +561,16 @@ export default function ContractorDetail() {
             ))}
           </div>
           <Badge variant="outline" className={`capitalize ${statusColors[contractor.status] || ""}`}>
-            {t(`status.${contractor.status}`) || contractor.status}
+            {(contractor.status || "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
           </Badge>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList>
-            <TabsTrigger value="overview">{t("contractors.detail.tabs.overview")}</TabsTrigger>
-            <TabsTrigger value="milestones">{t("contractors.detail.tabs.milestones")}</TabsTrigger>
-            <TabsTrigger value="adjustments">{t("contractors.detail.tabs.adjustments") || "Adjustments"}</TabsTrigger>
-            <TabsTrigger value="invoices">{t("contractors.detail.tabs.invoices")}</TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="milestones">Milestones</TabsTrigger>
+            <TabsTrigger value="adjustments">Adjustments</TabsTrigger>
+            <TabsTrigger value="invoices">Invoices</TabsTrigger>
 
           </TabsList>
 
@@ -580,7 +578,7 @@ export default function ContractorDetail() {
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
-                <CardHeader><CardTitle className="text-base flex items-center gap-2"><User className="w-4 h-4" /> {t("contractors.overview.personalInfo")}</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base flex items-center gap-2"><User className="w-4 h-4" /> Personal Information</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <InfoRow label="Email" value={contractor.email} />
                   <InfoRow label="Phone" value={contractor.phone} />
@@ -603,7 +601,7 @@ export default function ContractorDetail() {
               </Card>
 
               <Card>
-                <CardHeader><CardTitle className="text-base flex items-center gap-2"><Briefcase className="w-4 h-4" /> {t("contractors.overview.serviceInfo")}</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base flex items-center gap-2"><Briefcase className="w-4 h-4" /> Service Information</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <InfoRow label="Job Title" value={contractor.jobTitle} />
                   <InfoRow label="Department" value={contractor.department} />
@@ -614,7 +612,7 @@ export default function ContractorDetail() {
               </Card>
 
               <Card>
-                <CardHeader><CardTitle className="text-base flex items-center gap-2"><CreditCard className="w-4 h-4" /> {t("contractors.overview.financialConfig")}</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base flex items-center gap-2"><CreditCard className="w-4 h-4" /> Financial Configuration</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <InfoRow label="Currency" value={contractor.currency} />
                   <InfoRow label="Payment Frequency" value={contractor.paymentFrequency} />
@@ -655,11 +653,11 @@ export default function ContractorDetail() {
           {/* Milestones Tab */}
           <TabsContent value="milestones" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">{t("contractors.milestones.title")}</h3>
+              <h3 className="text-lg font-medium">Milestones</h3>
             </div>
             <Dialog open={milestoneOpen} onOpenChange={setMilestoneOpen}>
                 <DialogContent>
-                  <DialogHeader><DialogTitle>{t("contractors.milestones.add")}</DialogTitle></DialogHeader>
+                  <DialogHeader><DialogTitle>Add Milestone</DialogTitle></DialogHeader>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
                       <Label>Title</Label>
@@ -722,7 +720,7 @@ export default function ContractorDetail() {
                         </TableCell>
                       </TableRow>
                     )) : (
-                      <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">{t("contractors.milestones.empty")}</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No milestones found</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
@@ -733,11 +731,11 @@ export default function ContractorDetail() {
           {/* Adjustments Tab */}
           <TabsContent value="adjustments" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">{t("contractors.adjustments.title")}</h3>
+              <h3 className="text-lg font-medium">Adjustments</h3>
             </div>
             <Dialog open={adjustmentOpen} onOpenChange={setAdjustmentOpen}>
                 <DialogContent>
-                  <DialogHeader><DialogTitle>{t("contractors.adjustments.title")}</DialogTitle></DialogHeader>
+                  <DialogHeader><DialogTitle>Adjustments</DialogTitle></DialogHeader>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
                       <Label>Type</Label>
@@ -809,7 +807,7 @@ export default function ContractorDetail() {
 
           {/* Invoices Tab */}
           <TabsContent value="invoices" className="space-y-4">
-            <h3 className="text-lg font-medium">{t("contractors.invoices.title")}</h3>
+            <h3 className="text-lg font-medium">Invoices</h3>
             <Card>
               <CardContent className="p-0">
                 <Table>
@@ -832,7 +830,7 @@ export default function ContractorDetail() {
                         <TableCell><FileText className="w-4 h-4 text-muted-foreground" /></TableCell>
                       </TableRow>
                     )) : (
-                      <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">{t("contractors.invoices.empty")}</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No invoices found</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
@@ -860,32 +858,32 @@ export default function ContractorDetail() {
         <Dialog open={terminateDialogOpen} onOpenChange={setTerminateDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{t("terminate.dialog.title.contractor")}</DialogTitle>
+              <DialogTitle>Terminate Contractor</DialogTitle>
               <DialogDescription>
-                {t("terminate.dialog.description.contractor")}
+                Please confirm termination details for this contractor.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>{t("terminate.dialog.endDate")}</Label>
+                <Label>End Date</Label>
                 <DatePicker
                   value={terminateEndDate}
                   onChange={(d) => setTerminateEndDate(d || new Date().toISOString().split('T')[0])}
                 />
               </div>
               <div className="space-y-2">
-                <Label>{t("terminate.dialog.reason")}</Label>
+                <Label>Reason</Label>
                 <Textarea
                   value={terminateReason}
                   onChange={(e) => setTerminateReason(e.target.value)}
-                  placeholder={t("terminate.dialog.reasonPlaceholder")}
+                  placeholder="Enter reason for termination"
                   rows={3}
                 />
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setTerminateDialogOpen(false)}>
-                {t("common.cancel")}
+                Cancel
               </Button>
               <Button
                 variant="destructive"
@@ -896,14 +894,14 @@ export default function ContractorDetail() {
                     {
                       onSuccess: () => {
                         setTerminateDialogOpen(false);
-                        toast.success(t("terminate.dialog.success.contractor"));
+                        toast.success("Contractor terminated successfully");
                         refetch();
                       },
                     }
                   );
                 }}
               >
-                {statusUpdateMutation.isPending ? t("common.processing") : t("terminate.dialog.confirm")}
+                {statusUpdateMutation.isPending ? "Processing..." : "Confirm"}
               </Button>
             </DialogFooter>
           </DialogContent>

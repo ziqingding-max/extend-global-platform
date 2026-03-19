@@ -1,4 +1,3 @@
-
 /*
  * EG Admin — Adjustments (异动薪酬)
  * Manage bonuses, allowances, reimbursements, and deductions
@@ -48,8 +47,6 @@ import PayrollCycleIndicator from "@/components/PayrollCycleIndicator";
 import { MonthPicker } from "@/components/DatePicker";
 import { exportToCsv } from "@/lib/csvExport";
 
-import { useI18n } from "@/lib/i18n";
-
 const statusColors: Record<string, string> = {
   submitted: "bg-amber-50 text-amber-700 border-amber-200",
   client_approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -86,7 +83,6 @@ const CATEGORIES = [
 ];
 
 export default function Adjustments() {
-  const { t, lang } = useI18n();
   const [viewTab, setViewTab] = useState<string>("active");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -105,11 +101,11 @@ export default function Adjustments() {
     for (let i = -3; i <= 6; i++) {
       const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
       const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      const label = d.toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { month: "long", year: "numeric" });
+      const label = d.toLocaleString("en-US", { month: "long", year: "numeric" });
       options.push({ value, label });
     }
     return options;
-  }, [lang]);
+  }, []);
 
   // Fetch Employee Adjustments
   const { data: employeeAdjustmentsData, isLoading: isLoadingEmployees, refetch: refetchEmployees } = trpc.adjustments.list.useQuery({
@@ -155,23 +151,23 @@ export default function Adjustments() {
 
   // Employee Mutations
   const createEmployeeMutation = trpc.adjustments.create.useMutation({
-    onSuccess: () => { toast.success(t("adjustments.toast.submitSuccess")); setCreateOpen(false); setReceiptFile(null); refetch(); },
+    onSuccess: () => { toast.success("Adjustment submitted successfully"); setCreateOpen(false); setReceiptFile(null); refetch(); },
     onError: (err) => toast.error(err.message),
   });
   const updateEmployeeMutation = trpc.adjustments.update.useMutation({
-    onSuccess: () => { toast.success(t("adjustments.toast.updateSuccess")); setEditOpen(false); setEditingAdj(null); setEditReceiptFile(null); refetch(); },
+    onSuccess: () => { toast.success("Adjustment updated successfully"); setEditOpen(false); setEditingAdj(null); setEditReceiptFile(null); refetch(); },
     onError: (err) => toast.error(err.message),
   });
   const deleteEmployeeMutation = trpc.adjustments.delete.useMutation({
-    onSuccess: () => { toast.success(t("adjustments.toast.deleteSuccess")); refetch(); },
+    onSuccess: () => { toast.success("Adjustment deleted successfully"); refetch(); },
     onError: (err) => toast.error(err.message),
   });
   const adminApproveEmployeeMutation = trpc.adjustments.adminApprove.useMutation({
-    onSuccess: () => { toast.success(t("adjustments.toast.approveSuccess")); refetch(); },
+    onSuccess: () => { toast.success("Adjustment approved successfully"); refetch(); },
     onError: (err) => toast.error(err.message),
   });
   const adminRejectEmployeeMutation = trpc.adjustments.adminReject.useMutation({
-    onSuccess: () => { toast.success(t("adjustments.toast.rejectSuccess")); refetch(); },
+    onSuccess: () => { toast.success("Adjustment rejected successfully"); refetch(); },
     onError: (err) => toast.error(err.message),
   });
   const bulkApproveEmployeeMutation = trpc.adjustments.bulkAdminApprove.useMutation({
@@ -187,15 +183,15 @@ export default function Adjustments() {
 
   // Contractor Mutations
   const createContractorMutation = trpc.contractors.adjustments.create.useMutation({
-    onSuccess: () => { toast.success(t("adjustments.toast.submitSuccess")); setCreateOpen(false); setReceiptFile(null); refetch(); },
+    onSuccess: () => { toast.success("Adjustment submitted successfully"); setCreateOpen(false); setReceiptFile(null); refetch(); },
     onError: (err) => toast.error(err.message),
   });
   const updateContractorMutation = trpc.contractors.adjustments.update.useMutation({
-    onSuccess: () => { toast.success(t("adjustments.toast.updateSuccess")); setEditOpen(false); setEditingAdj(null); refetch(); },
+    onSuccess: () => { toast.success("Adjustment updated successfully"); setEditOpen(false); setEditingAdj(null); refetch(); },
     onError: (err) => toast.error(err.message),
   });
   const deleteContractorMutation = trpc.contractors.adjustments.delete.useMutation({
-    onSuccess: () => { toast.success(t("adjustments.toast.deleteSuccess")); refetch(); },
+    onSuccess: () => { toast.success("Adjustment deleted successfully"); refetch(); },
     onError: (err) => toast.error(err.message),
   });
 
@@ -234,7 +230,7 @@ export default function Adjustments() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 20 * 1024 * 1024) {
-      toast.error(t("adjustments.toast.fileTooLarge"));
+      toast.error("File size exceeds 20MB limit");
       return;
     }
     const reader = new FileReader();
@@ -251,7 +247,7 @@ export default function Adjustments() {
 
   const handleCreate = async () => {
     if (!formData.workerId || !formData.amount) {
-      toast.error(t("adjustments.toast.requiredFields"));
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -408,7 +404,7 @@ export default function Adjustments() {
   };
 
   const handleDelete = (adj: any) => {
-    if (confirm(t("adjustments.confirm.delete"))) {
+    if (confirm("Are you sure you want to delete this adjustment?")) {
       if (adj.workerType === "employee") {
         deleteEmployeeMutation.mutate({ id: adj.id });
       } else {
@@ -512,14 +508,14 @@ export default function Adjustments() {
       <div className="space-y-2">
         <Label className="flex items-center gap-1">
           <Paperclip className="w-3.5 h-3.5" />
-          {t("adjustments.receipt.label")}
+          Receipt
         </Label>
         {existingUrl && !file && (
           <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md text-sm">
             <FileText className="w-4 h-4 text-muted-foreground" />
-            <span className="flex-1 truncate">{t("adjustments.receipt.existing")}</span>
+            <span className="flex-1 truncate">Existing receipt</span>
             <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => window.open(existingUrl, "_blank")}>
-              <Eye className="w-3.5 h-3.5 mr-1" /> {t("adjustments.receipt.view")}
+              <Eye className="w-3.5 h-3.5 mr-1" /> View
             </Button>
           </div>
         )}
@@ -551,7 +547,7 @@ export default function Adjustments() {
           onClick={() => inputRef.current?.click()}
         >
           <Upload className="w-4 h-4 mr-2" />
-          {file ? t("adjustments.receipt.replace") : existingUrl ? t("adjustments.receipt.upload_new") : t("adjustments.receipt.upload")}
+          {file ? "Replace receipt" : existingUrl ? "Upload new receipt" : "Upload receipt"}
         </Button>
       </div>
     );
@@ -560,13 +556,13 @@ export default function Adjustments() {
   const isLoading = isLoadingEmployees || isLoadingContractors;
 
   return (
-    <Layout breadcrumb={["EG", t("nav.operations"), t("nav.adjustments")]}>
+    <Layout breadcrumb={["EG", "Operations", "Adjustments"]}>
       <div className="p-6 space-y-6 page-enter">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t("adjustments.title")}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Adjustments</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {t("adjustments.subtitle")}
+              Manage bonuses, allowances, reimbursements, and deductions
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -574,7 +570,15 @@ export default function Adjustments() {
             <Button variant="outline" disabled={filteredAdjustments.length === 0} onClick={() => {
                exportToCsv(filteredAdjustments, [
                 { header: "Worker Type", accessor: (r: any) => r.workerType },
-                { header: "Type", accessor: (r: any) => t(`adjustments.type.${r.adjustmentType}`) || r.adjustmentType },
+                { header: "Type", accessor: (r: any) => {
+                  const type = r.adjustmentType;
+                  if (type === "bonus") return "Bonus";
+                  if (type === "allowance") return "Allowance";
+                  if (type === "deduction") return "Deduction";
+                  if (type === "other") return "Other";
+                  if (type === "expense") return "Expense";
+                  return type;
+                }},
                 { header: "Worker", accessor: (r: any) => { const w = workerMap.get(r.workerId); return w ? `${w.firstName} ${w.lastName}` : r.workerId; } },
                 { header: "Amount", accessor: (r: any) => r.amount },
                 { header: "Currency", accessor: (r: any) => r.currency },
@@ -583,7 +587,7 @@ export default function Adjustments() {
               ], `adjustments-export-${new Date().toISOString().slice(0, 10)}.csv`);
               toast.success("CSV exported successfully");
             }}>
-              <Download className="w-4 h-4 mr-2" />{t("common.export")}
+              <Download className="w-4 h-4 mr-2" />Export
             </Button>
             <Dialog open={createOpen} onOpenChange={(open) => {
               setCreateOpen(open);
@@ -592,12 +596,12 @@ export default function Adjustments() {
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="w-4 h-4 mr-2" />
-                  {t("adjustments.button.new")}
+                  New Adjustment
                 </Button>
               </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{t("adjustments.dialog.title.new")}</DialogTitle>
+                <DialogTitle>Create Adjustment</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 <WorkerSelector
@@ -617,32 +621,44 @@ export default function Adjustments() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("adjustments.form.label.type")} *</Label>
+                    <Label>Type *</Label>
                     <Select
                       value={formData.adjustmentType}
                       onValueChange={(v) => setFormData({ ...formData, adjustmentType: v })}
                     >
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="bonus">{t("adjustments.type.bonus")}</SelectItem>
-                        <SelectItem value="allowance">{t("adjustments.type.allowance")}</SelectItem>
-                        <SelectItem value="deduction">{t("adjustments.type.deduction")}</SelectItem>
-                        <SelectItem value="other">{t("adjustments.type.other")}</SelectItem>
+                        <SelectItem value="bonus">Bonus</SelectItem>
+                        <SelectItem value="allowance">Allowance</SelectItem>
+                        <SelectItem value="deduction">Deduction</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("adjustments.form.label.category")}</Label>
+                    <Label>Category</Label>
                     <Select
                       value={formData.category || "none"}
                       onValueChange={(v) => setFormData({ ...formData, category: v === "none" ? "" : v })}
                     >
-                      <SelectTrigger><SelectValue placeholder={t("adjustments.form.label.category")} /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">{t("adjustments.category.none")}</SelectItem>
-                        {CATEGORIES.map((c) => (
-                          <SelectItem key={c} value={c}>{t(`adjustments.category.${c}`)}</SelectItem>
-                        ))}
+                        <SelectItem value="none">None</SelectItem>
+                        {CATEGORIES.map((c) => {
+                          const labelMap: Record<string, string> = {
+                            housing: "Housing",
+                            transport: "Transport",
+                            meals: "Meals",
+                            performance_bonus: "Performance Bonus",
+                            year_end_bonus: "Year End Bonus",
+                            overtime: "Overtime",
+                            travel_reimbursement: "Travel Reimbursement",
+                            equipment_reimbursement: "Equipment Reimbursement",
+                            absence_deduction: "Absence Deduction",
+                            other: "Other",
+                          };
+                          return <SelectItem key={c} value={c}>{labelMap[c] || c}</SelectItem>;
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
@@ -650,7 +666,7 @@ export default function Adjustments() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("adjustments.form.label.amount")} *</Label>
+                    <Label>Amount *</Label>
                     <Input
                       type="text"
                       inputMode="decimal"
@@ -663,21 +679,21 @@ export default function Adjustments() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("adjustments.form.label.effectiveMonth")} *</Label>
+                    <Label>Effective Month *</Label>
                     <MonthPicker
                       value={formData.effectiveMonth}
                       onChange={(v) => setFormData({ ...formData, effectiveMonth: v })}
-                      placeholder={t("payroll.filters.placeholder.month")}
+                      placeholder="Select month"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{t("adjustments.form.label.description")}</Label>
+                  <Label>Description</Label>
                   <Textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder={t("adjustments.form.label.description") + "..."}
+                    placeholder="Description..."
                     rows={3}
                   />
                 </div>
@@ -689,9 +705,9 @@ export default function Adjustments() {
                 )}
 
                 <div className="flex justify-end gap-3 pt-2">
-                  <Button variant="outline" onClick={() => setCreateOpen(false)}>{t("common.cancel")}</Button>
+                  <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
                   <Button onClick={handleCreate} disabled={isUploading}>
-                    {isUploading ? t("adjustments.receipt.uploading") : t("common.submit")}
+                    {isUploading ? "Uploading..." : "Submit"}
                   </Button>
                 </div>
               </div>
@@ -702,8 +718,8 @@ export default function Adjustments() {
 
         <Tabs value={viewTab} onValueChange={(v) => { setViewTab(v); setStatusFilter("all"); }} className="w-full">
           <TabsList>
-            <TabsTrigger value="active">{t("adjustments.tabs.active")}</TabsTrigger>
-            <TabsTrigger value="history">{t("adjustments.tabs.history")}</TabsTrigger>
+            <TabsTrigger value="active">Active</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -713,17 +729,17 @@ export default function Adjustments() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               className="pl-9"
-              placeholder={t("reimbursements.filters.searchPlaceholder")}
+              placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <Select value={customerFilter} onValueChange={setCustomerFilter}>
             <SelectTrigger className="w-44">
-              <SelectValue placeholder={t("adjustments.filters.customerPlaceholder")} />
+              <SelectValue placeholder="Select Customer" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("adjustments.filters.allCustomers")}</SelectItem>
+              <SelectItem value="all">All Customers</SelectItem>
               {customersList.map((c) => (
                 <SelectItem key={c.id} value={String(c.id)}>{c.companyName}</SelectItem>
               ))}
@@ -731,10 +747,10 @@ export default function Adjustments() {
           </Select>
           <Select value={countryFilter} onValueChange={setCountryFilter}>
             <SelectTrigger className="w-36">
-              <SelectValue placeholder={t("adjustments.filters.countryPlaceholder")} />
+              <SelectValue placeholder="Select Country" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("adjustments.filters.allCountries")}</SelectItem>
+              <SelectItem value="all">All Countries</SelectItem>
               {availableCountries.map((c) => (
                 <SelectItem key={c} value={c}>{c}</SelectItem>
               ))}
@@ -742,23 +758,23 @@ export default function Adjustments() {
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger className="w-36">
-              <SelectValue placeholder={t("adjustments.form.label.type")} />
+              <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value="all">{t("adjustments.filters.allTypes")}</SelectItem>
-                <SelectItem value="bonus">{t("adjustments.type.bonus")}</SelectItem>
-                <SelectItem value="allowance">{t("adjustments.type.allowance")}</SelectItem>
-                <SelectItem value="deduction">{t("adjustments.type.deduction")}</SelectItem>
-                <SelectItem value="other">{t("adjustments.type.other")}</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="bonus">Bonus</SelectItem>
+                <SelectItem value="allowance">Allowance</SelectItem>
+                <SelectItem value="deduction">Deduction</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
               </SelectContent>
           </Select>
           
           <Select value={monthFilter} onValueChange={setMonthFilter}>
             <SelectTrigger className="w-36">
-              <SelectValue placeholder={t("payroll.filters.placeholder.month")} />
+              <SelectValue placeholder="Select month" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("leave.filters.allMonths")}</SelectItem>
+              <SelectItem value="all">All Months</SelectItem>
               {monthOptions.map((m) => (
                 <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
               ))}
@@ -795,13 +811,13 @@ export default function Adjustments() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Worker</TableHead>
-                  <TableHead>{t("adjustments.form.label.type")}</TableHead>
-                  <TableHead>{t("adjustments.form.label.category")}</TableHead>
-                  <TableHead>{t("adjustments.form.label.amount")}</TableHead>
-                  <TableHead>{t("adjustments.form.label.effectiveMonth")}</TableHead>
-                  <TableHead>{t("adjustments.table.header.receipt")}</TableHead>
-                  <TableHead>{t("adjustments.filters.statusPlaceholder")}</TableHead>
-                  <TableHead className="w-24">{t("adjustments.table.header.actions")}</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Effective Month</TableHead>
+                  <TableHead>Receipt</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-24">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -837,22 +853,40 @@ export default function Adjustments() {
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className={`text-xs capitalize ${typeColors[adj.adjustmentType] || ""}`}>
-                            {t(`adjustments.type.${adj.adjustmentType}`) || adj.adjustmentType}
+                            {adj.adjustmentType === "bonus" ? "Bonus" :
+                             adj.adjustmentType === "allowance" ? "Allowance" :
+                             adj.adjustmentType === "deduction" ? "Deduction" :
+                             adj.adjustmentType === "other" ? "Other" :
+                             adj.adjustmentType === "expense" ? "Expense" :
+                             adj.adjustmentType}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm">
-                          {CATEGORIES.includes(adj.category) ? t(`adjustments.category.${adj.category}`) : (adj.category || adj.description || "—")}
+                          {CATEGORIES.includes(adj.category) ? (
+                            ({
+                              housing: "Housing",
+                              transport: "Transport",
+                              meals: "Meals",
+                              performance_bonus: "Performance Bonus",
+                              year_end_bonus: "Year End Bonus",
+                              overtime: "Overtime",
+                              travel_reimbursement: "Travel Reimbursement",
+                              equipment_reimbursement: "Equipment Reimbursement",
+                              absence_deduction: "Absence Deduction",
+                              other: "Other",
+                            } as Record<string, string>)[adj.category] || adj.category
+                          ) : (adj.category || adj.description || "—")}
                         </TableCell>
                         <TableCell className="text-sm font-mono">
                           {adj.currency} {formatAmount(adj.amount)}
                         </TableCell>
                         <TableCell className="text-sm">
-                          {adj.effectiveMonth ? new Date(adj.effectiveMonth).toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { month: "long", year: "numeric" }) : "—"}
+                          {adj.effectiveMonth ? new Date(adj.effectiveMonth).toLocaleString("en-US", { month: "long", year: "numeric" }) : "—"}
                         </TableCell>
                         <TableCell>
                           {adj.receiptFileUrl ? (
                             <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => window.open(adj.receiptFileUrl!, "_blank")}>
-                              <Paperclip className="w-3 h-3 mr-1" /> {t("adjustments.receipt.view")}
+                              <Paperclip className="w-3 h-3 mr-1" /> View Receipt
                             </Button>
                           ) : (
                             <span className="text-xs text-muted-foreground">—</span>
@@ -861,7 +895,7 @@ export default function Adjustments() {
                         <TableCell>
                           <Badge variant="outline" className={`text-xs ${statusColors[adj.status] || ""}`}>
                             {adj.status === "locked" && <Lock className="w-3 h-3 mr-1 inline" />}
-                            {t(`adjustments.status.${adj.status}`) || adj.status}
+                            {adj.status.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -871,14 +905,14 @@ export default function Adjustments() {
                                 <Button
                                   variant="ghost" size="icon" className="h-7 w-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
                                   onClick={() => handleApprove(adj)}
-                                  title={t("common.approve")}
+                                  title="Approve"
                                 >
                                   <CheckCircle2 className="w-3.5 h-3.5" />
                                 </Button>
                                 <Button
                                   variant="ghost" size="icon" className="h-7 w-7 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                                   onClick={() => handleReject(adj)}
-                                  title={t("common.reject")}
+                                  title="Reject"
                                 >
                                   <XCircle className="w-3.5 h-3.5" />
                                 </Button>
@@ -902,7 +936,7 @@ export default function Adjustments() {
                             <Button
                               variant="ghost" size="icon" className="h-7 w-7"
                               onClick={() => setViewAdj(adj)}
-                              title={t("common.view")}
+                              title="View"
                             >
                               <Eye className="w-3.5 h-3.5" />
                             </Button>
@@ -915,7 +949,7 @@ export default function Adjustments() {
                    <TableRow>
                     <TableCell colSpan={8} className="text-center py-12">
                       <ArrowUpDown className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                      <p className="text-sm text-muted-foreground">{t("adjustments.table.empty")}</p>
+                      <p className="text-sm text-muted-foreground">No adjustments found</p>
                     </TableCell>
                   </TableRow>
                 )}
@@ -931,7 +965,7 @@ export default function Adjustments() {
         }}>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{t("adjustments.dialog.title.edit")}</DialogTitle>
+              <DialogTitle>Edit Adjustment</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-4">
               <div className="grid grid-cols-2 gap-4">
@@ -943,25 +977,37 @@ export default function Adjustments() {
                   >
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="bonus">{t("adjustments.type.bonus")}</SelectItem>
-                      <SelectItem value="allowance">{t("adjustments.type.allowance")}</SelectItem>
-                      <SelectItem value="deduction">{t("adjustments.type.deduction")}</SelectItem>
-                      <SelectItem value="other">{t("adjustments.type.other")}</SelectItem>
+                      <SelectItem value="bonus">Bonus</SelectItem>
+                      <SelectItem value="allowance">Allowance</SelectItem>
+                      <SelectItem value="deduction">Deduction</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("adjustments.form.label.category")}</Label>
+                  <Label>Category</Label>
                   <Select
                     value={editFormData.category || "none"}
                     onValueChange={(v) => setEditFormData({ ...editFormData, category: v === "none" ? "" : v })}
                   >
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">{t("adjustments.category.none")}</SelectItem>
-                      {CATEGORIES.map((c) => (
-                        <SelectItem key={c} value={c}>{t(`adjustments.category.${c}`)}</SelectItem>
-                      ))}
+                      <SelectItem value="none">None</SelectItem>
+                      {CATEGORIES.map((c) => {
+                        const labelMap: Record<string, string> = {
+                          housing: "Housing",
+                          transport: "Transport",
+                          meals: "Meals",
+                          performance_bonus: "Performance Bonus",
+                          year_end_bonus: "Year End Bonus",
+                          overtime: "Overtime",
+                          travel_reimbursement: "Travel Reimbursement",
+                          equipment_reimbursement: "Equipment Reimbursement",
+                          absence_deduction: "Absence Deduction",
+                          other: "Other",
+                        };
+                        return <SelectItem key={c} value={c}>{labelMap[c] || c}</SelectItem>;
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
@@ -990,7 +1036,7 @@ export default function Adjustments() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>{t("adjustments.form.label.description")}</Label>
+                <Label>Description</Label>
                 <Textarea
                   value={editFormData.description}
                   onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
@@ -1014,7 +1060,7 @@ export default function Adjustments() {
          {/* View Adjustment Detail Dialog (read-only) */}
          <Dialog open={!!viewAdj} onOpenChange={(open) => { if (!open) setViewAdj(null); }}>
           <DialogContent className="max-w-md">
-            <DialogHeader><DialogTitle>{t("adjustments.dialog.title.details")}</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Adjustment Details</DialogTitle></DialogHeader>
             {viewAdj && (
               <div className="space-y-4 mt-4">
                 <div className="rounded-md bg-muted/50 p-3">
@@ -1028,26 +1074,42 @@ export default function Adjustments() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">{t("adjustments.form.label.type")}</Label>
+                    <Label className="text-xs text-muted-foreground">Type</Label>
                     <Badge variant="outline" className={`text-xs capitalize ${typeColors[viewAdj.adjustmentType] || ''}`}>
-                      {t(`adjustments.type.${viewAdj.adjustmentType}`) || viewAdj.adjustmentType}
+                      {viewAdj.adjustmentType === "bonus" ? "Bonus" :
+                       viewAdj.adjustmentType === "allowance" ? "Allowance" :
+                       viewAdj.adjustmentType === "deduction" ? "Deduction" :
+                       viewAdj.adjustmentType === "other" ? "Other" :
+                       viewAdj.adjustmentType === "expense" ? "Expense" :
+                       viewAdj.adjustmentType}
                     </Badge>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">{t("adjustments.form.label.category")}</Label>
-                    <p className="text-sm">{CATEGORIES.includes(viewAdj.category) ? t(`adjustments.category.${viewAdj.category}`) : (viewAdj.category || '—')}</p>
+                    <Label className="text-xs text-muted-foreground">Category</Label>
+                    <p className="text-sm">{CATEGORIES.includes(viewAdj.category) ? ({
+                      housing: "Housing",
+                      transport: "Transport",
+                      meals: "Meals",
+                      performance_bonus: "Performance Bonus",
+                      year_end_bonus: "Year End Bonus",
+                      overtime: "Overtime",
+                      travel_reimbursement: "Travel Reimbursement",
+                      equipment_reimbursement: "Equipment Reimbursement",
+                      absence_deduction: "Absence Deduction",
+                      other: "Other",
+                    } as Record<string, string>)[viewAdj.category] || viewAdj.category : (viewAdj.category || '—')}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">{t("adjustments.form.label.amount")}</Label>
+                    <Label className="text-xs text-muted-foreground">Amount</Label>
                     <p className="text-sm font-mono font-semibold">
                       {viewAdj.currency} {formatAmount(viewAdj.amount)}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">{t("adjustments.form.label.effectiveMonth")}</Label>
+                    <Label className="text-xs text-muted-foreground">Effective Month</Label>
                     <p className="text-sm">
                       {viewAdj.effectiveMonth ? formatMonth(viewAdj.effectiveMonth) : '—'}
                     </p>
@@ -1055,23 +1117,23 @@ export default function Adjustments() {
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">{t("common.status")}</Label>
+                  <Label className="text-xs text-muted-foreground">Status</Label>
                   <Badge variant="outline" className={`text-xs ${statusColors[viewAdj.status] || ''}`}>
                     {viewAdj.status === 'locked' && <Lock className="w-3 h-3 mr-1 inline" />}
-                    {t(`adjustments.status.${viewAdj.status}`) || viewAdj.status}
+                    {viewAdj.status.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                   </Badge>
                 </div>
 
                 {viewAdj.description && (
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">{t("adjustments.form.label.description")}</Label>
+                    <Label className="text-xs text-muted-foreground">Description</Label>
                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">{viewAdj.description}</p>
                   </div>
                 )}
 
                 {viewAdj.receiptFileUrl && (
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">{t("adjustments.table.header.receipt")}</Label>
+                    <Label className="text-xs text-muted-foreground">Receipt</Label>
                     <Button variant="outline" size="sm" className="h-7 px-3 text-xs" onClick={() => window.open(viewAdj.receiptFileUrl!, '_blank')}>
                       <Paperclip className="w-3 h-3 mr-1" /> View Receipt
                     </Button>
@@ -1079,7 +1141,7 @@ export default function Adjustments() {
                 )}
 
                 <div className="flex justify-end pt-2">
-                  <Button variant="outline" onClick={() => setViewAdj(null)}>{t("adjustments.button.close")}</Button>
+                  <Button variant="outline" onClick={() => setViewAdj(null)}>Close</Button>
                 </div>
               </div>
             )}

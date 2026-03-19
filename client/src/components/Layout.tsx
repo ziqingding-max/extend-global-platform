@@ -2,14 +2,12 @@
  * EG Admin — Layout Component (Glassmorphism Redesign)
  * Design: Top pill navigation bar + aurora gradient background + frosted glass surfaces
  * Navigation: Horizontal pill tabs with dropdown mega-menu for sub-items
- * i18n: Supports English/Chinese toggle
  */
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { useI18n } from "@/lib/i18n";
 import {
   LayoutDashboard,
   Loader2,
@@ -30,7 +28,6 @@ import {
   ArrowUpDown,
   Landmark,
   ClipboardList,
-  Languages,
   Truck,
   FileStack,
   BarChart3,
@@ -88,7 +85,6 @@ interface NavGroup {
 
 /* ─── Build navigation groups based on user role ─── */
 function useNavGroups(user: any): NavGroup[] {
-  const { t } = useI18n();
   const roleStr = user?.role || "user";
 
   const hasRole = (allowed: string[]) => {
@@ -114,8 +110,8 @@ function useNavGroups(user: any): NavGroup[] {
           label: "Overview",
           icon: LayoutDashboard,
           items: [
-            { label: t("nav.dashboard"), icon: LayoutDashboard, href: "/" },
-            { label: t("nav.profit_loss"), icon: BarChart3, href: "/reports/profit-loss" },
+            { label: "Dashboard", icon: LayoutDashboard, href: "/" },
+            { label: "Profit & Loss", icon: BarChart3, href: "/reports/profit-loss" },
             { label: "Reconciliation", icon: ArrowLeftRight, href: "/reports/reconciliation" },
           ].filter(() => hasRole(["admin", "finance_manager", "operations_manager"])),
         },
@@ -124,10 +120,10 @@ function useNavGroups(user: any): NavGroup[] {
           label: "Operations",
           icon: Layers,
           items: [
-            { label: t("nav.payroll"), icon: DollarSign, href: "/payroll" },
+            { label: "Payroll", icon: DollarSign, href: "/payroll" },
             { label: "Contractor Invoices", icon: FileStack, href: "/admin/contractor-invoices" },
-            { label: t("nav.adjustments"), icon: ArrowUpDown, href: "/adjustments" },
-            { label: t("nav.reimbursements"), icon: Receipt, href: "/reimbursements" },
+            { label: "Adjustments", icon: ArrowUpDown, href: "/adjustments" },
+            { label: "Reimbursements", icon: Receipt, href: "/reimbursements" },
             { label: "Leave & Milestones", icon: CalendarDays, href: "/leave" },
           ].filter(() => hasRole(["admin", "operations_manager"])),
         },
@@ -136,7 +132,7 @@ function useNavGroups(user: any): NavGroup[] {
           label: "Finance",
           icon: PieChart,
           items: [
-            { label: t("nav.invoices"), icon: Receipt, href: "/invoices" },
+            { label: "Invoices", icon: Receipt, href: "/invoices" },
             { label: "Release Tasks", icon: CheckCircle, href: "/admin/release-tasks" },
           ].filter(() => hasRole(["admin", "finance_manager"])),
         },
@@ -145,8 +141,8 @@ function useNavGroups(user: any): NavGroup[] {
           label: "Client Directory",
           icon: Users,
           items: [
-            { label: t("nav.customers"), icon: Building2, href: "/customers" },
-            { label: t("nav.people"), icon: Users, href: "/people" },
+            { label: "Customers", icon: Building2, href: "/customers" },
+            { label: "People", icon: Users, href: "/people" },
           ].filter(() => hasRole(["admin", "customer_manager", "operations_manager"])),
         },
         /* ── 6. Vendor ── */
@@ -154,8 +150,8 @@ function useNavGroups(user: any): NavGroup[] {
           label: "Vendor",
           icon: Truck,
           items: [
-            { label: t("nav.vendors"), icon: Truck, href: "/vendors" },
-            { label: t("nav.vendor_bills"), icon: Receipt, href: "/vendor-bills" },
+            { label: "Vendors", icon: Truck, href: "/vendors" },
+            { label: "Vendor Bills", icon: Receipt, href: "/vendor-bills" },
           ].filter(() => hasRole(["admin", "finance_manager"])),
         },
         /* ── 7. Sales ── */
@@ -163,9 +159,9 @@ function useNavGroups(user: any): NavGroup[] {
           label: "Sales",
           icon: TrendingUp,
           items: [
-            { label: t("nav.crm_pipeline"), icon: Briefcase, href: "/sales-crm" },
-            { label: t("nav.quotations"), icon: FileText, href: "/quotations" },
-            { label: t("nav.countryGuide"), icon: Globe, href: "/admin/country-guide" },
+            { label: "CRM Pipeline", icon: Briefcase, href: "/sales-crm" },
+            { label: "Quotations", icon: FileText, href: "/quotations" },
+            { label: "Country Guide", icon: Globe, href: "/admin/country-guide" },
           ].filter(() => hasRole(["admin", "sales", "customer_manager"])),
         },
         /* ── 8. System ── */
@@ -173,13 +169,13 @@ function useNavGroups(user: any): NavGroup[] {
           label: "System",
           icon: Settings,
           items: [
-            { label: t("nav.settings"), icon: Settings, href: "/settings", roles: ["admin"] },
-            { label: t("nav.knowledge_admin"), icon: BookOpen, href: "/knowledge-base-admin", roles: ["admin"] },
-            { label: t("nav.countryGuideAdmin"), icon: Globe, href: "/admin/knowledge/country-guides", roles: ["admin"] },
+            { label: "Settings", icon: Settings, href: "/settings", roles: ["admin"] },
+            { label: "Knowledge Admin", icon: BookOpen, href: "/knowledge-base-admin", roles: ["admin"] },
+            { label: "Country Guide Admin", icon: Globe, href: "/admin/knowledge/country-guides", roles: ["admin"] },
           ].filter((item) => !item.roles || hasRole(item.roles)),
         },
       ].filter((group) => group.items.length > 0),
-    [t, roleStr]
+    [roleStr]
   );
 }
 
@@ -375,7 +371,6 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, loading, logout } = useAuth();
-  const { lang, setLang, t } = useI18n();
   const navGroups = useNavGroups(user);
 
   // Change Password
@@ -383,7 +378,7 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
   const [pwForm, setPwForm] = useState({ current: "", new: "", confirm: "" });
   const changePasswordMutation = trpc.userManagement.changePassword.useMutation({
     onSuccess: () => {
-      toast.success(t("common.changePassword.success"));
+      toast.success("Password changed successfully");
       setShowChangePassword(false);
       setPwForm({ current: "", new: "", confirm: "" });
     },
@@ -394,11 +389,11 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
 
   const handleChangePassword = () => {
     if (pwForm.new.length < 8) {
-      toast.error(t("common.changePassword.error.tooShort"));
+      toast.error("New password is too short");
       return;
     }
     if (pwForm.new !== pwForm.confirm) {
-      toast.error(t("common.changePassword.error.mismatch"));
+      toast.error("New password and confirmation do not match");
       return;
     }
     changePasswordMutation.mutate({
@@ -418,7 +413,7 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
       <div className="flex items-center justify-center min-h-screen aurora-bg">
         <div className="glass-card p-8 flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
+          <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -479,15 +474,6 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
             {/* CP Context Switcher (Task Group B) */}
             <CpContextSwitcher />
 
-            {/* Language Toggle */}
-            <button
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-white/30 transition-all duration-200"
-              onClick={() => setLang(lang === "en" ? "zh" : "en")}
-              title={lang === "en" ? "切换到中文" : "Switch to English"}
-            >
-              <Languages className="w-3.5 h-3.5" />
-              <span>{lang === "en" ? "EN" : "中"}</span>
-            </button>
 
             {/* Notifications */}
             <NotificationCenter />
@@ -510,7 +496,7 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={() => setShowChangePassword(true)}>
                   <KeyRound className="w-4 h-4 mr-2" />
-                  {t("common.changePassword")}
+                  Change Password
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -518,7 +504,7 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
                   onClick={() => logout()}
                 >
                   <LogOut className="w-4 h-4 mr-2" />
-                  {t("common.signOut")}
+                  Sign Out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -585,17 +571,17 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
       >
         <DialogContent className="sm:max-w-md glass-card">
           <DialogHeader>
-            <DialogTitle>{t("common.changePassword.title")}</DialogTitle>
+            <DialogTitle>Change Password</DialogTitle>
             <DialogDescription>
-              {t("common.changePassword.placeholder.new")}
+              Enter your new password below
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label>{t("common.changePassword.currentPassword")}</Label>
+              <Label>Current Password</Label>
               <Input
                 type="password"
-                placeholder={t("common.changePassword.placeholder.current")}
+                placeholder="Enter current password"
                 value={pwForm.current}
                 onChange={(e) =>
                   setPwForm((prev) => ({ ...prev, current: e.target.value }))
@@ -604,10 +590,10 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label>{t("common.changePassword.newPassword")}</Label>
+              <Label>New Password</Label>
               <Input
                 type="password"
-                placeholder={t("common.changePassword.placeholder.new")}
+                placeholder="Enter new password"
                 value={pwForm.new}
                 onChange={(e) =>
                   setPwForm((prev) => ({ ...prev, new: e.target.value }))
@@ -616,10 +602,10 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label>{t("common.changePassword.confirmPassword")}</Label>
+              <Label>Confirm Password</Label>
               <Input
                 type="password"
-                placeholder={t("common.changePassword.placeholder.confirm")}
+                placeholder="Confirm new password"
                 value={pwForm.confirm}
                 onChange={(e) =>
                   setPwForm((prev) => ({ ...prev, confirm: e.target.value }))
@@ -633,7 +619,7 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
               variant="outline"
               onClick={() => setShowChangePassword(false)}
             >
-              {t("common.cancel")}
+              Cancel
             </Button>
             <Button
               className="btn-gradient"
@@ -646,8 +632,8 @@ export default function Layout({ children, title, breadcrumb }: LayoutProps) {
               }
             >
               {changePasswordMutation.isPending
-                ? t("common.changePassword.submitting")
-                : t("common.changePassword.submit")}
+                ? "Submitting..."
+                : "Submit"}
             </Button>
           </DialogFooter>
         </DialogContent>

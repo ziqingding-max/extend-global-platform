@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useRoute, useLocation } from "wouter";
 import Layout from "@/components/Layout";
 import { trpc } from "@/lib/trpc";
-import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,7 +87,6 @@ export default function CountryGuideEditor() {
   const [, params] = useRoute("/admin/knowledge/country-guides/:countryCode");
   const countryCode = params?.countryCode;
   const [, setLocation] = useLocation();
-  const { t } = useI18n();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingChapter, setEditingChapter] = useState<any>(null);
   const [previewTab, setPreviewTab] = useState<"edit" | "preview">("edit");
@@ -115,7 +113,7 @@ export default function CountryGuideEditor() {
 
   const upsertMutation = trpc.countryGuides.upsertChapter.useMutation({
     onSuccess: () => {
-      toast.success(t("country_guide_admin.toast.chapter_saved"));
+      toast.success("Chapter saved");
       setIsSheetOpen(false);
       setEditingChapter(null);
       setFormData({});
@@ -128,7 +126,7 @@ export default function CountryGuideEditor() {
 
   const deleteMutation = trpc.countryGuides.deleteChapter.useMutation({
     onSuccess: () => {
-      toast.success(t("country_guide_admin.toast.chapter_deleted"));
+      toast.success("Chapter deleted");
       refetch();
     },
     onError: (err) => {
@@ -138,7 +136,7 @@ export default function CountryGuideEditor() {
 
   const statusMutation = trpc.countryGuides.updateChapterStatus.useMutation({
     onSuccess: () => {
-      toast.success(t("common.saved"));
+      toast.success("Saved");
       refetch();
     },
     onError: (err) => {
@@ -148,7 +146,7 @@ export default function CountryGuideEditor() {
 
   const bulkStatusMutation = trpc.countryGuides.bulkUpdateStatus.useMutation({
     onSuccess: () => {
-      toast.success(t("common.saved"));
+      toast.success("Saved");
       refetch();
     },
     onError: (err) => {
@@ -249,7 +247,7 @@ export default function CountryGuideEditor() {
       breadcrumb={[
         "EG",
         "System",
-        t("nav.countryGuideAdmin"),
+        "Country Guide Admin",
         country?.countryName || countryCode,
       ]}
     >
@@ -270,7 +268,7 @@ export default function CountryGuideEditor() {
                 <Badge variant="outline">{countryCode}</Badge>
               </h1>
               <p className="text-muted-foreground">
-                {t("country_guide_admin.editor_subtitle")}
+                Edit country guide chapters and content
               </p>
             </div>
           </div>
@@ -310,7 +308,7 @@ export default function CountryGuideEditor() {
             )}
             <Button onClick={handleCreate}>
               <Plus className="h-4 w-4 mr-2" />
-              {t("country_guide_admin.add_chapter")}
+              Add Chapter
             </Button>
           </div>
         </div>
@@ -378,9 +376,9 @@ export default function CountryGuideEditor() {
                                 className="gap-1"
                               >
                                 {getStatusIcon(chapter.status)}
-                                {t(
-                                  `country_guide_admin.status_${chapter.status}`
-                                )}
+                                {chapter.status
+                                  .replace(/_/g, " ")
+                                  .replace(/\b\w/g, (c) => c.toUpperCase())}
                               </Badge>
                               <span className="text-muted-foreground/60">
                                 Key: {chapter.chapterKey}
@@ -441,7 +439,7 @@ export default function CountryGuideEditor() {
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>
-                                    {t("country_guide_admin.confirm.delete")}
+                                    Confirm Delete
                                   </AlertDialogTitle>
                                   <AlertDialogDescription>
                                     This will permanently delete &quot;
@@ -451,7 +449,7 @@ export default function CountryGuideEditor() {
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>
-                                    {t("common.cancel")}
+                                    Cancel
                                   </AlertDialogCancel>
                                   <AlertDialogAction
                                     onClick={() =>
@@ -461,7 +459,7 @@ export default function CountryGuideEditor() {
                                     }
                                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                   >
-                                    {t("country_guide_admin.button.delete")}
+                                    Delete
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
@@ -475,7 +473,7 @@ export default function CountryGuideEditor() {
               ))}
             {chapters?.length === 0 && (
               <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
-                {t("common.noData")}
+                No data available
                 <p className="text-sm mt-2">
                   Click &quot;Add Chapter&quot; to create the first chapter for
                   this country.
@@ -491,15 +489,15 @@ export default function CountryGuideEditor() {
             <SheetHeader>
               <SheetTitle>
                 {editingChapter?.id
-                  ? t("country_guide_admin.edit_chapter")
-                  : t("country_guide_admin.add_chapter")}
+                  ? "Edit Chapter"
+                  : "Add Chapter"}
               </SheetTitle>
             </SheetHeader>
             <form onSubmit={handleSubmit} className="space-y-6 mt-6">
               {/* Meta fields */}
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="space-y-2">
-                  <Label>{t("country_guide_admin.chapter_key")}</Label>
+                  <Label>Chapter Key</Label>
                   <Input
                     value={formData.chapterKey || ""}
                     onChange={(e) =>
@@ -510,7 +508,7 @@ export default function CountryGuideEditor() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("common.status")}</Label>
+                  <Label>Status</Label>
                   <Select
                     value={formData.status || "draft"}
                     onValueChange={(val) => handleInputChange("status", val)}
@@ -520,22 +518,22 @@ export default function CountryGuideEditor() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="draft">
-                        {t("country_guide_admin.status_draft")}
+                        Draft
                       </SelectItem>
                       <SelectItem value="review">
-                        {t("country_guide_admin.status_review")}
+                        Review
                       </SelectItem>
                       <SelectItem value="published">
-                        {t("country_guide_admin.status_published")}
+                        Published
                       </SelectItem>
                       <SelectItem value="archived">
-                        {t("country_guide_admin.status_archived")}
+                        Archived
                       </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("country_guide_admin.part_number")}</Label>
+                  <Label>Part Number</Label>
                   <Input
                     type="number"
                     value={formData.part || ""}
@@ -546,7 +544,7 @@ export default function CountryGuideEditor() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("country_guide_admin.sort_order")}</Label>
+                  <Label>Sort Order</Label>
                   <Input
                     type="number"
                     value={formData.sortOrder || ""}
@@ -557,7 +555,7 @@ export default function CountryGuideEditor() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("country_guide_admin.version")}</Label>
+                  <Label>Version</Label>
                   <Input
                     value={formData.version || ""}
                     onChange={(e) =>
@@ -571,7 +569,7 @@ export default function CountryGuideEditor() {
               {/* Titles */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>{t("country_guide_admin.title_en")}</Label>
+                  <Label>Title (English)</Label>
                   <Input
                     value={formData.titleEn || ""}
                     onChange={(e) =>
@@ -581,7 +579,7 @@ export default function CountryGuideEditor() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("country_guide_admin.title_zh")}</Label>
+                  <Label>Title (Chinese)</Label>
                   <Input
                     value={formData.titleZh || ""}
                     onChange={(e) =>
@@ -631,7 +629,7 @@ export default function CountryGuideEditor() {
                       onClick={() => {
                         if (!countryCode || !formData.titleEn) {
                           toast.error(
-                            t("country_guide_admin.error_missing_input")
+                            "Please fill in all required fields"
                           );
                           return;
                         }
@@ -647,7 +645,7 @@ export default function CountryGuideEditor() {
                       ) : (
                         <Sparkles className="h-3 w-3" />
                       )}
-                      {t("country_guide_admin.generate_ai")}
+                      Generate AI Content
                     </Button>
                   </div>
                 </div>
@@ -656,7 +654,7 @@ export default function CountryGuideEditor() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-xs text-muted-foreground">
-                        {t("country_guide_admin.content_en_md")}
+                        Content (English, Markdown)
                       </Label>
                       <Textarea
                         className="h-[500px] font-mono text-sm"
@@ -669,7 +667,7 @@ export default function CountryGuideEditor() {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs text-muted-foreground">
-                        {t("country_guide_admin.content_zh_md")}
+                        Content (Chinese, Markdown)
                       </Label>
                       <Textarea
                         className="h-[500px] font-mono text-sm"
@@ -709,13 +707,13 @@ export default function CountryGuideEditor() {
                   variant="outline"
                   onClick={() => setIsSheetOpen(false)}
                 >
-                  {t("common.cancel")}
+                  Cancel
                 </Button>
                 <Button type="submit" disabled={upsertMutation.isPending}>
                   {upsertMutation.isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  {t("common.save")}
+                  Save
                 </Button>
               </SheetFooter>
             </form>

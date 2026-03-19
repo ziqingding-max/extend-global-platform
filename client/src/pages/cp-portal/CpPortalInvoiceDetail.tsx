@@ -328,7 +328,7 @@ export default function CpPortalInvoiceDetail() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       {item.isImmutableCost && (
-                        <Lock className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" title="Locked by EG (employment cost)" />
+                        <span title="Locked by EG (employment cost)"><Lock className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" /></span>
                       )}
                       <span>{item.description}</span>
                     </div>

@@ -15,7 +15,7 @@ import CountrySelect, { ALL_COUNTRIES } from "@/components/CountrySelect";
 import { DatePicker } from "@/components/DatePicker";
 import { formatDate, formatDateISO, formatDateTime, countryName } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
-import { useI18n } from "@/lib/i18n";
+
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -159,7 +159,6 @@ function AddDocumentDialog({
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
 }) {
-  const { t } = useI18n();
   const [docType, setDocType] = useState<string>("contract");
   const [file, setFile] = useState<File | null>(null);
 
@@ -216,9 +215,9 @@ function AddDocumentDialog({
             <Input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button onClick={handleUpload} disabled={uploadMutation.isPending}>
-              {uploadMutation.isPending ? t("common.loading") : "Upload"}
+              {uploadMutation.isPending ? "Loading..." : "Upload"}
             </Button>
           </div>
         </div>
@@ -302,7 +301,6 @@ export default function SalesCRM() {
 // ── Lead List ───────────────────────────────────────────────────────────────
 
 function LeadList({ onSelect }: { onSelect: (id: number) => void }) {
-  const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("active");
   const [createOpen, setCreateOpen] = useState(false);
@@ -332,7 +330,7 @@ function LeadList({ onSelect }: { onSelect: (id: number) => void }) {
 
   const createMutation = trpc.sales.create.useMutation({
     onSuccess: () => {
-      toast.success(t("sales.newLead") + " ✓");
+      toast.success("New Lead created successfully ✓");
       setCreateOpen(false);
       refetch();
       setFormData(defaultForm);
@@ -345,12 +343,12 @@ function LeadList({ onSelect }: { onSelect: (id: number) => void }) {
     if (!formData.companyName.trim()) errors.companyName = true;
     if (formData.contactEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactEmail.trim())) {
       errors.contactEmail = true;
-      toast.error(t("sales.toast.invalidEmail") || "Invalid email address");
+      toast.error("Invalid email address");
       return;
     }
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
-      toast.error(t("sales.toast.companyNameRequired"));
+      toast.error("Company Name is required");
       return;
     }
     setFormErrors({});
@@ -381,35 +379,35 @@ function LeadList({ onSelect }: { onSelect: (id: number) => void }) {
   const closedLostCount = allLeads.filter((l: any) => l.status === "closed_lost").length;
 
   return (
-    <Layout breadcrumb={["EG", t("sales.title")]}>
+    <Layout breadcrumb={["EG", "Sales CRM"]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t("sales.title")}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{t("sales.subtitle")}</p>
+            <h1 className="text-2xl font-bold tracking-tight">Sales CRM</h1>
+            <p className="text-sm text-muted-foreground mt-1">Manage your sales pipeline and track leads</p>
           </div>
           <Dialog open={createOpen} onOpenChange={(open) => { setCreateOpen(open); if (!open) setFormErrors({}); }}>
             <DialogTrigger asChild>
-              <Button><Plus className="w-4 h-4 mr-2" />{t("sales.newLead")}</Button>
+              <Button><Plus className="w-4 h-4 mr-2" />New Lead</Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>{t("sales.newLead")}</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>New Lead</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className={formErrors.companyName ? "text-destructive" : ""}>{t("sales.companyName")} *</Label>
+                    <Label className={formErrors.companyName ? "text-destructive" : ""}>Company Name *</Label>
                     <Input
                       className={formErrors.companyName ? "border-destructive ring-destructive" : ""}
                       value={formData.companyName}
                       onChange={(e) => { setFormData({ ...formData, companyName: e.target.value }); if (e.target.value.trim()) setFormErrors(prev => ({ ...prev, companyName: false })); }}
-                      placeholder={t("sales.placeholder.companyName")}
+                      placeholder="e.g. Acme Corp"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("sales.source")}</Label>
+                    <Label>Source</Label>
                     <Select value={formData.source || "none"} onValueChange={(v) => setFormData({ ...formData, source: v === "none" ? "" : v })}>
-                      <SelectTrigger><SelectValue placeholder={t("sales.placeholder.selectSource")} /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder="Select source" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">—</SelectItem>
                         {LEAD_SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -419,33 +417,33 @@ function LeadList({ onSelect }: { onSelect: (id: number) => void }) {
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("sales.contactName")}</Label>
+                    <Label>Contact Name</Label>
                     <Input value={formData.contactName} onChange={(e) => setFormData({ ...formData, contactName: e.target.value })} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("sales.contactEmail")}</Label>
+                    <Label>Contact Email</Label>
                     <Input type="email" className={formErrors.contactEmail ? "border-destructive ring-destructive" : ""} value={formData.contactEmail} onChange={(e) => { setFormData({ ...formData, contactEmail: e.target.value }); if (formErrors.contactEmail) setFormErrors(prev => ({ ...prev, contactEmail: false })); }} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("sales.contactPhone")}</Label>
+                    <Label>Contact Phone</Label>
                     <Input value={formData.contactPhone} onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })} />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("common.country")}</Label>
+                    <Label>Country</Label>
                     <CountrySelect value={formData.country} onValueChange={(v) => setFormData({ ...formData, country: v })} scope="all" />
                   </div>
                   <div className="space-y-2">
                     <Label>Industry</Label>
-                    <Input value={formData.industry} onChange={(e) => setFormData({ ...formData, industry: e.target.value })} placeholder={t("sales.placeholder.industry")} />
+                    <Input value={formData.industry} onChange={(e) => setFormData({ ...formData, industry: e.target.value })} placeholder="e.g. Software, Manufacturing" />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("sales.assignedTo")}</Label>
+                    <Label>Assigned To</Label>
                     <Select value={formData.assignedTo?.toString() || "none"} onValueChange={(v) => setFormData({ ...formData, assignedTo: v === "none" ? undefined : parseInt(v) })}>
-                      <SelectTrigger><SelectValue placeholder={t("sales.placeholder.unassigned")} /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">{t("sales.placeholder.unassigned")}</SelectItem>
+                        <SelectItem value="none">Unassigned</SelectItem>
                         {usersData?.map((u: any) => <SelectItem key={u.id} value={u.id.toString()}>{u.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
@@ -453,36 +451,36 @@ function LeadList({ onSelect }: { onSelect: (id: number) => void }) {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("sales.intendedServices")}</Label>
+                    <Label>Intended Services</Label>
                     <ServiceMultiSelect value={formData.intendedServices} onChange={(v) => setFormData({ ...formData, intendedServices: v })} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("sales.targetCountries")}</Label>
+                    <Label>Target Countries</Label>
                     <CountryMultiSelect value={formData.targetCountries} onChange={(v) => setFormData({ ...formData, targetCountries: v })} />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("sales.estimatedEmployees")}</Label>
+                    <Label>Estimated Employees</Label>
                     <Input type="number" min={0} value={formData.estimatedEmployees ?? ""} onChange={(e) => setFormData({ ...formData, estimatedEmployees: e.target.value ? parseInt(e.target.value) : undefined })} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("sales.estimatedRevenue")}</Label>
+                    <Label>Estimated Revenue</Label>
                     <Input type="number" min={0} step="0.01" value={formData.estimatedRevenue} onChange={(e) => setFormData({ ...formData, estimatedRevenue: e.target.value || "" })} placeholder="0.00" />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("sales.expectedCloseDate")}</Label>
+                    <Label>Expected Close Date</Label>
                     <DatePicker value={formData.expectedCloseDate} onChange={(v) => setFormData({ ...formData, expectedCloseDate: v })} placeholder="Select date" />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("vendors.form.notes.label")}</Label>
-                  <Textarea rows={3} value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder={t("sales.placeholder.notes")} />
+                  <Label>Notes</Label>
+                  <Textarea rows={3} value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Any relevant notes about this lead" />
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button variant="outline" onClick={() => setCreateOpen(false)}>{t("common.cancel")}</Button>
+                  <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
                   <Button onClick={validateAndCreate} disabled={createMutation.isPending}>
-                    {createMutation.isPending ? t("common.loading") : t("common.create")}
+                    {createMutation.isPending ? "Loading..." : "Create"}
                   </Button>
                 </div>
               </div>
@@ -496,20 +494,20 @@ function LeadList({ onSelect }: { onSelect: (id: number) => void }) {
             <Card key={status} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter(status)}>
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold">{pipelineCounts[status] || 0}</div>
-                <div className="text-xs text-muted-foreground mt-1">{t(`sales.status.${status}`)}</div>
+                <div className="text-xs text-muted-foreground mt-1">{status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</div>
               </CardContent>
             </Card>
           ))}
           <Card className="cursor-pointer hover:shadow-md transition-shadow border-green-200 bg-green-50/30" onClick={() => setStatusFilter("closed_won")}>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-green-700">{closedWonCount}</div>
-              <div className="text-xs text-green-600 mt-1">{t("sales.status.closed_won")}</div>
+              <div className="text-xs text-green-600 mt-1">Closed Won</div>
             </CardContent>
           </Card>
           <Card className="cursor-pointer hover:shadow-md transition-shadow border-red-200 bg-red-50/30" onClick={() => setStatusFilter("closed_lost")}>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-red-700">{closedLostCount}</div>
-              <div className="text-xs text-red-600 mt-1">{t("sales.status.closed_lost")}</div>
+              <div className="text-xs text-red-600 mt-1">Closed Lost</div>
             </CardContent>
           </Card>
         </div>
@@ -518,14 +516,14 @@ function LeadList({ onSelect }: { onSelect: (id: number) => void }) {
         <div className="flex items-center gap-3">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input className="pl-9" placeholder={t("common.search") + "..."} value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input className="pl-9" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="active">{t("sales.pipeline")} (Active)</SelectItem>
-              <SelectItem value="all">{t("sales.allLeads")}</SelectItem>
-              {STATUS_LIST.map(s => <SelectItem key={s} value={s}>{t(`sales.status.${s}`)}</SelectItem>)}
+              <SelectItem value="active">Pipeline (Active)</SelectItem>
+              <SelectItem value="all">All Leads</SelectItem>
+              {STATUS_LIST.map(s => <SelectItem key={s} value={s}>{s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -540,20 +538,20 @@ function LeadList({ onSelect }: { onSelect: (id: number) => void }) {
             ) : filteredLeads.length === 0 ? (
               <div className="p-12 text-center text-muted-foreground">
                 <Briefcase className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p>{t("common.no_data")}</p>
+                <p>No data</p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("sales.companyName")}</TableHead>
-                    <TableHead>{t("sales.contactName")}</TableHead>
-                    <TableHead className="min-w-[120px]">{t("common.country")}</TableHead>
-                    <TableHead>{t("sales.source")}</TableHead>
-                    <TableHead>{t("common.status")}</TableHead>
-                    <TableHead>{t("sales.owner")}</TableHead>
-                    <TableHead>{t("sales.assignedTo")}</TableHead>
-                    <TableHead>{t("sales.expectedCloseDate")}</TableHead>
+                    <TableHead>Company Name</TableHead>
+                    <TableHead>Contact Name</TableHead>
+                    <TableHead className="min-w-[120px]">Country</TableHead>
+                    <TableHead>Source</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Owner</TableHead>
+                    <TableHead>Assigned To</TableHead>
+                    <TableHead>Expected Close Date</TableHead>
                     <TableHead className="w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -578,7 +576,7 @@ function LeadList({ onSelect }: { onSelect: (id: number) => void }) {
                         <TableCell>{lead.source || "—"}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className={statusColors[lead.status] || ""}>
-                            {t(`sales.status.${lead.status}`)}
+                            {lead.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                           </Badge>
                         </TableCell>
                         <TableCell>{owner?.name || "—"}</TableCell>
@@ -603,7 +601,6 @@ function LeadList({ onSelect }: { onSelect: (id: number) => void }) {
 // ── Lead Detail ─────────────────────────────────────────────────────────────
 
 function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) {
-  const { t } = useI18n();
   const [, setLocation] = useLocation();
   const [editOpen, setEditOpen] = useState(false);
   const [convertOpen, setConvertOpen] = useState(false);
@@ -627,7 +624,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
 
   const statusMutation = trpc.sales.update.useMutation({
     onSuccess: () => {
-      toast.success(t("sales.toast.statusUpdated"));
+      toast.success("Lead status updated successfully");
       setStatusConfirm(null);
       setLostReasonInput("");
       refetch();
@@ -639,7 +636,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
 
   const convertMutation = trpc.sales.convertToCustomer.useMutation({
     onSuccess: (result) => {
-      toast.success(t("sales.convertSuccess"));
+      toast.success("Lead converted to customer successfully");
       setConvertOpen(false);
       refetch();
       refetchActivities();
@@ -653,7 +650,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
 
   const closeWonMutation = trpc.sales.closeWon.useMutation({
     onSuccess: () => {
-      toast.success(t("sales.closeWonSuccess"));
+      toast.success("Lead closed as won successfully");
       setCloseWonOpen(false);
       refetch();
       refetchActivities();
@@ -663,7 +660,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
 
   const deleteMutation = trpc.sales.delete.useMutation({
     onSuccess: () => {
-      toast.success(t("sales.toast.leadDeleted"));
+      toast.success("Lead deleted successfully");
       onBack();
     },
     onError: (err) => toast.error(err.message),
@@ -671,7 +668,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
 
   if (isLoading) {
     return (
-      <Layout breadcrumb={["EG", t("sales.title"), "..."]}>
+      <Layout breadcrumb={["EG", "Sales CRM", "..."]}>
         <div className="p-6 space-y-4">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-48 w-full" />
@@ -682,11 +679,11 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
 
   if (!lead) {
     return (
-      <Layout breadcrumb={["EG", t("sales.title")]}>
+      <Layout breadcrumb={["EG", "Sales CRM"]}>
         <div className="p-6">
           <p className="text-muted-foreground">Lead not found</p>
           <Button variant="outline" className="mt-4" onClick={onBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" />{t("common.back")}
+            <ArrowLeft className="w-4 h-4 mr-2" />Back
           </Button>
         </div>
       </Layout>
@@ -702,7 +699,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
   const hasCustomer = !!lead.convertedCustomerId;
 
   return (
-    <Layout breadcrumb={["EG", t("sales.title"), lead.companyName]}>
+    <Layout breadcrumb={["EG", "Sales CRM", lead.companyName]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -714,7 +711,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-bold tracking-tight">{lead.companyName}</h1>
                 <Badge variant="outline" className={statusColors[lead.status] || ""}>
-                  {t(`sales.status.${lead.status}`)}
+                  {lead.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                 </Badge>
               </div>
               {lead.contactEmail && (
@@ -726,25 +723,25 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
             {/* View Customer button — shown when customer exists */}
             {hasCustomer && (
               <Button variant="outline" onClick={() => setLocation(`/customers/${lead.convertedCustomerId}`)}>
-                <ExternalLink className="w-4 h-4 mr-2" />{t("sales.viewCustomer")}
+                <ExternalLink className="w-4 h-4 mr-2" />View Customer
               </Button>
             )}
             {/* Create Customer button — only at MSA Signed and no customer yet */}
             {isMsaSigned && !hasCustomer && (
               <Button onClick={() => setConvertOpen(true)} className="bg-emerald-600 hover:bg-emerald-700">
-                <ArrowRightLeft className="w-4 h-4 mr-2" />{t("sales.convertToCustomer")}
+                <ArrowRightLeft className="w-4 h-4 mr-2" />Convert to Customer
               </Button>
             )}
             {/* Close Won button — at MSA Signed with customer created + has onboarding employee */}
             {isMsaSigned && hasCustomer && onboardingStatus?.hasOnboardingEmployee && (
               <Button onClick={() => setCloseWonOpen(true)} className="bg-green-600 hover:bg-green-700">
-                <CheckCircle2 className="w-4 h-4 mr-2" />{t("sales.closeWon")}
+                <CheckCircle2 className="w-4 h-4 mr-2" />Close Won
               </Button>
             )}
             {!isClosed && (
               <>
                 <Button variant="outline" onClick={() => setEditOpen(true)}>
-                  <Pencil className="w-4 h-4 mr-2" />{t("common.edit")}
+                  <Pencil className="w-4 h-4 mr-2" />Edit
                 </Button>
                 {!hasCustomer && (
                   <Button variant="outline" className="text-destructive hover:text-destructive" onClick={() => setDeleteOpen(true)}>
@@ -761,10 +758,10 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
           <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <Info className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm font-medium text-amber-800">{t("sales.msaSignedTodo")}</p>
+              <p className="text-sm font-medium text-amber-800">MSA Signed: Next step is to onboard the first employee for this customer.</p>
               {onboardingStatus && !onboardingStatus.hasOnboardingEmployee && (
                 <p className="text-xs text-amber-600 mt-1">
-                  {t("sales.awaitingOnboarding")}
+                  Awaiting first employee onboarding
                   {onboardingStatus.employeeCount > 0
                     ? ` (${onboardingStatus.employeeCount} employee(s) added, none at onboarding yet)`
                     : " (No employees added yet)"}
@@ -784,7 +781,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
           <Card>
             <CardContent className="pt-6 pb-4">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium text-muted-foreground">{t("sales.pipelineProgress")}</p>
+                <p className="text-sm font-medium text-muted-foreground">Pipeline Progress</p>
                 {!isMsaSigned && (
                   <div className="flex items-center gap-2">
                     <Button
@@ -793,7 +790,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
                       className="text-destructive hover:text-destructive h-7 text-xs"
                       onClick={() => setStatusConfirm({ targetStatus: "closed_lost", isLost: true })}
                     >
-                      <XCircle className="w-3.5 h-3.5 mr-1" />{t("sales.markAsLost")}
+                      <XCircle className="w-3.5 h-3.5 mr-1" />Mark as Lost
                     </Button>
                   </div>
                 )}
@@ -827,7 +824,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
                             }}
                           >
                             {isCompleted && <CheckCircle2 className="w-3.5 h-3.5 inline mr-1" />}
-                            {t(`sales.status.${status}`)}
+                            {status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                           </button>
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="text-xs">
@@ -847,34 +844,34 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
           <div className="col-span-2 space-y-6">
             {/* Info Card */}
             <Card>
-              <CardHeader><CardTitle>{t("sales.leadInfo")}</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Lead Information</CardTitle></CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
-                  <InfoRow label={t("sales.companyName")} value={lead.companyName} />
-                  <InfoRow label={t("sales.contactName")} value={lead.contactName} />
-                  <InfoRow label={t("sales.contactEmail")} value={lead.contactEmail} />
-                  <InfoRow label={t("sales.contactPhone")} value={lead.contactPhone} />
-                  <InfoRow label={t("common.country")} value={countryName(lead.country)} />
+                  <InfoRow label="Company Name" value={lead.companyName} />
+                  <InfoRow label="Contact Name" value={lead.contactName} />
+                  <InfoRow label="Contact Email" value={lead.contactEmail} />
+                  <InfoRow label="Contact Phone" value={lead.contactPhone} />
+                  <InfoRow label="Country" value={countryName(lead.country)} />
                   <InfoRow label="Industry" value={lead.industry} />
-                  <InfoRow label={t("sales.source")} value={lead.source} />
-                  <InfoRow label={t("sales.owner")} value={leadOwner?.name} />
-                  <InfoRow label={t("sales.assignedTo")} value={assignee?.name} />
-                  <InfoRow label={t("sales.intendedServices")} value={lead.intendedServices ? lead.intendedServices.split(",").map((s: string) => s.trim()).filter(Boolean).map((s: string) => { const opt = SERVICE_OPTIONS.find(o => o.value === s); return opt?.label || s; }).join(", ") : undefined} />
-                  <InfoRow label={t("sales.targetCountries")} value={lead.targetCountries ? lead.targetCountries.split(",").map((s: string) => s.trim()).filter(Boolean).map((code: string) => { const c = ALL_COUNTRIES.find(x => x.code === code); return c ? `${code} (${c.name})` : code; }).join(", ") : undefined} />
-                  <InfoRow label={t("sales.estimatedEmployees")} value={lead.estimatedEmployees?.toString()} />
-                  <InfoRow label={t("sales.estimatedRevenue")} value={lead.estimatedRevenue ? `${lead.currency || "USD"} ${lead.estimatedRevenue}` : undefined} />
-                  <InfoRow label={t("sales.expectedCloseDate")} value={formatDate(lead.expectedCloseDate)} />
+                  <InfoRow label="Source" value={lead.source} />
+                  <InfoRow label="Owner" value={leadOwner?.name} />
+                  <InfoRow label="Assigned To" value={assignee?.name} />
+                  <InfoRow label="Intended Services" value={lead.intendedServices ? lead.intendedServices.split(",").map((s: string) => s.trim()).filter(Boolean).map((s: string) => { const opt = SERVICE_OPTIONS.find(o => o.value === s); return opt?.label || s; }).join(", ") : undefined} />
+                  <InfoRow label="Target Countries" value={lead.targetCountries ? lead.targetCountries.split(",").map((s: string) => s.trim()).filter(Boolean).map((code: string) => { const c = ALL_COUNTRIES.find(x => x.code === code); return c ? `${code} (${c.name})` : code; }).join(", ") : undefined} />
+                  <InfoRow label="Estimated Employees" value={lead.estimatedEmployees?.toString()} />
+                  <InfoRow label="Estimated Revenue" value={lead.estimatedRevenue ? `${lead.currency || "USD"} ${lead.estimatedRevenue}` : undefined} />
+                  <InfoRow label="Expected Close Date" value={formatDate(lead.expectedCloseDate)} />
                   <InfoRow label="Created" value={formatDateTime(lead.createdAt)} />
                 </div>
                 {lead.notes && (
                   <div className="mt-4 pt-4 border-t">
-                    <p className="text-xs font-medium text-muted-foreground mb-1">{t("vendors.form.notes.label")}</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Notes</p>
                     <p className="text-sm whitespace-pre-wrap">{lead.notes}</p>
                   </div>
                 )}
                 {isClosedLost && lead.lostReason && (
                   <div className="mt-4 pt-4 border-t">
-                    <p className="text-xs font-medium text-destructive mb-1">{t("sales.lostReason")}</p>
+                    <p className="text-xs font-medium text-destructive mb-1">Lost Reason</p>
                     <p className="text-sm whitespace-pre-wrap">{lead.lostReason}</p>
                   </div>
                 )}
@@ -932,14 +929,14 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <TabsList className="h-8">
-                      <TabsTrigger value="activities" className="text-xs px-3 h-7">{t("sales.activities")}</TabsTrigger>
+                      <TabsTrigger value="activities" className="text-xs px-3 h-7">Activities</TabsTrigger>
                       <TabsTrigger value="changeLogs" className="text-xs px-3 h-7">
-                        <History className="w-3 h-3 mr-1" />{t("sales.changeLogs")}
+                        <History className="w-3 h-3 mr-1" />Change Logs
                       </TabsTrigger>
                     </TabsList>
                     {!isClosed && (
                       <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setActivityOpen(true)}>
-                        <Plus className="w-3.5 h-3.5 mr-1" />{t("sales.addActivity")}
+                        <Plus className="w-3.5 h-3.5 mr-1" />Add Activity
                       </Button>
                     )}
                   </div>
@@ -947,7 +944,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
                 <CardContent className="pt-2">
                   <TabsContent value="activities" className="mt-0">
                     {!activities || activities.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-6">{t("sales.noActivities")}</p>
+                      <p className="text-sm text-muted-foreground text-center py-6">No activities yet</p>
                     ) : (
                       <div className="space-y-3">
                         {activities.map((act: any) => {
@@ -960,7 +957,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <Badge variant="outline" className="text-xs">
-                                    {t(`sales.activityType.${act.activityType}`)}
+                                    {act.activityType.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                                   </Badge>
                                   <span className="text-xs text-muted-foreground">
                                     {formatDateTime(act.activityDate)}
@@ -979,7 +976,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
                   </TabsContent>
                   <TabsContent value="changeLogs" className="mt-0">
                     {!changeLogs || changeLogs.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-6">{t("sales.noChangeLogs")}</p>
+                      <p className="text-sm text-muted-foreground text-center py-6">No change logs yet</p>
                     ) : (
                       <div className="space-y-3 max-h-[500px] overflow-y-auto">
                         {changeLogs.map((log: any) => (
@@ -1003,7 +1000,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
                                   log.changeType === "converted" ? "border-emerald-200 text-emerald-700" :
                                   ""
                                 }`}>
-                                  {t(`sales.changeType.${log.changeType}`)}
+                                  {log.changeType.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                                 </Badge>
                                 <span className="text-xs text-muted-foreground">
                                   {formatDateTime(log.createdAt)}
@@ -1040,17 +1037,17 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
         <AlertDialog open={convertOpen} onOpenChange={setConvertOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{t("sales.convertToCustomer")}</AlertDialogTitle>
-              <AlertDialogDescription>{t("sales.convertConfirm")}</AlertDialogDescription>
+              <AlertDialogTitle>Convert to Customer</AlertDialogTitle>
+              <AlertDialogDescription>Are you sure you want to convert this lead to a customer? This will create a new customer record.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => convertMutation.mutate({ leadId })}
                 disabled={convertMutation.isPending}
                 className="bg-emerald-600 hover:bg-emerald-700"
               >
-                {convertMutation.isPending ? t("common.loading") : t("sales.convertToCustomer")}
+                {convertMutation.isPending ? "Loading..." : "Convert to Customer"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -1060,17 +1057,17 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
         <AlertDialog open={closeWonOpen} onOpenChange={setCloseWonOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{t("sales.closeWon")}</AlertDialogTitle>
-              <AlertDialogDescription>{t("sales.closeWonConfirm")}</AlertDialogDescription>
+              <AlertDialogTitle>Close Won</AlertDialogTitle>
+              <AlertDialogDescription>Are you sure you want to close this lead as "Won"? This action is irreversible.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => closeWonMutation.mutate({ leadId })}
                 disabled={closeWonMutation.isPending}
                 className="bg-green-600 hover:bg-green-700"
               >
-                {closeWonMutation.isPending ? t("common.loading") : t("sales.closeWon")}
+                {closeWonMutation.isPending ? "Loading..." : "Close Won"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -1080,17 +1077,17 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
         <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{t("common.delete")}</AlertDialogTitle>
-              <AlertDialogDescription>{t("sales.deleteConfirm")}</AlertDialogDescription>
+              <AlertDialogTitle>Delete Lead</AlertDialogTitle>
+              <AlertDialogDescription>Are you sure you want to delete this lead? This action cannot be undone.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => deleteMutation.mutate({ id: leadId })}
                 disabled={deleteMutation.isPending}
                 className="bg-destructive hover:bg-destructive/90"
               >
-                {deleteMutation.isPending ? t("common.loading") : t("common.delete")}
+                {deleteMutation.isPending ? "Loading..." : "Delete"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -1120,17 +1117,17 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
         <AlertDialog open={!!statusConfirm} onOpenChange={(open) => { if (!open) { setStatusConfirm(null); setLostReasonInput(""); } }}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{t("sales.confirmStatusChange")}</AlertDialogTitle>
+              <AlertDialogTitle>Confirm Status Change</AlertDialogTitle>
               <AlertDialogDescription>
                 {statusConfirm?.isLost
-                  ? t("sales.confirmLostDesc")
-                  : `${t("sales.confirmStatusChangeDesc")} "${statusConfirm ? t(`sales.status.${statusConfirm.targetStatus}`) : ""}"?`
+                  ? "Are you sure you want to mark this lead as 'Lost'? This action is irreversible."
+                  : `Are you sure you want to change the status to "${statusConfirm ? statusConfirm.targetStatus.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : ""}"?`
                 }
               </AlertDialogDescription>
             </AlertDialogHeader>
             {statusConfirm?.isLost && (
               <div className="space-y-2 px-1">
-                <Label>{t("sales.lostReason")}</Label>
+                <Label>Lost Reason</Label>
                 <Textarea
                   rows={2}
                   value={lostReasonInput}
@@ -1140,7 +1137,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
               </div>
             )}
             <AlertDialogFooter>
-              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
                   if (statusConfirm) {
@@ -1156,7 +1153,7 @@ function LeadDetail({ leadId, onBack }: { leadId: number; onBack: () => void }) 
                 disabled={statusMutation.isPending}
                 className={statusConfirm?.isLost ? "bg-destructive hover:bg-destructive/90" : ""}
               >
-                {statusMutation.isPending ? t("common.loading") : t("common.confirm")}
+                {statusMutation.isPending ? "Loading..." : "Confirm"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -1192,7 +1189,6 @@ function EditLeadDialog({
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
 }) {
-  const { t } = useI18n();
   const [formData, setFormData] = useState({
     companyName: lead.companyName || "",
     contactName: lead.contactName || "",
@@ -1212,7 +1208,7 @@ function EditLeadDialog({
 
   const updateMutation = trpc.sales.update.useMutation({
     onSuccess: () => {
-      toast.success(t("sales.toast.leadUpdated"));
+      toast.success("Lead updated successfully");
       onOpenChange(false);
       onSuccess();
     },
@@ -1221,11 +1217,11 @@ function EditLeadDialog({
 
   function handleSave() {
     if (!formData.companyName.trim()) {
-      toast.error(t("sales.toast.companyNameRequired"));
+      toast.error("Company Name is required");
       return;
     }
     if (formData.contactEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactEmail.trim())) {
-      toast.error(t("sales.toast.invalidEmail") || "Invalid email address");
+      toast.error("Invalid email address");
       return;
     }
     updateMutation.mutate({
@@ -1252,15 +1248,15 @@ function EditLeadDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>{t("sales.editLead")}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Edit Lead</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>{t("sales.companyName")} *</Label>
+              <Label>Company Name *</Label>
               <Input value={formData.companyName} onChange={(e) => setFormData({ ...formData, companyName: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>{t("sales.source")}</Label>
+              <Label>Source</Label>
               <Select value={formData.source || "none"} onValueChange={(v) => setFormData({ ...formData, source: v === "none" ? "" : v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -1272,21 +1268,21 @@ function EditLeadDialog({
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label>{t("sales.contactName")}</Label>
+              <Label>Contact Name</Label>
               <Input value={formData.contactName} onChange={(e) => setFormData({ ...formData, contactName: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>{t("sales.contactEmail")}</Label>
+              <Label>Contact Email</Label>
               <Input type="email" value={formData.contactEmail} onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>{t("sales.contactPhone")}</Label>
+              <Label>Contact Phone</Label>
               <Input value={formData.contactPhone} onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>{t("common.country")}</Label>
+              <Label>Country</Label>
               <CountrySelect value={formData.country} onValueChange={(v) => setFormData({ ...formData, country: v })} scope="all" />
             </div>
             <div className="space-y-2">
@@ -1296,17 +1292,17 @@ function EditLeadDialog({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>{t("sales.intendedServices")}</Label>
+              <Label>Intended Services</Label>
               <ServiceMultiSelect value={formData.intendedServices} onChange={(v) => setFormData({ ...formData, intendedServices: v })} />
             </div>
             <div className="space-y-2">
-              <Label>{t("sales.targetCountries")}</Label>
+              <Label>Target Countries</Label>
               <CountryMultiSelect value={formData.targetCountries} onChange={(v) => setFormData({ ...formData, targetCountries: v })} />
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label>{t("sales.assignedTo")}</Label>
+              <Label>Assigned To</Label>
               <Select value={formData.assignedTo?.toString() || "none"} onValueChange={(v) => setFormData({ ...formData, assignedTo: v === "none" ? null : parseInt(v) })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -1316,11 +1312,11 @@ function EditLeadDialog({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>{t("sales.estimatedEmployees")}</Label>
+              <Label>Estimated Employees</Label>
               <Input type="number" min={0} value={formData.estimatedEmployees ?? ""} onChange={(e) => setFormData({ ...formData, estimatedEmployees: e.target.value ? parseInt(e.target.value) : undefined })} />
             </div>
             <div className="space-y-2">
-              <Label>{t("sales.expectedCloseDate")}</Label>
+              <Label>Expected Close Date</Label>
               <DatePicker value={formData.expectedCloseDate} onChange={(v) => setFormData({ ...formData, expectedCloseDate: v })} placeholder="Select date" />
             </div>
           </div>
@@ -1329,9 +1325,9 @@ function EditLeadDialog({
             <Textarea rows={3} value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} />
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button onClick={handleSave} disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? t("common.loading") : t("common.save")}
+              {updateMutation.isPending ? "Loading..." : "Save"}
             </Button>
           </div>
         </div>
@@ -1353,13 +1349,12 @@ function AddActivityDialog({
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
 }) {
-  const { t } = useI18n();
   const [activityType, setActivityType] = useState<string>("note");
   const [description, setDescription] = useState("");
 
   const createMutation = trpc.sales.activities.create.useMutation({
     onSuccess: () => {
-      toast.success(t("sales.toast.activityAdded"));
+      toast.success("Activity added successfully");
       onOpenChange(false);
       onSuccess();
       setDescription("");
@@ -1371,10 +1366,10 @@ function AddActivityDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle>{t("sales.addActivity")}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Add Activity</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label>{t("common.type")}</Label>
+            <Label>Type</Label>
             <Select value={activityType} onValueChange={setActivityType}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -1382,7 +1377,7 @@ function AddActivityDialog({
                   <SelectItem key={type} value={type}>
                     <span className="flex items-center gap-2">
                       {activityIcons[type]}
-                      {t(`sales.activityType.${type}`)}
+                      {type.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                     </span>
                   </SelectItem>
                 ))}
@@ -1390,20 +1385,20 @@ function AddActivityDialog({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>{t("sales.toast.descriptionRequired").replace(" is required", "")} *</Label>
+            <Label>Description *</Label>
             <Textarea
               rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder={t("sales.placeholder.activityDescription")}
+              placeholder="Enter activity description"
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button
               onClick={() => {
                 if (!description.trim()) {
-                  toast.error(t("sales.toast.descriptionRequired"));
+                  toast.error("Description is required");
                   return;
                 }
                 createMutation.mutate({
@@ -1414,7 +1409,7 @@ function AddActivityDialog({
               }}
               disabled={createMutation.isPending}
             >
-              {createMutation.isPending ? t("common.loading") : t("common.create")}
+              {createMutation.isPending ? "Loading..." : "Create"}
             </Button>
           </div>
         </div>

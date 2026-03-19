@@ -1,7 +1,5 @@
-
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
-import { useI18n } from "@/lib/i18n";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +32,6 @@ const statusColors: Record<string, string> = {
 };
 
 export default function ContractorMilestones() {
-  const { t } = useI18n();
   const [selectedContractorId, setSelectedContractorId] = useState<string>("all");
   const [customerFilter, setCustomerFilter] = useState<string>("all");
   const [viewTab, setViewTab] = useState<string>("active");
@@ -121,7 +118,7 @@ export default function ContractorMilestones() {
       return;
     }
     if (!formData.title || !formData.amount) {
-      toast.error(t("common.required"));
+      toast.error("Required");
       return;
     }
     createMutation.mutate({
@@ -163,7 +160,7 @@ export default function ContractorMilestones() {
   }
 
   function handleDelete(id: number) {
-    if (confirm(t("common.confirm"))) {
+    if (confirm("Are you sure?")) {
       deleteMutation.mutate({ id });
     }
   }
@@ -211,7 +208,7 @@ export default function ContractorMilestones() {
                 <Download className="w-4 h-4 mr-2" /> Export
             </Button>
           <Button onClick={() => { resetForm(); setCreateOpen(true); }}>
-            <Plus className="w-4 h-4 mr-2" /> {t("milestones.button.new")}
+            <Plus className="w-4 h-4 mr-2" /> New
           </Button>
         </div>
       </div>
@@ -261,10 +258,10 @@ export default function ContractorMilestones() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Contractor</TableHead>
-                  <TableHead>{t("milestones.table.header.title")}</TableHead>
-                  <TableHead>{t("milestones.table.header.amount")}</TableHead>
-                  <TableHead>{t("milestones.table.header.dueDate")}</TableHead>
-                  <TableHead>{t("milestones.table.header.status")}</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="w-[100px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -285,7 +282,7 @@ export default function ContractorMilestones() {
                       <TableCell>{m.dueDate ? formatDate(m.dueDate) : "—"}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={statusColors[m.status] || ""}>
-                          {t(`milestones.status.${m.status}`) || m.status}
+                          {(m.status || "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) || m.status}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -320,7 +317,7 @@ export default function ContractorMilestones() {
       <Dialog open={createOpen || editOpen} onOpenChange={(open) => { if (!open) { setCreateOpen(false); setEditOpen(false); resetForm(); } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editOpen ? t("milestones.dialog.title.edit") : t("milestones.dialog.title.new")}</DialogTitle>
+            <DialogTitle>{editOpen ? "Edit Milestone" : "New Milestone"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2 mt-2">
             {!editOpen && (
@@ -345,18 +342,18 @@ export default function ContractorMilestones() {
               />
             )}
             <div className="space-y-2">
-              <Label>{t("milestones.table.header.title")} *</Label>
+              <Label>Title *</Label>
               <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>{t("milestones.table.header.amount")} *</Label>
+              <Label>Amount *</Label>
               <div className="flex gap-2">
                 <div className="w-20 flex items-center justify-center text-sm font-mono bg-muted rounded-md border">{formData.currency}</div>
                 <Input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="0.00" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>{t("milestones.table.header.dueDate")}</Label>
+              <Label>Due Date</Label>
               <DatePicker value={formData.dueDate} onChange={(d) => setFormData({ ...formData, dueDate: d })} />
             </div>
             <div className="space-y-2">
@@ -364,10 +361,10 @@ export default function ContractorMilestones() {
               <Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => { setCreateOpen(false); setEditOpen(false); }}>{t("common.cancel")}</Button>
+              <Button variant="outline" onClick={() => { setCreateOpen(false); setEditOpen(false); }}>Cancel</Button>
               <Button onClick={editOpen ? handleUpdate : handleCreate} disabled={createMutation.isPending || updateMutation.isPending}>
                 {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {editOpen ? t("common.save") : t("common.create")}
+                {editOpen ? "Save" : "Create"}
               </Button>
             </div>
           </div>

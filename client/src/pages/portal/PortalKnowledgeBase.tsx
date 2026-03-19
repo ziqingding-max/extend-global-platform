@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import PortalLayout from "@/components/PortalLayout";
 import { portalTrpc } from "@/lib/portalTrpc";
-import { useI18n } from "@/lib/i18n";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,14 +29,13 @@ const topicList: Topic[] = ["payroll", "compliance", "leave", "invoice", "onboar
 const PAGE_SIZE = 20;
 
 export default function PortalKnowledgeBase() {
-  const { t, locale } = useI18n();
   const [search, setSearch] = useState("");
   const [topics, setTopics] = useState<Topic[]>(topicList);
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
 
   const { data, isLoading, refetch, isFetching } = portalTrpc.knowledgeBase.dashboard.useQuery({
-    locale,
+    locale: undefined,
     topics,
   });
 
@@ -102,7 +100,7 @@ export default function PortalKnowledgeBase() {
             className="gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            {t("knowledge_base.back_to_list")}
+            Back to list
           </Button>
 
           <Card>
@@ -114,10 +112,10 @@ export default function PortalKnowledgeBase() {
                   <BookOpen className="w-4 h-4 text-primary" />
                 )}
                 <Badge variant="secondary">
-                  {t(`knowledge_base.category.${selectedItem.category}`)}
+                  {selectedItem.category === "alert" ? "Alert" : selectedItem.category.charAt(0).toUpperCase() + selectedItem.category.slice(1)}
                 </Badge>
                 <Badge variant="outline">
-                  {t(`knowledge_base.topic.${selectedItem.topic}`)}
+                  {selectedItem.topic.charAt(0).toUpperCase() + selectedItem.topic.slice(1)}
                 </Badge>
               </div>
               <CardTitle className="text-xl">{selectedItem.title}</CardTitle>
@@ -129,12 +127,12 @@ export default function PortalKnowledgeBase() {
               <div className="flex items-center gap-3 text-xs text-muted-foreground mt-3">
                 {selectedItem.publishedAt && (
                   <span>
-                    {t("knowledge_base.published_at")}:{" "}
+                    Published at:{" "}
                     {formatDate(selectedItem.publishedAt)}
                   </span>
                 )}
                 <span>
-                  {t("knowledge_base.source")}:{" "}
+                  Source:{" "}
                   {selectedItem.sourceId ? `#${selectedItem.sourceId}` : "system"}
                 </span>
               </div>
@@ -148,7 +146,7 @@ export default function PortalKnowledgeBase() {
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  {t("knowledge_base.no_content")}
+                  No content available.
                 </p>
               )}
             </CardContent>
@@ -160,14 +158,14 @@ export default function PortalKnowledgeBase() {
 
   // ─── List View ───
   return (
-    <PortalLayout title={t("knowledge_base.title")}>
+    <PortalLayout title="Knowledge Base">
       <div className="p-6 space-y-6 page-enter max-w-6xl mx-auto">
         <div className="space-y-2">
           <h1 className="text-2xl font-bold tracking-tight">
-            {t("knowledge_base.title")}
+            Knowledge Base
           </h1>
           <p className="text-sm text-muted-foreground">
-            {t("knowledge_base.subtitle")}
+            Find answers and helpful articles about our platform.
           </p>
         </div>
 
@@ -176,10 +174,10 @@ export default function PortalKnowledgeBase() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              {t("knowledge_base.personalization.title")}
+              Personalization
             </CardTitle>
             <CardDescription>
-              {t("knowledge_base.personalization.description")}
+              Customize your knowledge base feed by selecting topics you are interested in.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -188,14 +186,14 @@ export default function PortalKnowledgeBase() {
               <Input
                 value={search}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder={t("knowledge_base.search.placeholder")}
+                placeholder="Search..."
                 className="pl-9"
               />
             </div>
 
             <div className="flex flex-wrap gap-4">
               {topicList.map((topic) => {
-                const key = `knowledge_base.topic.${topic}`;
+                const label = topic.charAt(0).toUpperCase() + topic.slice(1);
                 return (
                   <div key={topic} className="flex items-center gap-2">
                     <Checkbox
@@ -205,7 +203,7 @@ export default function PortalKnowledgeBase() {
                         toggleTopic(topic, checked === true)
                       }
                     />
-                    <Label htmlFor={topic}>{t(key)}</Label>
+                    <Label htmlFor={topic}>{label}</Label>
                   </div>
                 );
               })}
@@ -216,7 +214,7 @@ export default function PortalKnowledgeBase() {
               onClick={() => refetch()}
               disabled={isFetching}
             >
-              {isFetching ? t("common.loading") : t("knowledge_base.refresh")}
+              {isFetching ? "Loading..." : "Refresh"}
             </Button>
           </CardContent>
         </Card>
@@ -226,7 +224,7 @@ export default function PortalKnowledgeBase() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">
-                {t("knowledge_base.stats.items")}
+                Items
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -238,7 +236,7 @@ export default function PortalKnowledgeBase() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">
-                {t("knowledge_base.stats.topics")}
+                Topics
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -254,7 +252,7 @@ export default function PortalKnowledgeBase() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">
-                {t("knowledge_base.stats.updated")}
+                Updated
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -269,28 +267,28 @@ export default function PortalKnowledgeBase() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              {t("knowledge_base.feed.title")}
+              Feed
             </CardTitle>
             <CardDescription>
-              {t("knowledge_base.feed.description")}
+              Latest articles and updates from the knowledge base.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {isLoading ? (
               <p className="text-sm text-muted-foreground">
-                {t("common.loading")}
+                Loading...
               </p>
             ) : filteredItems.length === 0 ? (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  {t("knowledge_base.feed.empty")}
+                  No articles found.
                 </p>
                 <Button
                   variant="outline"
                   disabled={feedbackMutation.isPending}
                   onClick={() =>
                     feedbackMutation.mutate({
-                      locale,
+                      locale: undefined,
                       query: search,
                       topics,
                       feedbackType: hasNoResults ? "no_results" : "not_helpful",
@@ -299,8 +297,8 @@ export default function PortalKnowledgeBase() {
                 >
                   <MessageSquareWarning className="w-4 h-4 mr-2" />
                   {feedbackMutation.isPending
-                    ? t("common.loading")
-                    : t("knowledge_base.feedback.not_helpful")}
+                    ? "Loading..."
+                    : "Not helpful"}
                 </Button>
               </div>
             ) : (
@@ -326,10 +324,10 @@ export default function PortalKnowledgeBase() {
                         <BookOpen className="w-4 h-4 text-primary" />
                       )}
                       <Badge variant="secondary">
-                        {t(`knowledge_base.category.${item.category}`)}
+                        {item.category === "alert" ? "Alert" : item.category.charAt(0).toUpperCase() + item.category.slice(1)}
                       </Badge>
                       <Badge variant="outline">
-                        {t(`knowledge_base.topic.${item.topic}`)}
+                        {item.topic.charAt(0).toUpperCase() + item.topic.slice(1)}
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between">
@@ -348,9 +346,9 @@ export default function PortalKnowledgeBase() {
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between pt-4">
                     <p className="text-sm text-muted-foreground">
-                      {t("knowledge_base.pagination.showing")} {(currentPage - 1) * PAGE_SIZE + 1}-
+                      Showing {(currentPage - 1) * PAGE_SIZE + 1}-
                       {Math.min(currentPage * PAGE_SIZE, filteredItems.length)}{" "}
-                      {t("knowledge_base.pagination.of")} {filteredItems.length}
+                      of {filteredItems.length}
                     </p>
                     <div className="flex items-center gap-2">
                       <Button
@@ -360,7 +358,7 @@ export default function PortalKnowledgeBase() {
                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                       >
                         <ChevronLeft className="w-4 h-4" />
-                        {t("common.previous")}
+                        Previous
                       </Button>
                       <span className="text-sm text-muted-foreground px-2">
                         {currentPage} / {totalPages}
@@ -371,7 +369,7 @@ export default function PortalKnowledgeBase() {
                         disabled={currentPage >= totalPages}
                         onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       >
-                        {t("common.next")}
+                        Next
                         <ChevronRight className="w-4 h-4" />
                       </Button>
                     </div>
@@ -386,7 +384,7 @@ export default function PortalKnowledgeBase() {
                     disabled={feedbackMutation.isPending}
                     onClick={() =>
                       feedbackMutation.mutate({
-                        locale,
+                        locale: undefined,
                         query: search,
                         topics,
                         feedbackType: "not_helpful",
@@ -394,8 +392,8 @@ export default function PortalKnowledgeBase() {
                     }
                   >
                     {feedbackMutation.isPending
-                      ? t("common.loading")
-                      : t("knowledge_base.feedback.not_helpful")}
+                      ? "Loading..."
+                      : "Not helpful"}
                   </Button>
                 </div>
               </>

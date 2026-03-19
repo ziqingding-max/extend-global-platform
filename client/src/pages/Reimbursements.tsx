@@ -1,4 +1,3 @@
-
 /**
  * EG Admin — Reimbursements
  * Manage employee reimbursement claims with approval workflow
@@ -36,7 +35,6 @@ import { MonthPicker } from "@/components/DatePicker";
 import { exportToCsv } from "@/lib/csvExport";
 import PayrollCycleIndicator from "@/components/PayrollCycleIndicator";
 
-import { useI18n } from "@/lib/i18n";
 
 const statusColors: Record<string, string> = {
   submitted: "bg-amber-50 text-amber-700 border-amber-200",
@@ -60,7 +58,6 @@ const CATEGORIES = [
 ];
 
 export default function Reimbursements() {
-  const { t, lang } = useI18n();
   const [viewTab, setViewTab] = useState<string>("active");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -76,10 +73,10 @@ export default function Reimbursements() {
     for (let i = -3; i <= 6; i++) {
       const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
       const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      options.push({ value, label: d.toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { year: "numeric", month: "long" }) });
+      options.push({ value, label: d.toLocaleString("en-US", { year: "numeric", month: "long" }) });
     }
     return options;
-  }, [lang]);
+  }, []);
 
   const now = new Date();
   const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -112,7 +109,7 @@ export default function Reimbursements() {
 
   const createMutation = trpc.reimbursements.create.useMutation({
     onSuccess: () => {
-      toast.success(t("reimbursements.toast.createSuccess"));
+      toast.success("Reimbursement created successfully.");
       setShowCreate(false);
       refetch();
     },
@@ -121,7 +118,7 @@ export default function Reimbursements() {
 
   const updateMutation = trpc.reimbursements.update.useMutation({
     onSuccess: () => {
-      toast.success(t("reimbursements.toast.updateSuccess"));
+      toast.success("Reimbursement updated successfully.");
       setEditingId(null);
       setShowCreate(false);
       refetch();
@@ -131,7 +128,7 @@ export default function Reimbursements() {
 
   const deleteMutation = trpc.reimbursements.delete.useMutation({
     onSuccess: () => {
-      toast.success(t("reimbursements.toast.deleteSuccess"));
+      toast.success("Reimbursement deleted successfully.");
       refetch();
     },
     onError: (err: any) => toast.error(err.message),
@@ -139,7 +136,7 @@ export default function Reimbursements() {
 
   const adminApproveMutation = trpc.reimbursements.adminApprove.useMutation({
     onSuccess: () => {
-      toast.success(t("reimbursements.toast.approveSuccess"));
+      toast.success("Reimbursement approved successfully.");
       refetch();
     },
     onError: (err: any) => toast.error(err.message),
@@ -147,7 +144,7 @@ export default function Reimbursements() {
 
   const adminRejectMutation = trpc.reimbursements.adminReject.useMutation({
     onSuccess: () => {
-      toast.success(t("reimbursements.toast.rejectSuccess"));
+      toast.success("Reimbursement rejected successfully.");
       refetch();
     },
     onError: (err: any) => toast.error(err.message),
@@ -156,7 +153,7 @@ export default function Reimbursements() {
   const uploadReceiptMutation = trpc.reimbursements.uploadReceipt.useMutation({
     onSuccess: (data) => {
       setFormData((prev) => ({ ...prev, receiptFileUrl: data.url, receiptFileKey: data.fileKey }));
-      toast.success(t("reimbursements.toast.uploadSuccess"));
+      toast.success("Receipt uploaded successfully.");
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -167,7 +164,7 @@ export default function Reimbursements() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 20 * 1024 * 1024) {
-      toast.error(t("reimbursements.toast.fileTooLarge"));
+      toast.error("File size exceeds 20MB limit.");
       return;
     }
     const reader = new FileReader();
@@ -204,11 +201,11 @@ export default function Reimbursements() {
 
   function handleCreate() {
     if (!formData.employeeId || !formData.amount) {
-      toast.error(t("reimbursements.toast.missingFields"));
+      toast.error("Please fill in all required fields.");
       return;
     }
     if (!formData.receiptFileUrl) {
-      toast.error(t("reimbursements.toast.missingReceipt"));
+      toast.error("Please upload a receipt.");
       return;
     }
     createMutation.mutate({
@@ -290,7 +287,7 @@ export default function Reimbursements() {
     <div className="space-y-2">
       <Label className="flex items-center gap-1">
         <Paperclip className="w-3.5 h-3.5" />
-        {t("reimbursements.dialog.field.receipt")} <span className="text-destructive">*</span>
+        Receipt <span className="text-destructive">*</span>
       </Label>
       <input
         ref={fileInputRef}
@@ -323,21 +320,21 @@ export default function Reimbursements() {
           ) : (
             <Upload className="w-4 h-4 mr-2" />
           )}
-          {t("reimbursements.dialog.action.uploadReceipt")}
+          Upload Receipt
         </Button>
       )}
     </div>
   );
 
   return (
-    <Layout breadcrumb={["EG", t("nav.operations"), t("nav.reimbursements")]}>
+    <Layout breadcrumb={["EG", "Operations", "Reimbursements"]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t("reimbursements.header.title")}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Reimbursements</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {t("reimbursements.header.description")}
+              Manage employee reimbursement claims and approvals.
             </p>
           </div>
           <div className="flex gap-4">
@@ -345,32 +342,32 @@ export default function Reimbursements() {
               <Button variant="outline" disabled={items.length === 0} onClick={() => {
                 exportToCsv(items, [
                   { header: "Employee", accessor: (r: any) => { const emp = employeeMap.get(r.employeeId); return emp ? `${emp.firstName} ${emp.lastName}` : `#${r.employeeId}`; } },
-                  { header: "Category", accessor: (r: any) => t(`reimbursements.category.${r.category}`) || r.category || "" },
+                  { header: "Category", accessor: (r: any) => r.category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) || r.category || "" },
                   { header: "Amount", accessor: (r: any) => r.amount },
                   { header: "Currency", accessor: (r: any) => r.currency },
                   { header: "Effective Month", accessor: (r: any) => r.effectiveMonth ? new Date(r.effectiveMonth).toISOString().slice(0, 7) : "" },
                   { header: "Description", accessor: (r: any) => r.description || "" },
-                  { header: "Status", accessor: (r: any) => t(`reimbursements.status.${r.status}`) || r.status },
+                  { header: "Status", accessor: (r: any) => r.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) || r.status },
                   { header: "Created", accessor: (r: any) => r.createdAt ? new Date(r.createdAt).toISOString().slice(0, 10) : "" },
                 ], `reimbursements-export-${new Date().toISOString().slice(0, 10)}.csv`);
                 toast.success("CSV exported successfully");
               }}>
-                <Download className="w-4 h-4 mr-2" />{t("common.export")}
+                <Download className="w-4 h-4 mr-2" />Export
               </Button>
               <Dialog open={showCreate} onOpenChange={(open) => { setShowCreate(open); if (!open) resetForm(); }}>
                 <DialogTrigger asChild>
                   <Button>
-                    <Plus className="w-4 h-4 mr-2" /> {t("reimbursements.actions.new")}
+                    <Plus className="w-4 h-4 mr-2" /> New Reimbursement
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-lg">
                   <DialogHeader>
-                    <DialogTitle>{editingId ? t("reimbursements.dialog.title.edit") : t("reimbursements.dialog.title.new")}</DialogTitle>
+                    <DialogTitle>{editingId ? "Edit Reimbursement" : "New Reimbursement"}</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 py-2 mt-4">
                     {!editingId && (
                       <div className="space-y-2">
-                        <Label>{t("reimbursements.dialog.field.employee")} <span className="text-destructive">*</span></Label>
+                        <Label>Employee <span className="text-destructive">*</span></Label>
                         <EmployeeSelector
                           value={formData.employeeId}
                           onValueChange={(v) => setFormData((f) => ({ ...f, employeeId: v }))}
@@ -390,18 +387,18 @@ export default function Reimbursements() {
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>{t("reimbursements.dialog.field.category")}</Label>
+                        <Label>Category</Label>
                         <Select value={formData.category} onValueChange={(v) => setFormData((f) => ({ ...f, category: v }))}>
                           <SelectTrigger><SelectValue /></SelectTrigger>
                           <SelectContent>
                             {CATEGORIES.map((c) => (
-                              <SelectItem key={c} value={c}>{t(`reimbursements.category.${c}`)}</SelectItem>
+                              <SelectItem key={c} value={c}>{c.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>{t("reimbursements.dialog.field.amount")} <span className="text-destructive">*</span></Label>
+                        <Label>Amount <span className="text-destructive">*</span></Label>
                         <Input
                           type="number"
                           step="0.01"
@@ -413,7 +410,7 @@ export default function Reimbursements() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>{t("reimbursements.dialog.field.effectiveMonth")}</Label>
+                      <Label>Effective Month</Label>
                       <MonthPicker
                         value={formData.effectiveMonth}
                         onChange={(v) => setFormData((f) => ({ ...f, effectiveMonth: v }))}
@@ -421,7 +418,7 @@ export default function Reimbursements() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>{t("reimbursements.table.header.description")}</Label>
+                      <Label>Description</Label>
                       <Textarea
                         value={formData.description}
                         onChange={(e) => setFormData((f) => ({ ...f, description: e.target.value }))}
@@ -437,13 +434,13 @@ export default function Reimbursements() {
                     )}
                   </div>
                   <div className="flex justify-end gap-2 mt-2">
-                    <Button variant="outline" onClick={() => setShowCreate(false)}>{t("common.cancel")}</Button>
+                    <Button variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
                     <Button
                       onClick={editingId ? handleUpdate : handleCreate}
                       disabled={createMutation.isPending || updateMutation.isPending}
                     >
                       {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                      {editingId ? t("reimbursements.dialog.action.save") : t("reimbursements.dialog.action.submit")}
+                      {editingId ? "Save Changes" : "Submit Reimbursement"}
                     </Button>
                   </div>
                 </DialogContent>
@@ -454,8 +451,8 @@ export default function Reimbursements() {
         {/* Tabs & Filters */}
         <Tabs value={viewTab} onValueChange={(v) => { setViewTab(v); setStatusFilter("all"); }} className="w-full">
             <TabsList className="mb-4">
-              <TabsTrigger value="active">{t("reimbursements.tabs.active")}</TabsTrigger>
-              <TabsTrigger value="history">{t("reimbursements.tabs.history")}</TabsTrigger>
+              <TabsTrigger value="active">Active</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
             </TabsList>
         </Tabs>
 
@@ -463,7 +460,7 @@ export default function Reimbursements() {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder={t("reimbursements.filters.searchPlaceholder")}
+                placeholder="Search by employee or description..."
                 className="pl-9"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -472,33 +469,33 @@ export default function Reimbursements() {
             {viewTab === "active" && (
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder={t("reimbursements.table.header.status")} />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("reimbursements.filters.allStatuses")}</SelectItem>
-                  <SelectItem value="submitted">{t("reimbursements.status.submitted")}</SelectItem>
-                  <SelectItem value="admin_approved">{t("reimbursements.status.admin_approved")}</SelectItem>
-                  <SelectItem value="admin_rejected">{t("reimbursements.status.admin_rejected")}</SelectItem>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="submitted">Submitted</SelectItem>
+                  <SelectItem value="admin_approved">Admin Approved</SelectItem>
+                  <SelectItem value="admin_rejected">Admin Rejected</SelectItem>
                 </SelectContent>
               </Select>
             )}
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger className="w-40">
-                <SelectValue placeholder={t("reimbursements.dialog.field.category")} />
+                <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t("reimbursements.filters.allCategories")}</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 {CATEGORIES.map((c) => (
-                  <SelectItem key={c} value={c}>{t(`reimbursements.category.${c}`)}</SelectItem>
+                  <SelectItem key={c} value={c}>{c.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select value={monthFilter} onValueChange={setMonthFilter}>
               <SelectTrigger className="w-40">
-                <SelectValue placeholder={t("reimbursements.table.header.month")} />
+                <SelectValue placeholder="Month" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t("reimbursements.filters.allMonths")}</SelectItem>
+                <SelectItem value="all">All Months</SelectItem>
                 {monthOptions.map((m) => (
                   <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
                 ))}
@@ -517,13 +514,13 @@ export default function Reimbursements() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("reimbursements.table.header.employee")}</TableHead>
-                    <TableHead>{t("reimbursements.dialog.field.category")}</TableHead>
-                    <TableHead>{t("reimbursements.table.header.amount")}</TableHead>
-                    <TableHead>{t("reimbursements.table.header.month")}</TableHead>
-                    <TableHead>{t("reimbursements.table.header.status")}</TableHead>
-                    <TableHead>{t("reimbursements.dialog.field.receipt")}</TableHead>
-                    <TableHead>{t("reimbursements.table.header.actions")}</TableHead>
+                    <TableHead>Employee</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Month</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Receipt</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -535,7 +532,7 @@ export default function Reimbursements() {
                           <TableCell className="font-medium text-sm">
                             {emp ? `${emp.firstName} ${emp.lastName}` : `#${item.employeeId}`}
                           </TableCell>
-                          <TableCell className="capitalize text-sm">{t(`reimbursements.category.${item.category}`)}</TableCell>
+                          <TableCell className="capitalize text-sm">{item.category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</TableCell>
                           <TableCell className="font-mono text-sm">
                             {item.currency || ""} {Number(item.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </TableCell>
@@ -545,7 +542,7 @@ export default function Reimbursements() {
                           <TableCell>
                             <Badge variant="outline" className={`text-xs ${statusColors[item.status] || ""}`}>
                               {item.status === "locked" && <Lock className="w-3 h-3 mr-1 inline" />}
-                              {t(`reimbursements.status.${item.status}`) || item.status}
+                              {item.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -616,7 +613,7 @@ export default function Reimbursements() {
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-12">
                         <Receipt className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                        <p className="text-sm text-muted-foreground">{t("reimbursements.empty.title")}</p>
+                        <p className="text-sm text-muted-foreground">No reimbursements found.</p>
                       </TableCell>
                     </TableRow>
                   )}
@@ -631,7 +628,7 @@ export default function Reimbursements() {
       <Dialog open={!!viewItem} onOpenChange={(open) => { if (!open) setViewItem(null); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{t("reimbursements.view.title")}</DialogTitle>
+            <DialogTitle>Reimbursement Details</DialogTitle>
           </DialogHeader>
           {viewItem && (
             <div className="space-y-4 py-2 mt-2">
@@ -652,41 +649,41 @@ export default function Reimbursements() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">{t("reimbursements.dialog.field.category")}</Label>
-                  <p className="text-sm capitalize">{t(`reimbursements.category.${viewItem.category}`)}</p>
+                  <Label className="text-xs text-muted-foreground">Category</Label>
+                  <p className="text-sm capitalize">{viewItem.category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</p>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">{t("reimbursements.table.header.status")}</Label>
+                  <Label className="text-xs text-muted-foreground">Status</Label>
                   <Badge variant="outline" className={`text-xs ${statusColors[viewItem.status] || ''}`}>
                     {viewItem.status === 'locked' && <Lock className="w-3 h-3 mr-1 inline" />}
-                    {t(`reimbursements.status.${viewItem.status}`) || viewItem.status}
+                    {viewItem.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                   </Badge>
                 </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">{t("reimbursements.table.header.amount")}</Label>
+                  <Label className="text-xs text-muted-foreground">Amount</Label>
                   <p className="text-sm font-mono font-semibold">
                     {viewItem.currency || ""} {Number(viewItem.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">{t("reimbursements.dialog.field.effectiveMonth")}</Label>
+                  <Label className="text-xs text-muted-foreground">Effective Month</Label>
                   <p className="text-sm">{viewItem.effectiveMonth ? formatMonth(viewItem.effectiveMonth) : "—"}</p>
                 </div>
               </div>
 
               {viewItem.description && (
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">{t("reimbursements.table.header.description")}</Label>
+                  <Label className="text-xs text-muted-foreground">Description</Label>
                   <p className="text-sm text-muted-foreground">{viewItem.description}</p>
                 </div>
               )}
 
               {viewItem.receiptFileUrl && (
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">{t("reimbursements.dialog.field.receipt")}</Label>
+                  <Label className="text-xs text-muted-foreground">Receipt</Label>
                   <Button variant="outline" size="sm" className="h-7 px-3 text-xs" onClick={() => window.open(viewItem.receiptFileUrl!, '_blank')}>
                     <Paperclip className="w-3 h-3 mr-1" /> View Receipt
                   </Button>
@@ -694,7 +691,7 @@ export default function Reimbursements() {
               )}
               
               <div className="flex justify-end pt-2">
-                 <Button variant="outline" onClick={() => setViewItem(null)}>{t("common.close") || "Close"}</Button>
+                 <Button variant="outline" onClick={() => setViewItem(null)}>Close</Button>
               </div>
             </div>
           )}

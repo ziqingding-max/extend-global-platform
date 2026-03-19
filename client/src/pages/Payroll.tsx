@@ -41,7 +41,6 @@ import EmployeeSelector from "@/components/EmployeeSelector";
 import { formatCurrencyAmount, CurrencyInput } from "@/components/CurrencyAmount";
 import { exportToCsv } from "@/lib/csvExport";
 
-import { useI18n } from "@/lib/i18n";
 const statusColors: Record<string, string> = {
   draft: "bg-slate-50 text-slate-700 border-slate-200",
   pending_approval: "bg-amber-50 text-amber-700 border-amber-200",
@@ -64,7 +63,6 @@ function getYearOptions() {
 
 /* ========== Payroll List ========== */
 function PayrollList() {
-  const { t, lang } = useI18n();
   const [viewTab, setViewTab] = useState<string>("active");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [countryFilter, setCountryFilter] = useState<string>("all");
@@ -165,24 +163,24 @@ function PayrollList() {
       <div className="p-6 space-y-6 page-enter">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t("payroll.title")}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{t("payroll.description")}</p>
+            <h1 className="text-2xl font-bold tracking-tight">Payroll</h1>
+            <p className="text-sm text-muted-foreground mt-1">Manage payroll runs and employee payments.</p>
           </div>
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
-              <Button><Plus className="w-4 h-4 mr-2" />{t("payroll.button.newRun")}</Button>
+              <Button><Plus className="w-4 h-4 mr-2" />New Payroll Run</Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
-              <DialogHeader><DialogTitle>{t("payroll.dialog.createRun.title")}</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>Create New Payroll Run</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label>{t("payroll.form.label.country")} <span className="text-red-500">*</span></Label>
+                  <Label>Country <span className="text-red-500">*</span></Label>
                   <CountrySelect value={formData.countryCode} onValueChange={(v) => setFormData({ ...formData, countryCode: v })} />
-                  <p className="text-xs text-muted-foreground">{t("payroll.form.help.currency")}</p>
+                  <p className="text-xs text-muted-foreground">Select the country for this payroll run. This determines the currency and applicable regulations.</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("payroll.form.label.year")} <span className="text-red-500">*</span></Label>
+                    <Label>Year <span className="text-red-500">*</span></Label>
                     <Select value={formData.year} onValueChange={(v) => setFormData({ ...formData, year: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -193,13 +191,13 @@ function PayrollList() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("payroll.form.label.month")} <span className="text-red-500">*</span></Label>
+                    <Label>Month <span className="text-red-500">*</span></Label>
                     <Select value={formData.month} onValueChange={(v) => setFormData({ ...formData, month: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {Array.from({ length: 12 }).map((_, i) => (
                           <SelectItem key={i} value={String(i)}>
-                            {new Date(2000, i, 1).toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { month: "long" })}
+                            {new Date(2000, i, 1).toLocaleString("en-US", { month: "long" })}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -207,7 +205,7 @@ function PayrollList() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("payroll.form.label.notes")}</Label>
+                  <Label>Notes</Label>
                   <Textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Optional notes..." rows={2} />
                 </div>
                 <div className="flex justify-end gap-3 pt-2">
@@ -224,8 +222,8 @@ function PayrollList() {
         {/* Active / History Tabs */}
         <Tabs value={viewTab} onValueChange={(v) => { setViewTab(v); setStatusFilter("all"); }} className="w-full">
           <TabsList>
-            <TabsTrigger value="active">{t("payroll.tabs.active")}</TabsTrigger>
-            <TabsTrigger value="history">{t("payroll.tabs.history")}</TabsTrigger>
+            <TabsTrigger value="active">Active</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -233,36 +231,36 @@ function PayrollList() {
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">{t("payroll.filters.label")}</span>
+            <span className="text-sm text-muted-foreground">Filters:</span>
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-44"><SelectValue placeholder={t("payroll.filters.placeholder.status")} /></SelectTrigger>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Filter by Status" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("payroll.filters.option.allStatus")}</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
               {viewTab === "active" ? (
                 <>
-                  <SelectItem value="draft">{t("status.draft")}</SelectItem>
-                  <SelectItem value="pending_approval">{t("status.pending_approval")}</SelectItem>
-                  <SelectItem value="rejected">{t("status.rejected")}</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="pending_approval">Pending Approval</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
                 </>
               ) : (
-                <SelectItem value="approved">{t("status.approved")}</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
               )}
             </SelectContent>
           </Select>
           <Select value={countryFilter} onValueChange={setCountryFilter}>
-            <SelectTrigger className="w-44"><SelectValue placeholder={t("payroll.filters.placeholder.country")} /></SelectTrigger>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Filter by Country" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("payroll.filters.option.allCountries")}</SelectItem>
+              <SelectItem value="all">All Countries</SelectItem>
               {availableCountries.map((cc) => (
                 <SelectItem key={cc} value={cc}>{cc}</SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={monthFilter} onValueChange={setMonthFilter}>
-            <SelectTrigger className="w-44"><SelectValue placeholder={t("payroll.filters.placeholder.month")} /></SelectTrigger>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Filter by Month" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("payroll.filters.option.allMonths")}</SelectItem>
+              <SelectItem value="all">All Months</SelectItem>
               {availableMonths.map((m) => {
                 const [y, mo] = m.split("-");
                 const d = new Date(parseInt(y), parseInt(mo) - 1, 1);
@@ -283,11 +281,11 @@ function PayrollList() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("payroll.table.header.month")}</TableHead>
-                  <TableHead className="min-w-[120px]">{t("payroll.filters.placeholder.country")}</TableHead>
-                  <TableHead>{t("settings.exchangeRates.table.currency")}</TableHead>
-                  <TableHead>{t("payroll.detail.summary.totalEmployerCost")}</TableHead>
-                  <TableHead>{t("payroll.filters.placeholder.status")}</TableHead>
+                  <TableHead>Month</TableHead>
+                  <TableHead className="min-w-[120px]">Country</TableHead>
+                  <TableHead>Currency</TableHead>
+                  <TableHead>Total Employer Cost</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -314,7 +312,7 @@ function PayrollList() {
                       <TableCell className="text-sm font-mono">{run.currency} {formatCurrencyAmount(run.totalEmployerCost, run.currency)}</TableCell>
                       <TableCell>
                       <Badge variant="outline" className={`text-xs ${statusColors[run.status] || ""}`}>
-                        {t(`status.${run.status}`) || formatStatusLabel(run.status)}
+                        {payrollStatusLabels[run.status] || formatStatusLabel(run.status)}
                       </Badge>
                     </TableCell>
                       <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
@@ -340,7 +338,6 @@ function PayrollList() {
 
 /* ========== Payroll Detail ========== */
 function PayrollDetail({ id }: { id: number }) {
-  const { t } = useI18n();
   const [, setLocation] = useLocation();
   const { data: run, isLoading, refetch } = trpc.payroll.get.useQuery({ id });
   const { data: items, isLoading: itemsLoading, refetch: refetchItems } = trpc.payroll.getItems.useQuery({ payrollRunId: id });
@@ -616,18 +613,18 @@ function PayrollDetail({ id }: { id: number }) {
                 </Button>
                 <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="destructive"><XCircle className="w-4 h-4 mr-2" />{t("payroll.detail.button.reject")}</Button>
+                    <Button variant="destructive"><XCircle className="w-4 h-4 mr-2" />Reject</Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-md">
-                    <DialogHeader><DialogTitle>{t("payroll.detail.dialog.reject.title")}</DialogTitle></DialogHeader>
+                    <DialogHeader><DialogTitle>Reject Payroll Run</DialogTitle></DialogHeader>
                     <div className="space-y-4 mt-4">
                       <div className="space-y-2">
-                        <Label>{t("payroll.detail.dialog.reject.reasonLabel")}</Label>
+                        <Label>Reason for Rejection</Label>
                         <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Please explain why this payroll run is being rejected..." rows={4} />
                       </div>
                       <div className="flex justify-end gap-3">
                         <Button variant="outline" onClick={() => setRejectOpen(false)}>Cancel</Button>
-                        <Button variant="destructive" onClick={handleReject} disabled={updateMutation.isPending}>{t("payroll.detail.button.reject")}</Button>
+                        <Button variant="destructive" onClick={handleReject} disabled={updateMutation.isPending}>Reject</Button>
                       </div>
                     </div>
                   </DialogContent>
@@ -656,25 +653,25 @@ function PayrollDetail({ id }: { id: number }) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4">
-              <div className="text-xs text-muted-foreground">{t("payroll.detail.summary.totalGross")}</div>
+              <div className="text-xs text-muted-foreground">Total Gross</div>
               <div className="text-xl font-bold mt-1">{run.currency} {formatCurrencyAmount(run.totalGross, run.currency)}</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <div className="text-xs text-muted-foreground">{t("payroll.detail.summary.totalDeductions")}</div>
+              <div className="text-xs text-muted-foreground">Total Deductions</div>
               <div className="text-xl font-bold mt-1 text-red-600">{run.currency} {formatCurrencyAmount(run.totalDeductions, run.currency)}</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <div className="text-xs text-muted-foreground">{t("payroll.detail.summary.totalNet")}</div>
+              <div className="text-xs text-muted-foreground">Total Net</div>
               <div className="text-xl font-bold mt-1 text-primary">{run.currency} {formatCurrencyAmount(run.totalNet, run.currency)}</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <div className="text-xs text-muted-foreground">{t("payroll.detail.summary.totalEmployerCost")}</div>
+              <div className="text-xs text-muted-foreground">Total Employer Cost</div>
               <div className="text-xl font-bold mt-1">{run.currency} {formatCurrencyAmount(run.totalEmployerCost, run.currency)}</div>
             </CardContent>
           </Card>
@@ -716,7 +713,7 @@ function PayrollDetail({ id }: { id: number }) {
                   </Button>
                   <Dialog open={addItemOpen} onOpenChange={(open) => { setAddItemOpen(open); if (!open) { setItemForm(defaultItemForm); setEditItemId(null); setSelectedEmployeeId(0); } }}>
                     <DialogTrigger asChild>
-                      <Button size="sm"><UserPlus className="w-4 h-4 mr-2" />{t("payroll.detail.items.button.addEmployee")}</Button>
+                      <Button size="sm"><UserPlus className="w-4 h-4 mr-2" />Add Employee</Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                       <DialogHeader><DialogTitle>{editItemId ? "Edit Payroll Item" : "Add Payroll Item"}</DialogTitle></DialogHeader>
@@ -736,7 +733,7 @@ function PayrollDetail({ id }: { id: number }) {
                               excludeEmployeeIds={items?.map((item: any) => item.employeeId) || []}
                             />
                             {previewLoading && selectedEmployeeId > 0 && (
-                              <p className="text-xs text-blue-500">{t("payroll.itemDialog.loadingAdjustments")}</p>
+                              <p className="text-xs text-blue-500">Loading adjustments and leave data...</p>
                             )}
                           </div>
                         )}
@@ -780,7 +777,7 @@ function PayrollDetail({ id }: { id: number }) {
                                 <Input type="number" step="0.5" value={itemForm.unpaidLeaveDays} readOnly className="bg-muted" />
                               </div>
                               <div className="space-y-2">
-                                <Label>{t("payroll.itemDialog.label.unpaidLeaveDeduction")}</Label>
+                                <Label>Unpaid Leave Deduction</Label>
                                 <Input type="number" step="0.01" value={itemForm.unpaidLeaveDeduction} onChange={(e) => setItemForm({ ...itemForm, unpaidLeaveDeduction: e.target.value })} />
                                 {previewData && !editItemId && parseFloat(previewData.unpaidLeaveDays) > 0 && (
                                   <p className="text-xs text-muted-foreground">
@@ -792,27 +789,27 @@ function PayrollDetail({ id }: { id: number }) {
 
                             {/* Manual Section (ops manager fills these) */}
                             <div className="rounded-md bg-blue-50 dark:bg-blue-950/30 p-3 space-y-1">
-                              <p className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">{t("payroll.itemDialog.section.opsInput")}</p>
+                              <p className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">Operations Manager Input</p>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-2">
-                                <Label>{t("payroll.itemDialog.label.taxDeduction")}</Label>
+                                <Label>Tax Deduction</Label>
                                 <Input type="number" step="0.01" value={itemForm.taxDeduction} onChange={(e) => setItemForm({ ...itemForm, taxDeduction: e.target.value })} />
                               </div>
                               <div className="space-y-2">
-                                <Label>{t("payroll.itemDialog.label.socialSecurityDeduction")}</Label>
+                                <Label>Social Security Deduction</Label>
                                 <Input type="number" step="0.01" value={itemForm.socialSecurityDeduction} onChange={(e) => setItemForm({ ...itemForm, socialSecurityDeduction: e.target.value })} />
                               </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-2">
-                                <Label>{t("payroll.itemDialog.label.employerSocialContribution")}</Label>
+                                <Label>Employer Social Contribution</Label>
                                 <Input type="number" step="0.01" value={itemForm.employerSocialContribution} onChange={(e) => setItemForm({ ...itemForm, employerSocialContribution: e.target.value })} />
                               </div>
                               <div className="space-y-2" />
                             </div>
                             <div className="space-y-2">
-                              <Label>{t("payroll.form.label.notes")}</Label>
+                              <Label>Notes</Label>
                               <Textarea value={itemForm.notes} onChange={(e) => setItemForm({ ...itemForm, notes: e.target.value })} rows={2} />
                             </div>
                           </>
@@ -836,15 +833,15 @@ function PayrollDetail({ id }: { id: number }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("payroll.detail.table.header.employee")}</TableHead>
-                  <TableHead>{t("payroll.detail.table.header.baseSalary")}</TableHead>
-                  <TableHead>{t("payroll.detail.table.header.bonus")}</TableHead>
-                  <TableHead>{t("payroll.detail.table.header.allowances")}</TableHead>
-                  <TableHead>{t("payroll.detail.table.header.deductions")}</TableHead>
-                  <TableHead>{t("payroll.detail.table.header.employerSocial")}</TableHead>
-                  <TableHead>{t("payroll.detail.table.header.gross")}</TableHead>
-                  <TableHead>{t("payroll.detail.table.header.net")}</TableHead>
-                  <TableHead className="w-20">{t("payroll.detail.table.header.actions")}</TableHead>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Base Salary</TableHead>
+                  <TableHead>Bonus</TableHead>
+                  <TableHead>Allowances</TableHead>
+                  <TableHead>Deductions</TableHead>
+                  <TableHead>Employer Social</TableHead>
+                  <TableHead>Gross</TableHead>
+                  <TableHead>Net</TableHead>
+                  <TableHead className="w-20">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -892,8 +889,8 @@ function PayrollDetail({ id }: { id: number }) {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={9} className="text-center py-8">
-                      <p className="text-sm text-muted-foreground">{t("payroll.detail.items.empty.noItems")}</p>
-                      {isDraft && <p className="text-xs text-muted-foreground mt-1">{t("payroll.detail.items.empty.hint")}</p>}
+                      <p className="text-sm text-muted-foreground">No payroll items found for this run.</p>
+                      {isDraft && <p className="text-xs text-muted-foreground mt-1">Click "Add Employee" or "Auto-Fill Employees" to get started.</p>}
                     </TableCell>
                   </TableRow>
                 )}
@@ -905,7 +902,7 @@ function PayrollDetail({ id }: { id: number }) {
         {/* Notes */}
         {run.notes && (
           <Card>
-            <CardHeader><CardTitle className="text-base">{t("payroll.form.label.notes")}</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-base">Notes</CardTitle></CardHeader>
             <CardContent><p className="text-sm text-muted-foreground whitespace-pre-wrap">{run.notes}</p></CardContent>
           </Card>
         )}
@@ -914,7 +911,7 @@ function PayrollDetail({ id }: { id: number }) {
         <Dialog open={!!viewItem} onOpenChange={(open) => { if (!open) setViewItem(null); }}>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{t("payroll.viewItemDialog.title")}</DialogTitle>
+              <DialogTitle>Payroll Item Details</DialogTitle>
             </DialogHeader>
             {viewItem && (
               <div className="space-y-4 mt-4">
@@ -924,18 +921,18 @@ function PayrollDetail({ id }: { id: number }) {
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("payroll.viewItemDialog.section.earnings")}</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Earnings</p>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">{t("payroll.detail.table.header.baseSalary")}</Label>
+                      <Label className="text-xs text-muted-foreground">Base Salary</Label>
                       <p className="text-sm font-mono">{run.currency} {formatCurrencyAmount(viewItem.baseSalary, run.currency)}</p>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">{t("payroll.detail.table.header.bonus")}</Label>
+                      <Label className="text-xs text-muted-foreground">Bonus</Label>
                       <p className="text-sm font-mono">{run.currency} {formatCurrencyAmount(viewItem.bonus || "0", run.currency)}</p>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">{t("payroll.detail.table.header.allowances")}</Label>
+                      <Label className="text-xs text-muted-foreground">Allowances</Label>
                       <p className="text-sm font-mono">{run.currency} {formatCurrencyAmount(viewItem.allowances || "0", run.currency)}</p>
                     </div>
                     <div className="space-y-1">
@@ -946,10 +943,10 @@ function PayrollDetail({ id }: { id: number }) {
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("payroll.detail.table.header.deductions")}</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deductions</p>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">{t("payroll.itemDialog.label.taxDeduction")}</Label>
+                      <Label className="text-xs text-muted-foreground">Tax Deduction</Label>
                       <p className="text-sm font-mono text-red-600">{run.currency} {formatCurrencyAmount(viewItem.taxDeduction || "0", run.currency)}</p>
                     </div>
                     <div className="space-y-1">
@@ -961,7 +958,7 @@ function PayrollDetail({ id }: { id: number }) {
                       <p className="text-sm font-mono">{viewItem.unpaidLeaveDays || "0"} days</p>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">{t("payroll.itemDialog.label.unpaidLeaveDeduction")}</Label>
+                      <Label className="text-xs text-muted-foreground">Unpaid Leave Deduction</Label>
                       <p className="text-sm font-mono text-red-600">{run.currency} {formatCurrencyAmount(viewItem.unpaidLeaveDeduction || "0", run.currency)}</p>
                     </div>
                     <div className="space-y-1">
@@ -975,25 +972,25 @@ function PayrollDetail({ id }: { id: number }) {
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Employer Cost</p>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">{t("payroll.itemDialog.label.employerSocialContribution")}</Label>
+                      <Label className="text-xs text-muted-foreground">Employer Social Contribution</Label>
                       <p className="text-sm font-mono">{run.currency} {formatCurrencyAmount(viewItem.employerSocialContribution || "0", run.currency)}</p>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">{t("payroll.viewItemDialog.label.totalEmploymentCost")}</Label>
+                      <Label className="text-xs text-muted-foreground">Total Employment Cost</Label>
                       <p className="text-sm font-mono font-semibold">{run.currency} {formatCurrencyAmount(viewItem.totalEmploymentCost || "0", run.currency)}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="border-t pt-3 space-y-3">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("payroll.viewItemDialog.section.summary")}</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Summary</p>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">{t("payroll.viewItemDialog.label.grossPay")}</Label>
+                      <Label className="text-xs text-muted-foreground">Gross Pay</Label>
                       <p className="text-sm font-mono font-semibold">{run.currency} {formatCurrencyAmount(viewItem.gross, run.currency)}</p>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">{t("payroll.viewItemDialog.label.netPay")}</Label>
+                      <Label className="text-xs text-muted-foreground">Net Pay</Label>
                       <p className="text-sm font-mono font-semibold text-primary">{run.currency} {formatCurrencyAmount(viewItem.net, run.currency)}</p>
                     </div>
                   </div>
@@ -1001,7 +998,7 @@ function PayrollDetail({ id }: { id: number }) {
 
                 {viewItem.notes && (
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">{t("payroll.form.label.notes")}</Label>
+                    <Label className="text-xs text-muted-foreground">Notes</Label>
                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">{viewItem.notes}</p>
                   </div>
                 )}

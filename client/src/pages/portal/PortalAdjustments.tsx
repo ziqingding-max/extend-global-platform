@@ -40,7 +40,6 @@ import { MonthPicker } from "@/components/DatePicker";
 import PortalPayrollCycleIndicator from "@/components/PortalPayrollCycleIndicator";
 import PortalWorkerSelector from "@/components/PortalWorkerSelector";
 
-import { useI18n } from "@/lib/i18n";
 
 const statusColors: Record<string, string> = {
   draft: "bg-gray-100 text-gray-800 border-gray-200",
@@ -101,7 +100,7 @@ const emptyForm: AdjustmentForm = {
 };
 
 export default function PortalAdjustments() {
-  const { t, locale } = useI18n();
+  
   const { user } = usePortalAuth();
   const isHrOrAdmin = user && ["admin", "hr_manager"].includes(user.portalRole);
 
@@ -129,7 +128,7 @@ export default function PortalAdjustments() {
 
   const createMutation = portalTrpc.adjustments.create.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_adjustments.toast.create_success"));
+      toast.success("Adjustment created successfully.");
       setShowCreate(false);
       setForm({ ...emptyForm });
       utils.adjustments.list.invalidate();
@@ -139,7 +138,7 @@ export default function PortalAdjustments() {
 
   const updateMutation = portalTrpc.adjustments.update.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_adjustments.toast.update_success"));
+      toast.success("Adjustment updated successfully.");
       setEditingId(null);
       setForm({ ...emptyForm });
       utils.adjustments.list.invalidate();
@@ -149,7 +148,7 @@ export default function PortalAdjustments() {
 
   const deleteMutation = portalTrpc.adjustments.delete.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_adjustments.toast.delete_success"));
+      toast.success("Adjustment deleted successfully.");
       setDeleteId(null);
       utils.adjustments.list.invalidate();
     },
@@ -158,7 +157,7 @@ export default function PortalAdjustments() {
 
   const approveMutation = portalTrpc.adjustments.approve.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_adjustments.toast.approve_success"));
+      toast.success("Adjustment approved successfully.");
       utils.adjustments.list.invalidate();
     },
     onError: (err: any) => toast.error(err.message),
@@ -166,7 +165,7 @@ export default function PortalAdjustments() {
 
   const rejectMutation = portalTrpc.adjustments.reject.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_adjustments.toast.reject_success"));
+      toast.success("Adjustment rejected successfully.");
       setRejectId(null);
       setRejectReason("");
       utils.adjustments.list.invalidate();
@@ -178,7 +177,7 @@ export default function PortalAdjustments() {
     onSuccess: (data) => {
       setForm((prev) => ({ ...prev, receiptFileUrl: data.url, receiptFileKey: data.fileKey }));
       setUploadingReceipt(false);
-      toast.success(t("portal_adjustments.toast.receipt_upload_success"));
+      toast.success("Receipt uploaded successfully.");
     },
     onError: (err: any) => {
       setUploadingReceipt(false);
@@ -194,7 +193,7 @@ export default function PortalAdjustments() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 20 * 1024 * 1024) {
-      toast.error(t("portal_adjustments.toast.file_size_error"));
+      toast.error("File size exceeds 20MB limit.");
       return;
     }
     setUploadingReceipt(true);
@@ -212,7 +211,7 @@ export default function PortalAdjustments() {
 
   function handleCreate() {
     if (!form.workerId || !form.workerType || !form.adjustmentType || !form.amount || !form.effectiveMonth) {
-      toast.error(t("portal_adjustments.toast.required_fields_error"));
+      toast.error("Please fill in all required fields.");
       return;
     }
     // Extract numeric ID from "emp-123" or "con-456"
@@ -264,13 +263,13 @@ export default function PortalAdjustments() {
   const isFormOpen = showCreate || editingId !== null;
 
   return (
-    <PortalLayout title={t("portal_adjustments.header.title")}>
+    <PortalLayout title="Adjustments">
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">{t("portal_adjustments.header.title")}</h2>
+            <h2 className="text-2xl font-bold tracking-tight">Adjustments</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {t("portal_adjustments.header.description")}
+              View, create, edit and delete salary/benefit adjustments for workers.
             </p>
           </div>
           <div className="flex gap-2">
@@ -282,19 +281,51 @@ export default function PortalAdjustments() {
                 exportToCsv(items, [
                   { header: "Worker", accessor: (r: any) => `${r.employeeFirstName || r.workerFirstName || ""} ${r.employeeLastName || r.workerLastName || ""}`.trim() },
                   { header: "Type", accessor: (r: any) => r.workerType === "contractor" ? "AOR" : "EOR" },
-                  { header: "Adjustment Type", accessor: (r: any) => t(`adjustments.type.${r.adjustmentType}`) || r.adjustmentType || "" },
-                  { header: "Category", accessor: (r: any) => t(`adjustments.category.${r.category}`) || r.category || "" },
-                  { header: "Effective Month", accessor: (r: any) => r.effectiveMonth ? new Date(r.effectiveMonth + "T00:00:00").toLocaleDateString(locale === "zh" ? "zh-CN" : "en-US", { year: "numeric", month: "short" }) : "" },
+                  { header: "Adjustment Type", accessor: (r: any) => {
+                    switch (r.adjustmentType) {
+                      case "bonus": return "Bonus";
+                      case "allowance": return "Allowance";
+                      case "deduction": return "Deduction";
+                      case "other": return "Other";
+                      default: return r.adjustmentType || "";
+                    }
+                  }},
+                  { header: "Category", accessor: (r: any) => {
+                    switch (r.category) {
+                      case "housing": return "Housing";
+                      case "transport": return "Transport";
+                      case "meals": return "Meals";
+                      case "performance_bonus": return "Performance Bonus";
+                      case "year_end_bonus": return "Year-End Bonus";
+                      case "overtime": return "Overtime";
+                      case "travel_reimbursement": return "Travel Reimbursement";
+                      case "equipment_reimbursement": return "Equipment Reimbursement";
+                      case "absence_deduction": return "Absence Deduction";
+                      case "other": return "Other";
+                      default: return r.category || "";
+                    }
+                  }},
+                  { header: "Effective Month", accessor: (r: any) => r.effectiveMonth ? new Date(r.effectiveMonth + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short" }) : "" },
                   { header: "Amount", accessor: (r: any) => r.amount || 0 },
                   { header: "Currency", accessor: (r: any) => r.currency || "" },
-                  { header: "Status", accessor: (r: any) => t(`portal_adjustments.status.${r.status}`) || r.status || "" },
+                  { header: "Status", accessor: (r: any) => {
+                    switch (r.status) {
+                      case "submitted": return "Pending Review";
+                      case "client_approved": return "Client Approved";
+                      case "client_rejected": return "Rejected";
+                      case "admin_approved": return "Confirmed";
+                      case "admin_rejected": return "Admin Rejected";
+                      case "locked": return "Locked";
+                      default: return r.status || "";
+                    }
+                  }},
                 ], `adjustments-export-${new Date().toISOString().slice(0, 10)}.csv`);
               }}
             >
-              <Download className="w-4 h-4 mr-1" /> {t("common.export") || "Export CSV"}
+              <Download className="w-4 h-4 mr-1" /> Export CSV
             </Button>
             <Button onClick={() => { setForm({ ...emptyForm }); setShowCreate(true); }}>
-              <Plus className="w-4 h-4 mr-2" /> {t("portal_adjustments.button.new")}
+              <Plus className="w-4 h-4 mr-2" /> New Adjustment
             </Button>
           </div>
         </div>
@@ -303,16 +334,16 @@ export default function PortalAdjustments() {
         <div className="flex gap-3">
           <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={t("portal_adjustments.filter.all_statuses")} />
+              <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("portal_adjustments.filter.all_statuses")}</SelectItem>
-              <SelectItem value="submitted">{t("portal_adjustments.status.pending_review")}</SelectItem>
-              <SelectItem value="client_approved">{t("portal_adjustments.status.client_approved")}</SelectItem>
-              <SelectItem value="client_rejected">{t("portal_adjustments.status.rejected")}</SelectItem>
-              <SelectItem value="admin_approved">{t("portal_adjustments.status.confirmed")}</SelectItem>
-              <SelectItem value="admin_rejected">{t("portal_adjustments.status.admin_rejected")}</SelectItem>
-              <SelectItem value="locked">{t("portal_adjustments.status.locked")}</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="submitted">Pending Review</SelectItem>
+              <SelectItem value="client_approved">Client Approved</SelectItem>
+              <SelectItem value="client_rejected">Rejected</SelectItem>
+              <SelectItem value="admin_approved">Confirmed</SelectItem>
+              <SelectItem value="admin_rejected">Admin Rejected</SelectItem>
+              <SelectItem value="locked">Locked</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -329,21 +360,21 @@ export default function PortalAdjustments() {
             ) : items.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                 <ArrowUpDown className="w-10 h-10 mb-3" />
-                <p className="text-lg font-medium">{t("portal_adjustments.empty.title")}</p>
-                <p className="text-sm mt-1">{t("portal_adjustments.empty.hint")}</p>
+                <p className="text-lg font-medium">No adjustments found.</p>
+                <p className="text-sm mt-1">Start by creating a new adjustment.</p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Worker</TableHead>
-                    <TableHead>{t("portal_adjustments.table.header.type")}</TableHead>
-                    <TableHead>{t("portal_adjustments.table.header.category")}</TableHead>
-                    <TableHead>{t("portal_adjustments.table.header.effective_month")}</TableHead>
-                    <TableHead className="text-right">{t("portal_adjustments.table.header.amount")}</TableHead>
-                    <TableHead>{t("portal_adjustments.table.header.status")}</TableHead>
-                    <TableHead>{t("portal_adjustments.form.receipt_label")}</TableHead>
-                    <TableHead className="text-right">{t("portal_adjustments.table.header.actions")}</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Effective Month</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Receipt</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -362,14 +393,38 @@ export default function PortalAdjustments() {
                         </div>
                       </TableCell>
                       <TableCell className="capitalize">
-                        {t(`adjustments.type.${adj.adjustmentType}`) || adj.adjustmentType?.replace(/_/g, " ") || "-"}
+                        {(() => {
+                          switch (adj.adjustmentType) {
+                            case "bonus": return "Bonus";
+                            case "allowance": return "Allowance";
+                            case "deduction": return "Deduction";
+                            case "other": return "Other";
+                            default: return adj.adjustmentType?.replace(/_/g, " ") || "-";
+                          }
+                        })()}
                       </TableCell>
                       <TableCell className="capitalize text-sm">
-                        {adj.category ? (t(`adjustments.category.${adj.category}`) || adj.category?.replace(/_/g, " ")) : "-"}
+                        {adj.category ? (
+                          (() => {
+                            switch (adj.category) {
+                              case "housing": return "Housing";
+                              case "transport": return "Transport";
+                              case "meals": return "Meals";
+                              case "performance_bonus": return "Performance Bonus";
+                              case "year_end_bonus": return "Year-End Bonus";
+                              case "overtime": return "Overtime";
+                              case "travel_reimbursement": return "Travel Reimbursement";
+                              case "equipment_reimbursement": return "Equipment Reimbursement";
+                              case "absence_deduction": return "Absence Deduction";
+                              case "other": return "Other";
+                              default: return adj.category?.replace(/_/g, " ");
+                            }
+                          })()
+                        ) : "-"}
                       </TableCell>
                       <TableCell>
                         {adj.effectiveMonth
-                          ? new Date(adj.effectiveMonth + "T00:00:00").toLocaleDateString(locale === "zh" ? "zh-CN" : "en-US", { year: "numeric", month: "short" })
+                          ? new Date(adj.effectiveMonth + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short" })
                           : "-"}
                       </TableCell>
                       <TableCell className={cn("text-right font-mono", adj.adjustmentType === "deduction" ? "text-red-600" : "")}>
@@ -379,7 +434,17 @@ export default function PortalAdjustments() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={statusColors[adj.status] || ""}>
-                          {t(`portal_adjustments.status.${adj.status}`) || adj.status}
+                          {(() => {
+                            switch (adj.status) {
+                              case "submitted": return "Pending Review";
+                              case "client_approved": return "Client Approved";
+                              case "client_rejected": return "Rejected";
+                              case "admin_approved": return "Confirmed";
+                              case "admin_rejected": return "Admin Rejected";
+                              case "locked": return "Locked";
+                              default: return adj.status;
+                            }
+                          })()}
                         </Badge>
                         {adj.clientRejectionReason && adj.status === "client_rejected" && (
                           <p className="text-xs text-red-600 mt-1 max-w-[200px] truncate" title={adj.clientRejectionReason}>
@@ -454,7 +519,7 @@ export default function PortalAdjustments() {
               <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <span className="text-sm">{t("portal_adjustments.pagination.page_info")}</span>
+              <span className="text-sm">Page {page} of {totalPages}</span>
               <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -469,11 +534,11 @@ export default function PortalAdjustments() {
       }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingId ? t("adjustments.dialog.title.edit") : t("portal_adjustments.button.new")}</DialogTitle>
+            <DialogTitle>{editingId ? "Edit Adjustment" : "New Adjustment"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             {/* Payroll Cycle Indicator */}
-            <PortalPayrollCycleIndicator month={form.effectiveMonth || undefined} label={t("portal_adjustments.header.title")} />
+            <PortalPayrollCycleIndicator month={form.effectiveMonth || undefined} label="Adjustments" />
             {!editingId && (
               <>
                 {/* Worker Selector — unified employee + contractor */}
@@ -493,12 +558,22 @@ export default function PortalAdjustments() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("portal_adjustments.table.header.type")} <span className="text-destructive">*</span></Label>
+                    <Label>Type <span className="text-destructive">*</span></Label>
                     <Select value={form.adjustmentType} onValueChange={(v) => setForm((f) => ({ ...f, adjustmentType: v }))}>
-                      <SelectTrigger><SelectValue placeholder={t("adjustments.form.label.type")} /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
                       <SelectContent>
                         {adjustmentTypes.map((type) => (
-                          <SelectItem key={type} value={type}>{t("adjustments.type." + type)}</SelectItem>
+                          <SelectItem key={type} value={type}>
+                            {(() => {
+                              switch (type) {
+                                case "bonus": return "Bonus";
+                                case "allowance": return "Allowance";
+                                case "deduction": return "Deduction";
+                                case "other": return "Other";
+                                default: return type;
+                              }
+                            })()}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -506,13 +581,29 @@ export default function PortalAdjustments() {
                   {/* Only show category for EOR employees */}
                   {form.workerType !== "contractor" && (
                     <div className="space-y-2">
-                      <Label>{t("portal_adjustments.table.header.category")}</Label>
+                      <Label>Category</Label>
                       <Select value={form.category || "none"} onValueChange={(v) => setForm((f) => ({ ...f, category: v === "none" ? "" : v }))}>
-                        <SelectTrigger><SelectValue placeholder={t("adjustments.form.label.category")} /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">{t("adjustments.category.none")}</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
                           {categoryOptions.map((c) => (
-                            <SelectItem key={c} value={c}>{t("adjustments.category." + c)}</SelectItem>
+                            <SelectItem key={c} value={c}>
+                              {(() => {
+                                switch (c) {
+                                  case "housing": return "Housing";
+                                  case "transport": return "Transport";
+                                  case "meals": return "Meals";
+                                  case "performance_bonus": return "Performance Bonus";
+                                  case "year_end_bonus": return "Year-End Bonus";
+                                  case "overtime": return "Overtime";
+                                  case "travel_reimbursement": return "Travel Reimbursement";
+                                  case "equipment_reimbursement": return "Equipment Reimbursement";
+                                  case "absence_deduction": return "Absence Deduction";
+                                  case "other": return "Other";
+                                  default: return c;
+                                }
+                              })()}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -520,36 +611,36 @@ export default function PortalAdjustments() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("portal_adjustments.table.header.effective_month")} <span className="text-destructive">*</span></Label>
+                  <Label>Effective Month <span className="text-destructive">*</span></Label>
                   <MonthPicker
                     value={form.effectiveMonth}
                     onChange={(v) => setForm((f) => ({ ...f, effectiveMonth: v }))}
-                    placeholder={t("payroll.filters.placeholder.month")}
+                    placeholder="Select month"
                   />
                 </div>
               </>
             )}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t("portal_adjustments.table.header.amount")} <span className="text-destructive">*</span></Label>
+                <Label>Amount <span className="text-destructive">*</span></Label>
                 <Input type="number" step="0.01" value={form.amount} onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))} placeholder="0.00" />
               </div>
               <div className="space-y-2">
-                <Label>{t("portal_adjustments.form.currency_label")}</Label>
+                <Label>Currency</Label>
                 <Input value={form.workerCurrency} readOnly disabled className="bg-muted" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>{t("portal_adjustments.form.description_label")}</Label>
-              <Textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder={t("portal_adjustments.form.description_label") + "..."} rows={2} />
+              <Label>Description</Label>
+              <Textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Description..." rows={2} />
             </div>
             <div className="space-y-2">
-              <Label>{t("portal_adjustments.form.receipt_label")}</Label>
+              <Label>Receipt</Label>
               {form.receiptFileUrl ? (
                 <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/30">
                   <Receipt className="w-4 h-4 text-emerald-600" />
                   <a href={form.receiptFileUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate flex-1">
-                    {t("adjustments.receipt.existing")}
+                    Existing Receipt
                   </a>
                   <Button variant="ghost" size="sm" onClick={() => setForm((f) => ({ ...f, receiptFileUrl: "", receiptFileKey: "" }))}>
                     <Trash2 className="w-3 h-3" />
@@ -561,7 +652,7 @@ export default function PortalAdjustments() {
                   <Button variant="outline" size="sm" disabled={uploadingReceipt} asChild>
                     <span>
                       {uploadingReceipt ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
-                      {uploadingReceipt ? "Uploading..." : t("adjustments.receipt.upload")}
+                      {uploadingReceipt ? "Uploading..." : "Upload Receipt"}
                     </span>
                   </Button>
                 </label>
@@ -570,14 +661,14 @@ export default function PortalAdjustments() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setShowCreate(false); setEditingId(null); setForm({ ...emptyForm }); }}>
-              {t("common.cancel") || "Cancel"}
+              Cancel
             </Button>
             <Button
               onClick={editingId ? handleUpdate : handleCreate}
               disabled={createMutation.isPending || updateMutation.isPending}
             >
               {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {editingId ? t("common.save") : t("common.submit")}
+              {editingId ? "Save" : "Submit"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -587,19 +678,19 @@ export default function PortalAdjustments() {
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("portal_adjustments.dialog.delete_title")}</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure you want to delete this adjustment?</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("portal_leave.delete_dialog.description")}
+              This action cannot be undone. This will permanently delete the adjustment.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("common.cancel") || "Cancel"}</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteId && deleteMutation.mutate({ id: deleteId, workerType: deleteWorkerType })}
             >
               {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              {t("common.delete") || "Delete"}
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -609,28 +700,28 @@ export default function PortalAdjustments() {
       <Dialog open={rejectId !== null} onOpenChange={(open) => { if (!open) { setRejectId(null); setRejectReason(""); } }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{t("portal_adjustments.dialog.reject_title")}</DialogTitle>
+            <DialogTitle>Reject Adjustment</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label>{t("portal_adjustments.form.rejection_reason_label")}</Label>
+              <Label>Rejection Reason</Label>
               <Textarea
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                placeholder={t("portal_leave.reject_dialog.placeholder_reason")}
+                placeholder="Enter rejection reason..."
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setRejectId(null); setRejectReason(""); }}>{t("common.cancel") || "Cancel"}</Button>
+            <Button variant="outline" onClick={() => { setRejectId(null); setRejectReason(""); }}>Cancel</Button>
             <Button
               variant="destructive"
               onClick={() => rejectId && rejectMutation.mutate({ id: rejectId, workerType: rejectWorkerType, reason: rejectReason || undefined })}
               disabled={rejectMutation.isPending}
             >
               {rejectMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {t("common.reject") || "Reject"}
+              Reject
             </Button>
           </DialogFooter>
         </DialogContent>

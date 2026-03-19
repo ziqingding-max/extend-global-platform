@@ -7,7 +7,6 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
-import { useI18n } from "@/lib/i18n";
 import {
   Select,
   SelectContent,
@@ -157,7 +156,6 @@ function MarkdownContent({ content }: { content: string }) {
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function AdminCountryGuide() {
-  const { t, locale } = useI18n();
   const [countryCode, setCountryCode] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeChapterId, setActiveChapterId] = useState<number | null>(null);
@@ -264,7 +262,7 @@ export default function AdminCountryGuide() {
     if (!countryCode || isDownloading) return;
     setIsDownloading(true);
     try {
-      const pdfLocale = locale === "zh" ? "zh" : "en";
+      const pdfLocale = "en";
       const response = await fetch(
         `/api/admin-country-guide/${countryCode}/pdf?locale=${pdfLocale}`,
         { credentials: "include" }
@@ -274,7 +272,7 @@ export default function AdminCountryGuide() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const langSuffix = pdfLocale === "zh" ? "-zh" : "";
+      const langSuffix = "";
       a.download = `country-guide-${countryCode}${langSuffix}.pdf`;
       document.body.appendChild(a);
       a.click();
@@ -287,10 +285,10 @@ export default function AdminCountryGuide() {
     }
   };
 
-  const partLabels = locale === "zh" ? partLabelsZh : partLabelsEn;
+  const partLabels = partLabelsEn;
 
   return (
-    <Layout title={t("nav.countryGuide")} breadcrumb={["EG", "Sales", t("nav.countryGuide")]}>
+    <Layout title="Country Guide" breadcrumb={["EG", "Sales", "Country Guide"]}>
       <div className="h-[calc(100vh-3.5rem)] flex flex-col">
         {/* ── Hero Header ─────────────────────────────────────────── */}
         <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b px-6 py-5 flex-shrink-0">
@@ -298,12 +296,10 @@ export default function AdminCountryGuide() {
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
                 <BookOpen className="h-6 w-6 text-primary" />
-                {t("nav.countryGuide")}
+                Country Guide
               </h1>
               <p className="text-muted-foreground text-sm mt-1">
-                {locale === "zh"
-                  ? "全面的全球扩展指南，涵盖雇佣、薪酬、合规等关键信息"
-                  : "Comprehensive guides for global expansion covering hiring, compensation, compliance and more"}
+                Comprehensive guides for global expansion covering hiring, compensation, compliance and more
               </p>
             </div>
 
@@ -318,9 +314,7 @@ export default function AdminCountryGuide() {
                   className="gap-1.5 text-xs"
                 >
                   <Download className="h-3.5 w-3.5" />
-                  {isDownloading
-                    ? locale === "zh" ? "生成中..." : "Generating..."
-                    : locale === "zh" ? "下载 PDF" : "Download PDF"}
+                  {isDownloading ? "Generating..." : "Download PDF"}
                 </Button>
               )}
 
@@ -329,15 +323,13 @@ export default function AdminCountryGuide() {
                 <Select value={countryCode} onValueChange={setCountryCode}>
                   <SelectTrigger className="bg-white/80 backdrop-blur-sm h-8 text-xs">
                     <SelectValue
-                      placeholder={
-                        locale === "zh" ? "选择国家" : "Select country"
-                      }
+                      placeholder="Select country"
                     />
                   </SelectTrigger>
                   <SelectContent>
                     <div className="px-2 pb-2">
                       <Input
-                        placeholder={locale === "zh" ? "搜索国家..." : "Search..."}
+                        placeholder="Search..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="h-8"
@@ -364,44 +356,42 @@ export default function AdminCountryGuide() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-5">
               <QuickFactCard
                 icon={Coins}
-                label={locale === "zh" ? "当地货币" : "Local Currency"}
+                label="Local Currency"
                 value={(currentCountry as any).localCurrency ?? "—"}
               />
               <QuickFactCard
                 icon={Timer}
-                label={locale === "zh" ? "发薪周期" : "Payroll Cycle"}
+                label="Payroll Cycle"
                 value={
                   (currentCountry as any).payrollCycle
-                    ? (locale === "zh"
-                        ? payrollCycleLabels[(currentCountry as any).payrollCycle]?.zh
-                        : payrollCycleLabels[(currentCountry as any).payrollCycle]?.en) ?? (currentCountry as any).payrollCycle
+                    ? payrollCycleLabels[(currentCountry as any).payrollCycle]?.en ?? (currentCountry as any).payrollCycle
                     : "—"
                 }
               />
               <QuickFactCard
                 icon={Calendar}
-                label={locale === "zh" ? "法定年假（天）" : "Statutory Annual Leave"}
+                label="Statutory Annual Leave"
                 value={
                   (currentCountry as any).statutoryAnnualLeave != null
-                    ? `${(currentCountry as any).statutoryAnnualLeave} ${locale === "zh" ? "天" : "days"}`
+                    ? `${(currentCountry as any).statutoryAnnualLeave} days`
                     : "—"
                 }
               />
               <QuickFactCard
                 icon={AlertCircle}
-                label={locale === "zh" ? "通知期（天）" : "Notice Period"}
+                label="Notice Period"
                 value={
                   (currentCountry as any).noticePeriodDays != null
-                    ? `${(currentCountry as any).noticePeriodDays} ${locale === "zh" ? "天" : "days"}`
+                    ? `${(currentCountry as any).noticePeriodDays} days`
                     : "—"
                 }
               />
               <QuickFactCard
                 icon={Users}
-                label={locale === "zh" ? "每周工作日" : "Working Days / Week"}
+                label="Working Days / Week"
                 value={
                   (currentCountry as any).workingDaysPerWeek != null
-                    ? `${(currentCountry as any).workingDaysPerWeek} ${locale === "zh" ? "天" : "days"}`
+                    ? `${(currentCountry as any).workingDaysPerWeek} days`
                     : "—"
                 }
               />
@@ -414,7 +404,7 @@ export default function AdminCountryGuide() {
           /* Country Selection Grid */
           <div className="flex-1 overflow-y-auto p-6">
             <h2 className="text-lg font-semibold mb-4">
-              {locale === "zh" ? "选择一个国家开始浏览" : "Select a country to get started"}
+              Select a country to get started
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
               {countriesWithGuides?.map((c) => (
@@ -426,7 +416,7 @@ export default function AdminCountryGuide() {
                   <CardContent className="p-4">
                     <div className="font-medium">{c.countryName}</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      {c.chapterCount} {locale === "zh" ? "章节" : "chapters"}
+                      {c.chapterCount} chapters
                     </div>
                   </CardContent>
                 </Card>
@@ -463,9 +453,7 @@ export default function AdminCountryGuide() {
                             >
                               <Icon className="h-3.5 w-3.5 flex-shrink-0" />
                               <span className="truncate">
-                                {locale === "zh"
-                                  ? chapter.titleZh
-                                  : chapter.titleEn}
+                                {chapter.titleEn}
                               </span>
                             </button>
                           );
@@ -495,13 +483,11 @@ export default function AdminCountryGuide() {
                           {currentCountry?.countryName}
                         </h1>
                         <p className="text-muted-foreground mt-2">
-                          {locale === "zh"
-                            ? `${currentCountry?.countryName}的全面雇佣指南`
-                            : `Comprehensive employment guide for ${currentCountry?.countryName}`}
+                          {`Comprehensive employment guide for ${currentCountry?.countryName}`}
                         </p>
                       </div>
                       <Badge variant="secondary" className="flex-shrink-0 mt-1">
-                        {chapters.length} {locale === "zh" ? "章节" : "chapters"}
+                        {chapters.length} chapters
                       </Badge>
                     </div>
                   </div>
@@ -527,9 +513,7 @@ export default function AdminCountryGuide() {
                         {/* Chapters within this part */}
                         {partChapters.map((chapter: any) => {
                           const useAccordion = ACCORDION_CHAPTER_KEYS.has(chapter.chapterKey);
-                          const content = locale === "zh"
-                            ? chapter.contentZh
-                            : chapter.contentEn;
+                          const content = chapter.contentEn;
 
                           return (
                             <div
@@ -543,9 +527,7 @@ export default function AdminCountryGuide() {
                                   <div className="flex items-center gap-2 px-5 py-4 bg-muted/40 border-b">
                                     <ChevronRight className="h-4 w-4 text-primary" />
                                     <h3 className="text-base font-semibold text-foreground">
-                                      {locale === "zh"
-                                        ? chapter.titleZh
-                                        : chapter.titleEn}
+                                      {chapter.titleEn}
                                     </h3>
                                   </div>
                                   <Accordion
@@ -575,9 +557,7 @@ export default function AdminCountryGuide() {
                                   <div className="flex items-center gap-2 px-5 py-4 bg-muted/40 border-b">
                                     <ChevronRight className="h-4 w-4 text-primary" />
                                     <h3 className="text-base font-semibold text-foreground">
-                                      {locale === "zh"
-                                        ? chapter.titleZh
-                                        : chapter.titleEn}
+                                      {chapter.titleEn}
                                     </h3>
                                   </div>
                                   <div className="px-5 py-5">
@@ -595,14 +575,10 @@ export default function AdminCountryGuide() {
                   <div className="mb-8 rounded-xl border border-primary/20 bg-primary/5 p-6 flex items-center justify-between gap-4">
                     <div>
                       <h3 className="font-semibold text-foreground text-base">
-                        {locale === "zh"
-                          ? `下载${currentCountry?.countryName}雇佣指南`
-                          : `Download the ${currentCountry?.countryName} Employment Guide`}
+                        {`Download the ${currentCountry?.countryName} Employment Guide`}
                       </h3>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {locale === "zh"
-                          ? "将完整指南导出为 PDF，方便分享给客户或离线查阅。"
-                          : "Export the full guide as a PDF to share with clients or read offline."}
+                        Export the full guide as a PDF to share with clients or read offline.
                       </p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
@@ -614,7 +590,7 @@ export default function AdminCountryGuide() {
                         className="gap-1.5"
                       >
                         <Download className="h-3.5 w-3.5" />
-                        {locale === "zh" ? "下载指南" : "Download Guide"}
+                        Download Guide
                       </Button>
                     </div>
                   </div>
@@ -622,12 +598,10 @@ export default function AdminCountryGuide() {
                   {/* Footer */}
                   <div className="border-t pt-6 pb-12 text-center text-xs text-muted-foreground">
                     <p>
-                      {locale === "zh"
-                        ? "本指南仅供参考，不构成法律建议。如有具体问题，请咨询专业顾问。"
-                        : "This guide is for informational purposes only and does not constitute legal advice. Please consult with a professional advisor for specific questions."}
+                      This guide is for informational purposes only and does not constitute legal advice. Please consult with a professional advisor for specific questions.
                     </p>
                     <p className="mt-1">
-                      {locale === "zh" ? "最后更新：2026年第一季度" : "Last updated: Q1 2026"}
+                      Last updated: Q1 2026
                     </p>
                   </div>
                 </div>
@@ -636,9 +610,7 @@ export default function AdminCountryGuide() {
                   <div className="text-center">
                     <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-30" />
                     <p>
-                      {locale === "zh"
-                        ? "该国家暂无指南内容"
-                        : "No guide content available for this country yet"}
+                      No guide content available for this country yet
                     </p>
                   </div>
                 </div>

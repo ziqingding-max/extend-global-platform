@@ -1,4 +1,3 @@
-
 /*
  * EG Admin — Time Off & Milestones
  * Manage employee leave requests and contractor milestones
@@ -34,7 +33,6 @@ import EmployeeSelector from "@/components/EmployeeSelector";
 import PayrollCycleIndicator, { CrossMonthLeaveWarning } from "@/components/PayrollCycleIndicator";
 import { exportToCsv } from "@/lib/csvExport";
 
-import { useI18n } from "@/lib/i18n";
 
 const statusColors: Record<string, string> = {
   submitted: "bg-amber-50 text-amber-700 border-amber-200",
@@ -64,7 +62,6 @@ function calcBusinessDays(start: string, end: string): number {
 }
 
 export default function Leave() {
-  const { t, lang } = useI18n();
   const [viewTab, setViewTab] = useState<string>("active");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [monthFilter, setMonthFilter] = useState<string>("all");
@@ -81,11 +78,11 @@ export default function Leave() {
     for (let i = -3; i <= 6; i++) {
       const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
       const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      const label = d.toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { month: "long", year: "numeric" });
+      const label = d.toLocaleString("en-US", { month: "long", year: "numeric" });
       options.push({ value, label });
     }
     return options;
-  }, [lang]);
+  }, []);
 
   const { data, isLoading, refetch } = trpc.leave.list.useQuery({
     status: statusFilter !== "all" ? statusFilter : undefined,
@@ -106,7 +103,7 @@ export default function Leave() {
           { duration: 6000 }
         );
       } else {
-        toast.success(t("leave.toast.submitted"));
+        toast.success("Leave request submitted successfully.");
       }
       setCreateOpen(false);
       refetch();
@@ -117,7 +114,7 @@ export default function Leave() {
 
   const updateMutation = trpc.leave.update.useMutation({
     onSuccess: () => {
-      toast.success(t("leave.toast.updated"));
+      toast.success("Leave request updated successfully.");
       setEditOpen(false);
       setEditingLeave(null);
       refetch();
@@ -127,7 +124,7 @@ export default function Leave() {
 
   const deleteMutation = trpc.leave.delete.useMutation({
     onSuccess: () => {
-      toast.success(t("leave.toast.deleted"));
+      toast.success("Leave request deleted successfully.");
       refetch();
     },
     onError: (err: any) => toast.error(err.message),
@@ -135,7 +132,7 @@ export default function Leave() {
 
   const adminApproveMutation = trpc.leave.adminApprove.useMutation({
     onSuccess: () => {
-      toast.success(t("leave.toast.approved"));
+      toast.success("Leave request approved.");
       refetch();
     },
     onError: (err: any) => toast.error(err.message),
@@ -143,7 +140,7 @@ export default function Leave() {
 
   const adminRejectMutation = trpc.leave.adminReject.useMutation({
     onSuccess: () => {
-      toast.success(t("leave.toast.rejected"));
+      toast.success("Leave request rejected.");
       refetch();
     },
     onError: (err: any) => toast.error(err.message),
@@ -281,21 +278,21 @@ export default function Leave() {
 
   const dateError = useMemo(() => {
     if (formData.startDate && formData.endDate) {
-      if (new Date(formData.endDate) < new Date(formData.startDate)) return t("leave.validation.endDateBeforeStartDate");
+      if (new Date(formData.endDate) < new Date(formData.startDate)) return "End date cannot be before start date.";
     }
     return null;
   }, [formData.startDate, formData.endDate]);
 
   const editDateError = useMemo(() => {
     if (editFormData.startDate && editFormData.endDate) {
-      if (new Date(editFormData.endDate) < new Date(editFormData.startDate)) return t("leave.validation.endDateBeforeStartDate");
+      if (new Date(editFormData.endDate) < new Date(editFormData.startDate)) return "End date cannot be before start date.";
     }
     return null;
   }, [editFormData.startDate, editFormData.endDate]);
 
   const handleCreate = () => {
     if (!formData.employeeId || !formData.leaveTypeId || !formData.startDate || !formData.endDate) {
-      toast.error(t("leave.toast.error.requiredFields"));
+      toast.error("Please fill in all required fields.");
       return;
     }
     if (dateError) { toast.error(dateError); return; }
@@ -338,7 +335,7 @@ export default function Leave() {
   };
 
   const handleDelete = (id: number) => {
-    if (confirm(t("leave.confirm.delete"))) {
+    if (confirm("Are you sure you want to delete this leave request?")) {
       deleteMutation.mutate({ id });
     }
   };
@@ -384,8 +381,8 @@ export default function Leave() {
 
         <Tabs defaultValue="leave" className="w-full">
           <TabsList className="mb-4">
-            <TabsTrigger value="leave">{t("leave.tab.leave")}</TabsTrigger>
-            <TabsTrigger value="milestones">{t("leave.tab.milestones")}</TabsTrigger>
+            <TabsTrigger value="leave">Leave</TabsTrigger>
+            <TabsTrigger value="milestones">Milestones</TabsTrigger>
           </TabsList>
 
           <TabsContent value="leave" className="space-y-6">
@@ -393,8 +390,8 @@ export default function Leave() {
             <div className="flex items-center justify-between">
                 <Tabs value={viewTab} onValueChange={(v) => { setViewTab(v); setStatusFilter("all"); }} className="w-auto">
                 <TabsList>
-                    <TabsTrigger value="active">{t("leave.tabs.active")}</TabsTrigger>
-                    <TabsTrigger value="history">{t("leave.tabs.history")}</TabsTrigger>
+                    <TabsTrigger value="active">Active</TabsTrigger>
+                    <TabsTrigger value="history">History</TabsTrigger>
                 </TabsList>
                 </Tabs>
 
@@ -407,19 +404,19 @@ export default function Leave() {
                         { header: "End Date", accessor: (r: any) => r.endDate ? new Date(r.endDate).toISOString().slice(0, 10) : "" },
                         { header: "Days", accessor: (r: any) => r.days },
                         { header: "Reason", accessor: (r: any) => r.reason || "" },
-                        { header: "Status", accessor: (r: any) => t(`leave.status.${r.status}`) || r.status },
+                        { header: "Status", accessor: (r: any) => r.status.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase()) || r.status },
                         { header: "Created", accessor: (r: any) => r.createdAt ? new Date(r.createdAt).toISOString().slice(0, 10) : "" },
                         ], `leave-export-${new Date().toISOString().slice(0, 10)}.csv`);
                         toast.success("CSV exported successfully");
                     }}>
-                        <Download className="w-4 h-4 mr-2" />{t("leave.actions.export")}
+                        <Download className="w-4 h-4 mr-2" />Export
                     </Button>
                     <Dialog open={createOpen} onOpenChange={(open) => { setCreateOpen(open); if (!open) setFormData(defaultForm); }}>
                     <DialogTrigger asChild>
-                        <Button><Plus className="w-4 h-4 mr-2" />{t("leave.button.new")}</Button>
+                        <Button><Plus className="w-4 h-4 mr-2" />New Leave Request</Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-md">
-                    <DialogHeader><DialogTitle>{t("leave.dialog.title.new")}</DialogTitle></DialogHeader>
+                    <DialogHeader><DialogTitle>New Leave Request</DialogTitle></DialogHeader>
                     <div className="space-y-4 mt-4">
                         {/* Employee selector with customer cascading + search */}
                         <EmployeeSelector
@@ -427,29 +424,29 @@ export default function Leave() {
                         onValueChange={(id) => setFormData({ ...formData, employeeId: id, leaveTypeId: 0 })}
                         showCustomerFilter={true}
                         required
-                        label={t("leave.table.header.employee")}
-                        placeholder={t("leave.form.placeholder.employee")}
+                        label="Employee"
+                        placeholder="Select an employee"
                         />
 
                         {/* Leave type selector */}
                         <div className="space-y-2">
-                        <Label>{t("leave.form.label.leaveType")} *</Label>
+                        <Label>Leave Type *</Label>
                         <Select
                             value={formData.leaveTypeId ? String(formData.leaveTypeId) : ""}
                             onValueChange={(v) => setFormData({ ...formData, leaveTypeId: parseInt(v) })}
                             disabled={!selectedEmployee}
                         >
                             <SelectTrigger>
-                            <SelectValue placeholder={selectedEmployee ? t("leave.form.placeholder.selectLeaveType") : t("leave.form.placeholder.selectEmployeeFirst")} />
+                            <SelectValue placeholder={selectedEmployee ? "Select a leave type" : "Select an employee first"} />
                             </SelectTrigger>
                             <SelectContent>
                             {filteredLeaveTypes?.map((lt: any) => {
                                 const bal = getCreateFormBalance(lt.id);
                                 const balLabel = lt.isPaid === false
-                                  ? t("leave.type.unpaid")
+                                  ? "Unpaid"
                                   : bal !== null
                                     ? `${bal.remaining}/${bal.totalEntitlement} days remaining`
-                                    : lt.annualEntitlement ? `${lt.annualEntitlement} ${t("leave.type.daysPerYear")}` : "";
+                                    : lt.annualEntitlement ? `${lt.annualEntitlement} days per year` : "";
                                 return (
                                 <SelectItem key={lt.id} value={String(lt.id)}>
                                 {lt.leaveTypeName} {balLabel ? `(${balLabel})` : ""}
@@ -457,7 +454,7 @@ export default function Leave() {
                                 );
                             })}
                             {(!filteredLeaveTypes || filteredLeaveTypes.length === 0) && selectedEmployee && (
-                                <SelectItem value="__none" disabled>{t("leave.form.noLeaveTypes", { country: selectedEmployee.country })}</SelectItem>
+                                <SelectItem value="__none" disabled>No leave types found for {selectedEmployee.country}</SelectItem>
                             )}
                             </SelectContent>
                         </Select>
@@ -466,7 +463,7 @@ export default function Leave() {
                         {/* Date range */}
                         <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label>{t("leave.form.label.startDate")} *</Label>
+                            <Label>Start Date *</Label>
                             <DatePicker
                             value={formData.startDate}
                             onChange={(v) => {
@@ -478,15 +475,15 @@ export default function Leave() {
                               }
                               setFormData({ ...formData, ...updates });
                             }}
-                            placeholder={t("leave.form.placeholder.startDate")}
+                            placeholder="Select start date"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>{t("leave.form.label.endDate")} *</Label>
+                            <Label>End Date *</Label>
                             <DatePicker
                             value={formData.endDate}
                             onChange={(v) => setFormData({ ...formData, endDate: v })}
-                            placeholder={t("leave.form.placeholder.endDate")}
+                            placeholder="Select end date"
                             minDate={formData.startDate || undefined}
                             />
                         </div>
@@ -500,7 +497,7 @@ export default function Leave() {
 
                         <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label>{t("leave.form.label.totalDays")}</Label>
+                            <Label>Total Days</Label>
                             <Input
                             type="text"
                             value={formData.days}
@@ -517,17 +514,17 @@ export default function Leave() {
                                 onChange={(e) => setFormData({ ...formData, isHalfDay: e.target.checked })}
                                 className="rounded"
                             />
-                            {t("leave.form.label.halfDay")}
+                            Half Day
                             </label>
                         </div>
                         </div>
 
                         <div className="space-y-2">
-                        <Label>{t("leave.form.label.reason")}</Label>
+                        <Label>Reason</Label>
                         <Textarea
                             value={formData.reason}
                             onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                            placeholder={t("leave.form.label.reason") + "..."}
+                            placeholder="Reason..."
                             rows={3}
                         />
                         </div>
@@ -535,7 +532,7 @@ export default function Leave() {
                         {/* Insufficient balance warning */}
                         {adminIsInsufficientBalance && adminSelectedBalance && (
                         <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
-                            <p className="text-sm font-medium text-amber-800">Insufficient leave balance</p>
+                            <p className="text-sm font-medium">Insufficient leave balance</p>
                             <p className="text-xs text-amber-700 mt-1">
                             Requesting {adminRequestedDays} day(s) but only {adminSelectedBalance.remaining} day(s) remaining.
                             The excess {(adminRequestedDays - adminSelectedBalance.remaining).toFixed(1)} day(s) will be automatically converted to Unpaid Leave.
@@ -558,9 +555,9 @@ export default function Leave() {
                         )}
 
                         <div className="flex justify-end gap-3 pt-2">
-                        <Button variant="outline" onClick={() => setCreateOpen(false)}>{t("common.cancel")}</Button>
+                        <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
                         <Button onClick={handleCreate} disabled={createMutation.isPending || !!dateError}>
-                            {createMutation.isPending ? t("leave.button.submitting") : t("common.submit")}
+                            {createMutation.isPending ? "Submitting..." : "Submit"}
                         </Button>
                         </div>
                     </div>
@@ -572,18 +569,18 @@ export default function Leave() {
             {/* Filters */}
             <div className="flex items-center gap-3 flex-wrap">
               <Select value={customerFilter} onValueChange={setCustomerFilter}>
-                <SelectTrigger className="w-44"><SelectValue placeholder={t("leave.filters.allCustomers")} /></SelectTrigger>
+                <SelectTrigger className="w-44"><SelectValue placeholder="All Customers" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("leave.filters.allCustomers")}</SelectItem>
+                  <SelectItem value="all">All Customers</SelectItem>
                   {customersList.map((c) => (
                     <SelectItem key={c.id} value={String(c.id)}>{c.companyName}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <Select value={countryFilter} onValueChange={setCountryFilter}>
-                <SelectTrigger className="w-36"><SelectValue placeholder={t("leave.filters.allCountries")} /></SelectTrigger>
+                <SelectTrigger className="w-36"><SelectValue placeholder="All Countries" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("leave.filters.allCountries")}</SelectItem>
+                  <SelectItem value="all">All Countries</SelectItem>
                   {availableCountries.map((cc) => (
                     <SelectItem key={cc} value={cc}>{cc}</SelectItem>
                   ))}
@@ -591,20 +588,20 @@ export default function Leave() {
               </Select>
               {viewTab === "active" && (
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-36"><SelectValue placeholder={t("leave.table.header.status")} /></SelectTrigger>
+                  <SelectTrigger className="w-36"><SelectValue placeholder="Status" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">{t("leave.filters.allStatus")}</SelectItem>
-                    <SelectItem value="submitted">{t("leave.status.submitted")}</SelectItem>
-                    <SelectItem value="client_approved">{t("leave.status.client_approved")}</SelectItem>
-                    <SelectItem value="client_rejected">{t("leave.status.client_rejected")}</SelectItem>
-                    <SelectItem value="admin_rejected">{t("leave.status.admin_rejected")}</SelectItem>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="submitted">Submitted</SelectItem>
+                    <SelectItem value="client_approved">Client Approved</SelectItem>
+                    <SelectItem value="client_rejected">Client Rejected</SelectItem>
+                    <SelectItem value="admin_rejected">Admin Rejected</SelectItem>
                   </SelectContent>
                 </Select>
               )}
               <Select value={monthFilter} onValueChange={setMonthFilter}>
-                <SelectTrigger className="w-40"><SelectValue placeholder={t("leave.filters.allMonths")} /></SelectTrigger>
+                <SelectTrigger className="w-40"><SelectValue placeholder="All Months" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("leave.filters.allMonths")}</SelectItem>
+                  <SelectItem value="all">All Months</SelectItem>
                   {monthOptions.map((m) => (
                     <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
                   ))}
@@ -641,12 +638,12 @@ export default function Leave() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t("leave.table.header.employee")}</TableHead>
-                      <TableHead>{t("leave.table.header.leaveType")}</TableHead>
-                      <TableHead>{t("leave.table.header.period")}</TableHead>
-                      <TableHead>{t("leave.table.header.days")}</TableHead>
-                      <TableHead>{t("leave.table.header.status")}</TableHead>
-                      <TableHead className="w-[120px]">{t("leave.table.header.actions")}</TableHead>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Leave Type</TableHead>
+                      <TableHead>Period</TableHead>
+                      <TableHead>Days</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="w-[120px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -676,7 +673,7 @@ export default function Leave() {
                             <TableCell>
                               <Badge variant="outline" className={`text-xs ${statusColors[leave.status] || ""}`}>
                                 {leave.status === "locked" && <Lock className="w-3 h-3 mr-1 inline" />}
-                                {t(`leave.status.${leave.status}`) || leave.status}
+                                {leave.status.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase()) || leave.status}
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -741,7 +738,7 @@ export default function Leave() {
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-12">
                           <CalendarDays className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                          <p className="text-sm text-muted-foreground">{t("leave.emptyState.noRecords")}</p>
+                          <p className="text-sm text-muted-foreground">No leave records found.</p>
                         </TableCell>
                       </TableRow>
                     )}
@@ -764,7 +761,7 @@ export default function Leave() {
         {/* View Leave Detail Dialog (read-only) */}
         <Dialog open={!!viewLeave} onOpenChange={(open) => { if (!open) setViewLeave(null); }}>
           <DialogContent className="max-w-md">
-            <DialogHeader><DialogTitle>{t("leave.dialog.title.details")}</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Leave Details</DialogTitle></DialogHeader>
             {viewLeave && (
               <div className="space-y-4 mt-4">
                 <div className="rounded-md bg-muted/50 p-3">
@@ -774,43 +771,43 @@ export default function Leave() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">{t("leave.table.header.leaveType")}</Label>
+                    <Label className="text-xs text-muted-foreground">Leave Type</Label>
                     <p className="text-sm">{(viewLeave as any).leaveTypeName || `Type #${viewLeave.leaveTypeId}`}</p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">{t("leave.table.header.status")}</Label>
+                    <Label className="text-xs text-muted-foreground">Status</Label>
                     <Badge variant="outline" className={`text-xs ${statusColors[viewLeave.status] || ""}`}>
                       {viewLeave.status === "locked" && <Lock className="w-3 h-3 mr-1 inline" />}
-                      {t(`leave.status.${viewLeave.status}`) || viewLeave.status}
+                      {viewLeave.status.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase()) || viewLeave.status}
                     </Badge>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">{t("leave.form.label.startDate")}</Label>
+                    <Label className="text-xs text-muted-foreground">Start Date</Label>
                     <p className="text-sm font-mono">{formatDate(viewLeave.startDate)}</p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">{t("leave.form.label.endDate")}</Label>
+                    <Label className="text-xs text-muted-foreground">End Date</Label>
                     <p className="text-sm font-mono">{formatDate(viewLeave.endDate)}</p>
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">{t("leave.form.label.totalDays")}</Label>
+                  <Label className="text-xs text-muted-foreground">Total Days</Label>
                   <p className="text-sm font-mono">{viewLeave.days}</p>
                 </div>
 
                 {viewLeave.reason && (
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">{t("leave.form.label.reason")}</Label>
+                    <Label className="text-xs text-muted-foreground">Reason</Label>
                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">{viewLeave.reason}</p>
                   </div>
                 )}
 
                 <div className="flex justify-end pt-2">
-                  <Button variant="outline" onClick={() => setViewLeave(null)}>{t("leave.button.close")}</Button>
+                  <Button variant="outline" onClick={() => setViewLeave(null)}>Close</Button>
                 </div>
               </div>
             )}
@@ -820,7 +817,7 @@ export default function Leave() {
         {/* Edit Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="max-w-md">
-            <DialogHeader><DialogTitle>{t("leave.dialog.title.edit")}</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Edit Leave Request</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-4">
               {editingEmployee && (
                 <p className="text-sm text-muted-foreground">
@@ -830,16 +827,16 @@ export default function Leave() {
 
               {/* Leave type selector */}
               <div className="space-y-2">
-                <Label>{t("leave.form.label.leaveType")} *</Label>
+                <Label>Leave Type *</Label>
                 <Select
                   value={editFormData.leaveTypeId ? String(editFormData.leaveTypeId) : ""}
                   onValueChange={(v) => setEditFormData({ ...editFormData, leaveTypeId: parseInt(v) })}
                 >
-                  <SelectTrigger><SelectValue placeholder={t("leave.form.placeholder.selectLeaveType")} /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Select a leave type" /></SelectTrigger>
                   <SelectContent>
                     {filteredEditLeaveTypes?.map((lt: any) => (
                       <SelectItem key={lt.id} value={String(lt.id)}>
-                        {lt.leaveTypeName} {lt.isPaid ? "" : `(${t("leave.type.unpaid")})`} {lt.annualEntitlement ? `— ${lt.annualEntitlement} ${t("leave.type.daysPerYear")}` : ""}
+                        {lt.leaveTypeName} {lt.isPaid ? "" : `(Unpaid)`} {lt.annualEntitlement ? `— ${lt.annualEntitlement} days per year` : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -849,19 +846,19 @@ export default function Leave() {
               {/* Date range */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>{t("leave.form.label.startDate")} *</Label>
+                  <Label>Start Date *</Label>
                   <DatePicker
                     value={editFormData.startDate}
                     onChange={(v) => setEditFormData({ ...editFormData, startDate: v })}
-                    placeholder={t("leave.form.placeholder.startDate")}
+                    placeholder="Select start date"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("leave.form.label.endDate")} *</Label>
+                  <Label>End Date *</Label>
                   <DatePicker
                     value={editFormData.endDate}
                     onChange={(v) => setEditFormData({ ...editFormData, endDate: v })}
-                    placeholder={t("leave.form.placeholder.endDate")}
+                    placeholder="Select end date"
                     minDate={editFormData.startDate || undefined}
                   />
                 </div>
@@ -875,7 +872,7 @@ export default function Leave() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>{t("leave.form.label.totalDays")}</Label>
+                  <Label>Total Days</Label>
                   <Input
                     type="text"
                     value={editFormData.days}
@@ -892,25 +889,25 @@ export default function Leave() {
                       onChange={(e) => setEditFormData({ ...editFormData, isHalfDay: e.target.checked })}
                       className="rounded"
                     />
-                    {t("leave.form.label.halfDay")}
+                    Half Day
                   </label>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>{t("leave.form.label.reason")}</Label>
+                <Label>Reason</Label>
                 <Textarea
                   value={editFormData.reason}
                   onChange={(e) => setEditFormData({ ...editFormData, reason: e.target.value })}
-                  placeholder={t("leave.form.label.reason") + "..."}
+                  placeholder="Reason..."
                   rows={3}
                 />
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
-                <Button variant="outline" onClick={() => setEditOpen(false)}>{t("common.cancel")}</Button>
+                <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
                 <Button onClick={handleUpdate} disabled={updateMutation.isPending || !!editDateError}>
-                  {updateMutation.isPending ? t("leave.button.saving") : t("common.save")}
+                  {updateMutation.isPending ? "Saving..." : "Save"}
                 </Button>
               </div>
             </div>

@@ -9,10 +9,8 @@ import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Loader2, Search } from "lucide-react";
 import CountrySelect from "@/components/CountrySelect"; // Assuming this component works for portal too or needs adaptation
-import { useI18n } from "@/lib/i18n";
 
 export default function PortalSalaryBenchmark() {
-  const { t } = useI18n();
   const [countryCode, setCountryCode] = useState<string>("");
   const [jobCategory, setJobCategory] = useState<string>("");
   const [seniority, setSeniority] = useState<"junior" | "mid" | "senior" | "lead" | "director">("mid");
@@ -61,7 +59,7 @@ export default function PortalSalaryBenchmark() {
   ] : [];
 
   return (
-    <PortalLayout title={t("nav.salaryBenchmark") || "Salary Benchmark"}>
+    <PortalLayout title="Salary Benchmark">
       <div className="p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-4 rounded-lg border shadow-sm">
           <div className="space-y-2">

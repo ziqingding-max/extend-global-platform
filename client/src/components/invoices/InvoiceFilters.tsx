@@ -1,10 +1,8 @@
-
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MonthPicker } from "@/components/DatePicker";
 import { Button } from "@/components/ui/button";
 import { Search, XCircle } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
 
 interface InvoiceFiltersProps {
   search: string;
@@ -33,7 +31,6 @@ export function InvoiceFilters({
   cpFilter, setCpFilter, cpList,
   layerFilter, setLayerFilter,
 }: InvoiceFiltersProps) {
-  const { t } = useI18n();
 
   return (
     <div className="flex items-center gap-3 flex-wrap">
@@ -41,7 +38,7 @@ export function InvoiceFilters({
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input 
           className="pl-9" 
-          placeholder={t("invoices.list.filter.searchInvoiceCustomerPlaceholder")} 
+          placeholder="Search invoice or customer" 
           value={search} 
           onChange={(e) => setSearch(e.target.value)} 
         />
@@ -49,31 +46,31 @@ export function InvoiceFilters({
       
       {showStatusFilter && statusFilter && setStatusFilter && (
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40"><SelectValue placeholder={t("invoices.list.filter.statusLabel")} /></SelectTrigger>
+          <SelectTrigger className="w-40"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("invoices.list.filter.allStatuses")}</SelectItem>
-            <SelectItem value="draft">{t("invoices.status.draft")}</SelectItem>
-            <SelectItem value="pending_review">{t("invoices.status.pendingReview")}</SelectItem>
-            <SelectItem value="sent">{t("invoices.status.sent")}</SelectItem>
-            <SelectItem value="paid">{t("invoices.detail.summary.paid")}</SelectItem>
-            <SelectItem value="overdue">{t("invoices.status.overdue")}</SelectItem>
-            <SelectItem value="cancelled">{t("invoices.status.cancelled")}</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="pending_review">Pending Review</SelectItem>
+            <SelectItem value="sent">Sent</SelectItem>
+            <SelectItem value="paid">Paid</SelectItem>
+            <SelectItem value="overdue">Overdue</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
       )}
 
       <Select value={typeFilter} onValueChange={setTypeFilter}>
-        <SelectTrigger className="w-44"><SelectValue placeholder={t("invoices.list.filter.typeLabel")} /></SelectTrigger>
+        <SelectTrigger className="w-44"><SelectValue placeholder="Type" /></SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">{t("invoices.list.filter.allTypes")}</SelectItem>
-          <SelectItem value="monthly_eor">{t("invoices.type.monthlyEor")}</SelectItem>
-          <SelectItem value="monthly_visa_eor">{t("invoices.type.monthlyVisaEor")}</SelectItem>
-          <SelectItem value="monthly_aor">{t("invoices.type.monthlyAor")}</SelectItem>
-          <SelectItem value="visa_service">{t("invoices.type.visaService")}</SelectItem>
-          <SelectItem value="deposit">{t("invoices.type.deposit")}</SelectItem>
-          <SelectItem value="deposit_refund">{t("invoices.type.depositRefund")}</SelectItem>
-          <SelectItem value="credit_note">{t("invoices.type.creditNote")}</SelectItem>
-          <SelectItem value="manual">{t("invoices.type.manual")}</SelectItem>
+          <SelectItem value="all">All Types</SelectItem>
+          <SelectItem value="monthly_eor">Monthly EOR</SelectItem>
+          <SelectItem value="monthly_visa_eor">Monthly Visa EOR</SelectItem>
+          <SelectItem value="monthly_aor">Monthly AOR</SelectItem>
+          <SelectItem value="visa_service">Visa Service</SelectItem>
+          <SelectItem value="deposit">Deposit</SelectItem>
+          <SelectItem value="deposit_refund">Deposit Refund</SelectItem>
+          <SelectItem value="credit_note">Credit Note</SelectItem>
+          <SelectItem value="manual">Manual</SelectItem>
         </SelectContent>
       </Select>
 
@@ -82,7 +79,7 @@ export function InvoiceFilters({
           <MonthPicker 
             value={monthFilter} 
             onChange={setMonthFilter} 
-            placeholder={t("invoices.list.filter.allMonths")} 
+            placeholder="All Months" 
             className="w-40" 
           />
           {monthFilter && (

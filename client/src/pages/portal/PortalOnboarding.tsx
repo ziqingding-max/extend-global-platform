@@ -62,7 +62,6 @@ import { getPortalOrigin, portalPath } from "@/lib/portalBasePath";
 import { cn } from "@/lib/utils";
 import { BankDetailsForm, BankDetails } from "@/components/forms/BankDetailsForm";
 
-import { useI18n } from "@/lib/i18n";
 // ── Status Configs ──
 // statusConfig removed — employee records no longer shown on Onboarding page
 
@@ -225,7 +224,6 @@ function GlassCard({ children, className, onClick, hover = false }: {
 }
 
 export default function PortalOnboarding() {
-  const { t } = useI18n();
   // ── State ──
   const [mode, setMode] = useState<"list" | "choose-path" | "employer-fill" | "invite-flow">("list");
   const [currentStep, setCurrentStep] = useState(1);
@@ -257,7 +255,7 @@ export default function PortalOnboarding() {
 
   const submitMutation = portalTrpc.employees.submitOnboarding.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_onboarding.toast.onboarding_success"));
+      toast.success("Onboarding submitted successfully");
       utils.employees.list.invalidate();
       resetAll();
     },
@@ -270,7 +268,7 @@ export default function PortalOnboarding() {
 
   const sendInviteMutation = portalTrpc.employees.sendOnboardingInvite.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_onboarding.toast.invite_sent"));
+      toast.success("Onboarding invite sent!");
       utils.employees.listOnboardingInvites.invalidate();
       resetAll();
     },
@@ -279,7 +277,7 @@ export default function PortalOnboarding() {
 
   const cancelInviteMutation = portalTrpc.employees.cancelOnboardingInvite.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_onboarding.toast.invite_cancelled"));
+      toast.success("Onboarding invite cancelled");
       utils.employees.listOnboardingInvites.invalidate();
     },
     onError: (err) => toast.error(err.message),
@@ -287,12 +285,12 @@ export default function PortalOnboarding() {
 
   const resendInviteMutation = portalTrpc.employees.resendOnboardingInvite.useMutation({
     onSuccess: (data) => {
-      toast.success(t("portal_onboarding.toast.invite_resent"));
+      toast.success("Onboarding invite re-sent!");
       utils.employees.listOnboardingInvites.invalidate();
       // Auto-copy the new link
       const link = buildSelfOnboardingInviteLink(data.token);
       navigator.clipboard.writeText(link);
-      toast.info(t("portal_onboarding.toast.link_copied"));
+      toast.info("Invite link copied to clipboard");
     },
     onError: (err) => toast.error(err.message),
   });
@@ -565,8 +563,8 @@ export default function PortalOnboarding() {
   const renderServiceSelection = () => (
     <div className="space-y-6 animate-page-in">
       <div className="text-center mb-8">
-        <h3 className="text-xl font-semibold text-foreground">{t("portal_onboarding.service_selection.title")}</h3>
-        <p className="text-sm text-muted-foreground mt-2">{t("portal_onboarding.service_selection.description")}</p>
+        <h3 className="text-xl font-semibold text-foreground">Choose Service Type</h3>
+        <p className="text-sm text-muted-foreground mt-2">Select the type of service you need for this new hire.</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {SERVICE_TYPES.map((service) => {
@@ -628,40 +626,40 @@ export default function PortalOnboarding() {
     <div className="space-y-6 animate-page-in">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t("portal_onboarding.personal_info.label.first_name")} <span className="text-destructive">*</span></Label>
-          <Input value={formData.firstName} onChange={(e) => updateField("firstName", e.target.value)} placeholder={t("portal_onboarding.personal_info.placeholder.first_name")} className="h-10 rounded-xl" />
+          <Label className="text-sm font-medium">First Name <span className="text-destructive">*</span></Label>
+          <Input value={formData.firstName} onChange={(e) => updateField("firstName", e.target.value)} placeholder="e.g. John" className="h-10 rounded-xl" />
         </div>
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t("portal_onboarding.personal_info.label.last_name")} <span className="text-destructive">*</span></Label>
-          <Input value={formData.lastName} onChange={(e) => updateField("lastName", e.target.value)} placeholder={t("portal_onboarding.personal_info.placeholder.last_name")} className="h-10 rounded-xl" />
+          <Label className="text-sm font-medium">Last Name <span className="text-destructive">*</span></Label>
+          <Input value={formData.lastName} onChange={(e) => updateField("lastName", e.target.value)} placeholder="e.g. Doe" className="h-10 rounded-xl" />
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t("portal_onboarding.personal_info.label.email")} <span className="text-destructive">*</span></Label>
-          <Input type="email" value={formData.email} onChange={(e) => updateField("email", e.target.value)} placeholder={t("portal_onboarding.personal_info.placeholder.email")} className={`h-10 rounded-xl ${fieldErrors.email ? "border-destructive" : ""}`} />
+          <Label className="text-sm font-medium">Email <span className="text-destructive">*</span></Label>
+          <Input type="email" value={formData.email} onChange={(e) => updateField("email", e.target.value)} placeholder="name@example.com" className={`h-10 rounded-xl ${fieldErrors.email ? "border-destructive" : ""}`} />
           {fieldErrors.email && <p className="text-xs text-destructive mt-1">{fieldErrors.email}</p>}
         </div>
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t("portal_onboarding.personal_info.label.phone")}</Label>
+          <Label className="text-sm font-medium">Phone</Label>
           <Input value={formData.phone} onChange={(e) => updateField("phone", e.target.value)} placeholder="+65 9123 4567" className="h-10 rounded-xl" />
         </div>
       </div>
       {!isAor && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="text-sm font-medium">{t("portal_onboarding.personal_info.label.dob")} <span className="text-destructive">*</span></Label>
+            <Label className="text-sm font-medium">Date of Birth <span className="text-destructive">*</span></Label>
             <DatePicker value={formData.dateOfBirth} onChange={(v: string) => updateField("dateOfBirth", v)} placeholder="Select date" />
           </div>
           <div className="space-y-2">
-            <Label className="text-sm font-medium">{t("portal_onboarding.personal_info.label.gender")} <span className="text-destructive">*</span></Label>
+            <Label className="text-sm font-medium">Gender <span className="text-destructive">*</span></Label>
             <Select value={formData.gender} onValueChange={(v) => updateField("gender", v)}>
               <SelectTrigger className="h-10 rounded-xl"><SelectValue placeholder="Select gender" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="male">{t("portal_onboarding.personal_info.gender.male")}</SelectItem>
-                <SelectItem value="female">{t("portal_onboarding.personal_info.gender.female")}</SelectItem>
-                <SelectItem value="other">{t("portal_onboarding.personal_info.gender.other")}</SelectItem>
-                <SelectItem value="prefer_not_to_say">{t("portal_onboarding.personal_info.gender.prefer_not_to_say")}</SelectItem>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -669,7 +667,7 @@ export default function PortalOnboarding() {
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t("portal_onboarding.personal_info.label.nationality")} <span className="text-destructive">*</span></Label>
+          <Label className="text-sm font-medium">Nationality <span className="text-destructive">*</span></Label>
           <Select value={formData.nationality} onValueChange={(v) => updateField("nationality", v)}>
             <SelectTrigger className="h-10 rounded-xl"><SelectValue placeholder="Select nationality" /></SelectTrigger>
             <SelectContent>
@@ -681,14 +679,14 @@ export default function PortalOnboarding() {
         </div>
         {!isAor && (
           <div className="space-y-2">
-            <Label className="text-sm font-medium">{t("portal_onboarding.personal_info.label.id_type")} <span className="text-destructive">*</span></Label>
+            <Label className="text-sm font-medium">ID Type <span className="text-destructive">*</span></Label>
             <Select value={formData.idType} onValueChange={(v) => updateField("idType", v)}>
               <SelectTrigger className="h-10 rounded-xl"><SelectValue placeholder="Select ID type" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="national_id">{t("portal_onboarding.personal_info.id_type.national_id")}</SelectItem>
-                <SelectItem value="passport">{t("portal_onboarding.personal_info.id_type.passport")}</SelectItem>
-                <SelectItem value="driver_license">{t("portal_onboarding.personal_info.id_type.drivers_license")}</SelectItem>
-                <SelectItem value="other">{t("portal_onboarding.personal_info.gender.other")}</SelectItem>
+                <SelectItem value="national_id">National ID</SelectItem>
+                <SelectItem value="passport">Passport</SelectItem>
+                <SelectItem value="driver_license">Driver's License</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -696,17 +694,17 @@ export default function PortalOnboarding() {
       </div>
       {!isAor && (
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t("portal_onboarding.personal_info.label.id_number")} <span className="text-destructive">*</span></Label>
+          <Label className="text-sm font-medium">ID Number <span className="text-destructive">*</span></Label>
           <Input value={formData.idNumber} onChange={(e) => updateField("idNumber", e.target.value)} placeholder="Enter ID number" className="h-10 rounded-xl" />
         </div>
       )}
       <div className="space-y-2">
-        <Label className="text-sm font-medium">{t("portal_onboarding.personal_info.label.address")} {!isAor && <span className="text-destructive">*</span>}</Label>
+        <Label className="text-sm font-medium">Address {!isAor && <span className="text-destructive">*</span>}</Label>
         <Textarea value={formData.address} onChange={(e) => updateField("address", e.target.value)} placeholder="Full residential address" rows={2} className="rounded-xl" />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t("portal_onboarding.employment.label.city")}</Label>
+          <Label className="text-sm font-medium">City</Label>
           <Input value={formData.city} onChange={(e) => updateField("city", e.target.value)} placeholder="City" className="h-10 rounded-xl" />
         </div>
         <div className="space-y-2">
@@ -728,7 +726,7 @@ export default function PortalOnboarding() {
     <div className="space-y-6 animate-page-in">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{isAor ? t("portal_onboarding.employment.label.onboarding_country") : t("portal_onboarding.employment.label.country")} <span className="text-destructive">*</span></Label>
+          <Label className="text-sm font-medium">{isAor ? "Onboarding Country" : "Country"} <span className="text-destructive">*</span></Label>
           <Select value={formData.country} onValueChange={(v) => {
             updateField("country", v);
             const c = countries?.find((c) => c.countryCode === v);
@@ -748,7 +746,7 @@ export default function PortalOnboarding() {
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm font-medium text-amber-800">{t("portal_onboarding.employment.visa_required.title")}</p>
+              <p className="text-sm font-medium text-amber-800">Visa Required</p>
               <p className="text-sm text-amber-700 mt-1">
                 The employee's nationality differs from the employment country. Visa sponsorship will be required.
               </p>
@@ -758,29 +756,29 @@ export default function PortalOnboarding() {
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{isAor ? "Role / Scope" : t("portal_onboarding.employment.label.job_title")} <span className="text-destructive">*</span></Label>
+          <Label className="text-sm font-medium">{isAor ? "Role / Scope" : "Job Title"} <span className="text-destructive">*</span></Label>
           <Input value={formData.jobTitle} onChange={(e) => updateField("jobTitle", e.target.value)} placeholder={isAor ? "e.g. Frontend Developer" : "e.g. Software Engineer"} className="h-10 rounded-xl" />
         </div>
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t("portal_onboarding.employment.label.department")}</Label>
+          <Label className="text-sm font-medium">Department</Label>
           <Input value={formData.department} onChange={(e) => updateField("department", e.target.value)} placeholder="e.g. Engineering" className="h-10 rounded-xl" />
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {!isAor && (
           <div className="space-y-2">
-            <Label className="text-sm font-medium">{t("portal_onboarding.employment.label.employment_type")}</Label>
+            <Label className="text-sm font-medium">Employment Type</Label>
             <Select value={formData.employmentType} onValueChange={(v) => updateField("employmentType", v)}>
               <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="long_term">{t("portal_onboarding.employment.employment_type.permanent")}</SelectItem>
-                <SelectItem value="fixed_term">{t("portal_onboarding.employment.employment_type.fixed_term")}</SelectItem>
+                <SelectItem value="long_term">Permanent</SelectItem>
+                <SelectItem value="fixed_term">Fixed-term</SelectItem>
               </SelectContent>
             </Select>
           </div>
         )}
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{isAor ? "Contract Start Date" : t("portal_onboarding.employment.label.start_date")} <span className="text-destructive">*</span></Label>
+          <Label className="text-sm font-medium">{isAor ? "Contract Start Date" : "Start Date"} <span className="text-destructive">*</span></Label>
           <DatePicker value={formData.startDate} onChange={(v: string) => updateField("startDate", v)} placeholder="Select start date" />
           {fieldErrors.startDate && <p className="text-xs text-destructive mt-1">{fieldErrors.startDate}</p>}
         </div>
@@ -788,7 +786,7 @@ export default function PortalOnboarding() {
       {(isAor || formData.employmentType === "fixed_term") && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="text-sm font-medium">{isAor ? "Contract End Date" : t("portal_onboarding.employment.label.end_date")}</Label>
+            <Label className="text-sm font-medium">{isAor ? "Contract End Date" : "End Date"}</Label>
             <DatePicker value={formData.endDate} onChange={(v: string) => updateField("endDate", v)} placeholder="Select end date" />
             {fieldErrors.endDate && <p className="text-xs text-destructive mt-1">{fieldErrors.endDate}</p>}
           </div>
@@ -860,7 +858,7 @@ export default function PortalOnboarding() {
       <div className="space-y-6 animate-page-in">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="text-sm font-medium">{t("portal_onboarding.compensation.label.base_salary")} <span className="text-destructive">*</span></Label>
+            <Label className="text-sm font-medium">Base Salary <span className="text-destructive">*</span></Label>
             <div className="flex gap-2">
               <Input
                 type="number"
@@ -875,14 +873,14 @@ export default function PortalOnboarding() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label className="text-sm font-medium">{t("portal_onboarding.compensation.label.salary_currency")}</Label>
+            <Label className="text-sm font-medium">Salary Currency</Label>
             <div className="flex items-center h-10 px-3 bg-muted/30 rounded-xl border text-sm font-medium">
               {formData.salaryCurrency || "USD"}
               {selectedCountry && (
                 <span className="ml-2 text-xs text-muted-foreground">(locked to {selectedCountry.countryName})</span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">{t("portal_onboarding.compensation.currency_auto_set_message")}</p>
+            <p className="text-xs text-muted-foreground">The salary currency is automatically set based on the employment country.</p>
           </div>
         </div>
         <div className="rounded-2xl border border-border/50 bg-muted/20 backdrop-blur-sm p-4">
@@ -900,16 +898,16 @@ export default function PortalOnboarding() {
   // ═══════════════════════════════════════════════════
   const renderDocuments = () => {
     const requiredDocs = [
-      { type: "national_id", label: t("portal_onboarding.documents.type.national_id"), required: true },
+      { type: "national_id", label: "National ID", required: true },
     ];
     if (needsVisa || formData.serviceType === "visa_eor") {
-      requiredDocs.push({ type: "passport", label: t("portal_onboarding.personal_info.id_type.passport"), required: true });
-      requiredDocs.push({ type: "visa", label: t("portal_onboarding.documents.type.visa"), required: false });
+      requiredDocs.push({ type: "passport", label: "Passport", required: true });
+      requiredDocs.push({ type: "visa", label: "Visa", required: false });
     }
     const isVisaEor = needsVisa || formData.serviceType === "visa_eor";
     const optionalDocs = [
-      { type: "resume", label: t("portal_onboarding.documents.type.resume"), required: isVisaEor },
-      { type: "education", label: t("portal_onboarding.documents.type.education_certificate"), required: isVisaEor },
+      { type: "resume", label: "Resume", required: isVisaEor },
+      { type: "education", label: "Education Certificate", required: isVisaEor },
     ];
     const allDocs = [...requiredDocs, ...optionalDocs];
 
@@ -1006,16 +1004,16 @@ export default function PortalOnboarding() {
         <div className="flex items-start gap-3">
           <Briefcase className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium text-blue-800">{isAor ? t("portal_onboarding.wizard.invite_flow.step2.title.aor") : t("portal_onboarding.wizard.invite_flow.step2.title")}</p>
+            <p className="text-sm font-medium">{isAor ? "Client Information" : "Employer Information"}</p>
             <p className="text-sm text-blue-700 mt-1">
-              {t("portal_onboarding.invite_flow.step2.description")}
+              Provide the job and compensation details for the new hire. This information will be pre-filled in their onboarding form.
             </p>
           </div>
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{isAor ? t("portal_onboarding.employment.label.onboarding_country") : t("portal_onboarding.employment.label.country")} <span className="text-destructive">*</span></Label>
+          <Label className="text-sm font-medium">{isAor ? "Onboarding Country" : "Country"} <span className="text-destructive">*</span></Label>
           <Select value={formData.country} onValueChange={(v) => {
             updateField("country", v);
             const c = countries?.find((c) => c.countryCode === v);
@@ -1030,24 +1028,24 @@ export default function PortalOnboarding() {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t("portal_onboarding.employment.label.job_title")} <span className="text-destructive">*</span></Label>
+          <Label className="text-sm font-medium">Job Title <span className="text-destructive">*</span></Label>
           <Input value={formData.jobTitle} onChange={(e) => updateField("jobTitle", e.target.value)} placeholder="e.g. Software Engineer" className="h-10 rounded-xl" />
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t("portal_onboarding.employment.label.department")}</Label>
+          <Label className="text-sm font-medium">Department</Label>
           <Input value={formData.department} onChange={(e) => updateField("department", e.target.value)} placeholder="e.g. Engineering" className="h-10 rounded-xl" />
         </div>
         {/* Bug 9: Hide Employment Type for AOR — it's EOR-specific */}
         {!isAor && (
           <div className="space-y-2">
-            <Label className="text-sm font-medium">{t("portal_onboarding.employment.label.employment_type")}</Label>
+            <Label className="text-sm font-medium">Employment Type</Label>
             <Select value={formData.employmentType} onValueChange={(v) => updateField("employmentType", v)}>
               <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="long_term">{t("portal_onboarding.employment.employment_type.permanent")}</SelectItem>
-                <SelectItem value="fixed_term">{t("portal_onboarding.employment.employment_type.fixed_term")}</SelectItem>
+                <SelectItem value="long_term">Permanent</SelectItem>
+                <SelectItem value="fixed_term">Fixed-term</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1055,14 +1053,14 @@ export default function PortalOnboarding() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{isAor ? "Contract Start Date" : t("portal_onboarding.employment.label.start_date")} <span className="text-destructive">*</span></Label>
+          <Label className="text-sm font-medium">{isAor ? "Contract Start Date" : "Start Date"} <span className="text-destructive">*</span></Label>
           <DatePicker value={formData.startDate} onChange={(v: string) => updateField("startDate", v)} placeholder="Select start date" />
           {fieldErrors.startDate && <p className="text-xs text-destructive mt-1">{fieldErrors.startDate}</p>}
         </div>
         {/* Bug 9: For AOR, always show end date; for EOR, only show for fixed_term */}
         {(isAor || formData.employmentType === "fixed_term") && (
           <div className="space-y-2">
-            <Label className="text-sm font-medium">{isAor ? "Contract End Date" : t("portal_onboarding.employment.label.end_date")}</Label>
+            <Label className="text-sm font-medium">{isAor ? "Contract End Date" : "End Date"}</Label>
             <DatePicker value={formData.endDate} onChange={(v: string) => updateField("endDate", v)} placeholder="Select end date" />
             {fieldErrors.endDate && <p className="text-xs text-destructive mt-1">{fieldErrors.endDate}</p>}
           </div>
@@ -1071,25 +1069,25 @@ export default function PortalOnboarding() {
       <div className="border-t border-border/40 pt-4">
         <h4 className="text-sm font-semibold mb-4 flex items-center gap-2">
           <DollarSign className="w-4 h-4 text-primary" />
-          {t("portal_onboarding.compensation.title")}
+          Compensation
         </h4>
         {isAor ? (
           /* AOR: Payment Frequency + Rate Amount */
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-sm font-medium">{t("portal_onboarding.compensation.label.payment_frequency")} <span className="text-destructive">*</span></Label>
+                <Label className="text-sm font-medium">Payment Frequency <span className="text-destructive">*</span></Label>
                 <Select value={formData.paymentFrequency} onValueChange={(v) => updateField("paymentFrequency", v)}>
-                  <SelectTrigger className="h-10 rounded-xl"><SelectValue placeholder={t("portal_onboarding.compensation.placeholder.select_frequency")} /></SelectTrigger>
+                  <SelectTrigger className="h-10 rounded-xl"><SelectValue placeholder="Select frequency" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="monthly">{t("portal_onboarding.compensation.frequency.monthly")}</SelectItem>
-                    <SelectItem value="semi_monthly">{t("portal_onboarding.compensation.frequency.semi_monthly")}</SelectItem>
-                    <SelectItem value="milestone">{t("portal_onboarding.compensation.frequency.milestone")}</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="semi_monthly">Semi-monthly</SelectItem>
+                    <SelectItem value="milestone">Milestone-based</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-sm font-medium">{t("portal_onboarding.compensation.label.currency")}</Label>
+                <Label className="text-sm font-medium">Currency</Label>
                 <CurrencySelect value={formData.contractorCurrency} onValueChange={(v) => updateField("contractorCurrency", v)} />
               </div>
             </div>
@@ -1097,7 +1095,7 @@ export default function PortalOnboarding() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">
-                    {formData.paymentFrequency === "semi_monthly" ? t("portal_onboarding.compensation.label.semi_monthly_amount") : t("portal_onboarding.compensation.label.monthly_amount")}
+                    {formData.paymentFrequency === "semi_monthly" ? "Semi-monthly Amount" : "Monthly Amount"}
                     <span className="text-destructive"> *</span>
                   </Label>
                   <div className="flex gap-2">
@@ -1120,7 +1118,7 @@ export default function PortalOnboarding() {
           /* EOR: Base Salary */
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium">{t("portal_onboarding.compensation.label.base_salary")} <span className="text-destructive">*</span></Label>
+              <Label className="text-sm font-medium">Base Salary <span className="text-destructive">*</span></Label>
               <div className="flex gap-2">
                 <Input
                   type="number"
@@ -1135,14 +1133,14 @@ export default function PortalOnboarding() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium">{t("portal_onboarding.compensation.label.salary_currency")}</Label>
+              <Label className="text-sm font-medium">Salary Currency</Label>
               <div className="flex items-center h-10 px-3 bg-muted/30 rounded-xl border text-sm font-medium">
                 {formData.salaryCurrency || "USD"}
                 {selectedCountry && (
                   <span className="ml-2 text-xs text-muted-foreground">(locked to {selectedCountry.countryName})</span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">{t("portal_onboarding.compensation.currency_auto_set_message")}</p>
+              <p className="text-xs text-muted-foreground">The salary currency is automatically set based on the employment country.</p>
             </div>
           </div>
         )}
@@ -1159,16 +1157,16 @@ export default function PortalOnboarding() {
         <div className="flex items-start gap-3">
           <Mail className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium">{t("portal_onboarding.wizard.invite_flow.step3.title")}</p>
+            <p className="text-sm font-medium">Send Onboarding Invite</p>
             <p className="text-sm text-muted-foreground mt-1">
-              {t("portal_onboarding.invite_flow.step3.description")}
+              Enter the new hire's name and email to send them a personalized onboarding invitation.
             </p>
           </div>
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t("portal_onboarding.invite_flow.send_invite.label.worker_name")} <span className="text-destructive">*</span></Label>
+          <Label className="text-sm font-medium">Worker's Full Name <span className="text-destructive">*</span></Label>
           <Input
             value={inviteName}
             onChange={(e) => setInviteName(e.target.value)}
@@ -1177,7 +1175,7 @@ export default function PortalOnboarding() {
           />
         </div>
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t("portal_onboarding.invite_flow.send_invite.label.worker_email")} <span className="text-destructive">*</span></Label>
+          <Label className="text-sm font-medium">Worker's Email <span className="text-destructive">*</span></Label>
           <Input
             type="email"
             value={inviteEmail}
@@ -1192,34 +1190,34 @@ export default function PortalOnboarding() {
       <div className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm p-5">
         <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <ClipboardList className="w-4 h-4 text-primary" />
-          {t("portal_onboarding.invite_flow.step3.summary_title")}
+          Summary of Pre-filled Information
         </h4>
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <span className="text-muted-foreground">{t("common.service")}:</span>{" "}
+            <span className="text-muted-foreground">Service:</span>{" "}
             <span className="font-medium">{SERVICE_TYPES.find((s) => s.id === formData.serviceType)?.shortTitle || "-"}</span>
           </div>
           <div>
-            <span className="text-muted-foreground">{t("common.country")}:</span>{" "}
+            <span className="text-muted-foreground">Country:</span>{" "}
             <span className="font-medium">{countries?.find((c) => c.countryCode === formData.country)?.countryName || "-"}</span>
           </div>
           <div>
-            <span className="text-muted-foreground">{t("portal_onboarding.employment.label.job_title")}:</span>{" "}
+            <span className="text-muted-foreground">Job Title:</span>{" "}
             <span className="font-medium">{formData.jobTitle || "-"}</span>
           </div>
           <div>
-            <span className="text-muted-foreground">{t("portal_onboarding.employment.label.start_date")}:</span>{" "}
+            <span className="text-muted-foreground">Start Date:</span>{" "}
             <span className="font-medium">{formData.startDate ? new Date(formData.startDate).toLocaleDateString() : "-"}</span>
           </div>
           {isAor ? (
             <>
               <div>
-                <span className="text-muted-foreground">{t("portal_onboarding.compensation.label.payment_frequency")}:</span>{" "}
+                <span className="text-muted-foreground">Payment Frequency:</span>{" "}
                 <span className="font-medium">{formData.paymentFrequency || "-"}</span>
               </div>
               {formData.paymentFrequency !== "milestone" && (
                 <div>
-                  <span className="text-muted-foreground">{t("portal_onboarding.compensation.label.rate_amount")}:</span>{" "}
+                  <span className="text-muted-foreground">Rate Amount:</span>{" "}
                   <span className="font-medium">{formData.rateAmount ? `${formData.contractorCurrency || "USD"} ${Number(formData.rateAmount).toLocaleString()}` : "-"}</span>
                 </div>
               )}
@@ -1227,12 +1225,12 @@ export default function PortalOnboarding() {
           ) : (
             <>
               <div>
-                <span className="text-muted-foreground">{t("common.salary")}:</span>{" "}
+                <span className="text-muted-foreground">Salary:</span>{" "}
                 <span className="font-medium">{formData.baseSalary ? `${formData.salaryCurrency} ${Number(formData.baseSalary).toLocaleString()}` : "-"}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">{t("common.type")}:</span>{" "}
-                <span className="font-medium">{formData.employmentType === "long_term" ? t("portal_onboarding.employment_type.permanent") : t("portal_onboarding.employment_type.fixed_term")}</span>
+                <span className="text-muted-foreground">Type:</span>{" "}
+                <span className="font-medium">{formData.employmentType === "long_term" ? "Permanent" : "Fixed-term"}</span>
               </div>
             </>
           )}
@@ -1243,7 +1241,7 @@ export default function PortalOnboarding() {
         <div className="flex items-start gap-2">
           <Link2 className="w-4 h-4 text-muted-foreground mt-0.5" />
           <p className="text-xs text-muted-foreground">
-            {t("portal_onboarding.invite_flow.step3.link_info")}
+            The new hire will receive an email with a secure link to complete their onboarding.
           </p>
         </div>
       </div>
@@ -1331,11 +1329,11 @@ export default function PortalOnboarding() {
         <div className="p-6 max-w-3xl mx-auto animate-page-in">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight">{t("portal_onboarding.wizard.header.title")}</h2>
-              <p className="text-sm text-muted-foreground mt-1">{t("portal_onboarding.choose_path.description")}</p>
+              <h2 className="text-2xl font-bold tracking-tight">New Onboarding</h2>
+              <p className="text-sm text-muted-foreground mt-1">Choose how you'd like to onboard your new hire.</p>
             </div>
             <Button variant="ghost" onClick={resetAll} className="rounded-xl">
-              <X className="w-4 h-4 mr-2" /> {t("common.cancel")}
+              <X className="w-4 h-4 mr-2" /> Cancel
             </Button>
           </div>
 
@@ -1350,13 +1348,13 @@ export default function PortalOnboarding() {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm border border-primary/10 flex items-center justify-center mb-5">
                   <ClipboardList className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">{t("portal_onboarding.choose_path.employer_fill.title")}</h3>
+                <h3 className="text-lg font-semibold mb-2">Fill it myself</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                  {t("portal_onboarding.choose_path.employer_fill.description")}
+                  You provide all the necessary information and documents for the new hire.
                 </p>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>{t("portal_onboarding.choose_path.employer_fill.time")}</span>
+                  <span>~10-15 min</span>
                 </div>
               </div>
             </GlassCard>
@@ -1371,13 +1369,13 @@ export default function PortalOnboarding() {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-500/5 backdrop-blur-sm border border-blue-200/30 flex items-center justify-center mb-5">
                   <Send className="w-8 h-8 text-blue-600" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">{t("portal_onboarding.choose_path.invite.title")}</h3>
+                <h3 className="text-lg font-semibold mb-2">Send to new hire</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                  {t("portal_onboarding.choose_path.invite.description")}
+                  Send a secure link to your new hire to complete their own onboarding details.
                 </p>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>{t("portal_onboarding.choose_path.invite.time")}</span>
+                  <span>~5 min</span>
                 </div>
               </div>
             </GlassCard>
@@ -1403,17 +1401,17 @@ export default function PortalOnboarding() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-2xl font-bold tracking-tight">
-                {mode === "employer-fill" ? t("portal_onboarding.wizard.header.title") : t("portal_onboarding.invite_flow.send_invite.title")}
+                {mode === "employer-fill" ? "New Onboarding" : "Send Onboarding Invite"}
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
                 {mode === "employer-fill"
-                  ? t("portal_onboarding.wizard.employerFillDescription")
-                  : t("portal_onboarding.wizard.inviteDescription")
+                  ? "Provide the necessary details to onboard your new hire."
+                  : "Pre-fill some details and send an invite to your new hire to complete their onboarding."
                 }
               </p>
             </div>
             <Button variant="ghost" onClick={resetAll} className="rounded-xl">
-              <X className="w-4 h-4 mr-2" /> {t("common.cancel")}
+              <X className="w-4 h-4 mr-2" /> Cancel
             </Button>
           </div>
 
@@ -1483,7 +1481,7 @@ export default function PortalOnboarding() {
               className="rounded-xl"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              {currentStep === 1 ? t("common.back") : t("portal_onboarding.wizard.buttons.previous")}
+              {currentStep === 1 ? "Back" : "Previous"}
             </Button>
             {!isLastStep ? (
               <Button
@@ -1491,7 +1489,7 @@ export default function PortalOnboarding() {
                 disabled={!canProceedStep()}
                 className="rounded-xl"
               >
-                {t("portal_onboarding.wizard.buttons.next")} <ArrowRight className="w-4 h-4 ml-2" />
+                Next <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
               <Button
@@ -1500,11 +1498,11 @@ export default function PortalOnboarding() {
                 className="rounded-xl"
               >
                 {isSubmitting ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {mode === "employer-fill" ? t("common.submitting") : t("common.sending")}</>
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {mode === "employer-fill" ? "Submitting..." : "Sending..."}</>
                 ) : mode === "employer-fill" ? (
-                  <><CheckCircle2 className="w-4 h-4 mr-2" /> {t("portal_onboarding.wizard.buttons.submit")}</>
+                  <><CheckCircle2 className="w-4 h-4 mr-2" /> Submit Onboarding</>
                 ) : (
-                  <><Send className="w-4 h-4 mr-2" /> {t("portal_onboarding.wizard.buttons.send_invite")}</>
+                  <><Send className="w-4 h-4 mr-2" /> Send Invite</>
                 )}
               </Button>
             )}
@@ -1530,13 +1528,13 @@ export default function PortalOnboarding() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">{t("portal_onboarding.header.title")}</h2>
+            <h2 className="text-2xl font-bold tracking-tight">Onboarding</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {t("portal_onboarding.header.description")}
+              Manage all your new hires' onboarding processes.
             </p>
           </div>
           <Button onClick={() => setMode("choose-path")} className="rounded-xl shadow-sm">
-            <UserPlus className="w-4 h-4 mr-2" /> {t("portal_onboarding.header.button.new_onboarding")}
+            <UserPlus className="w-4 h-4 mr-2" /> New Onboarding
           </Button>
         </div>
 
@@ -1563,12 +1561,12 @@ export default function PortalOnboarding() {
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4">
                 <UserPlus className="w-8 h-8 text-primary/60" />
               </div>
-              <p className="text-lg font-medium text-foreground">{t("portal_onboarding.empty_state.title")}</p>
+              <p className="text-lg font-medium text-foreground">No onboarding in progress</p>
               <p className="text-sm text-muted-foreground mt-1 mb-6 max-w-sm">
-                {t("portal_onboarding.empty_state.description")}
+                Start a new onboarding process to bring your next team member on board.
               </p>
               <Button onClick={() => setMode("choose-path")} className="rounded-xl">
-                <UserPlus className="w-4 h-4 mr-2" /> {t("portal_onboarding.header.button.new_onboarding")}
+                <UserPlus className="w-4 h-4 mr-2" /> New Onboarding
               </Button>
             </div>
           </GlassCard>
@@ -1614,7 +1612,7 @@ export default function PortalOnboarding() {
                             onClick={() => copyInviteLink(invite.token)}
                           >
                             <Link2 className="w-3.5 h-3.5" />
-                            {t("portal_onboarding.list.copy_link")}
+                            Copy Link
                           </Button>
                           <Button
                             variant="outline"
@@ -1624,7 +1622,7 @@ export default function PortalOnboarding() {
                             disabled={resendInviteMutation.isPending}
                           >
                             <Send className="w-3.5 h-3.5" />
-                            {t("portal_onboarding.list.resend")}
+                            Resend
                           </Button>
                           <Button
                             variant="ghost"

@@ -57,7 +57,6 @@ function calcBusinessDays(start: string, end: string): number {
   return count;
 }
 
-import { useI18n } from "@/lib/i18n";
 const statusColors: Record<string, string> = {
   draft: "bg-gray-100 text-gray-800 border-gray-200",
   submitted: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -92,7 +91,6 @@ const emptyForm: LeaveForm = {
 
 // ── Milestones Sub-Tab Component ──
 function PortalMilestonesTab({ showCreate, setShowCreate }: { showCreate: boolean; setShowCreate: (v: boolean) => void }) {
-  const { t } = useI18n();
   const [statusFilter, setStatusFilter] = useState("active");
   const [milestoneForm, setMilestoneForm] = useState({
     contractorId: "",
@@ -116,7 +114,7 @@ function PortalMilestonesTab({ showCreate, setShowCreate }: { showCreate: boolea
 
   const createMutation = portalTrpc.milestones.create.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_milestones.toast.created"));
+      toast.success("Milestone created successfully!");
       setShowCreate(false);
       setMilestoneForm({ contractorId: "", title: "", description: "", amount: "", currency: "USD", dueDate: "" });
       utils.milestones.list.invalidate();
@@ -126,7 +124,7 @@ function PortalMilestonesTab({ showCreate, setShowCreate }: { showCreate: boolea
 
   const approveMutation = portalTrpc.milestones.approve.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_milestones.toast.approved"));
+      toast.success("Milestone approved successfully!");
       utils.milestones.list.invalidate();
     },
     onError: (err: any) => toast.error(err.message),
@@ -134,7 +132,7 @@ function PortalMilestonesTab({ showCreate, setShowCreate }: { showCreate: boolea
 
   const rejectMutation = portalTrpc.milestones.reject.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_milestones.toast.rejected"));
+      toast.success("Milestone rejected successfully!");
       utils.milestones.list.invalidate();
     },
     onError: (err: any) => toast.error(err.message),
@@ -161,7 +159,7 @@ function PortalMilestonesTab({ showCreate, setShowCreate }: { showCreate: boolea
 
   function handleCreateMilestone() {
     if (!milestoneForm.contractorId || !milestoneForm.title || !milestoneForm.amount) {
-      toast.error(t("portal_milestones.toast.fill_required"));
+      toast.error("Please fill in all required fields.");
       return;
     }
     createMutation.mutate({
@@ -179,8 +177,8 @@ function PortalMilestonesTab({ showCreate, setShowCreate }: { showCreate: boolea
       <div className="flex items-center justify-between">
         <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-auto">
           <TabsList>
-            <TabsTrigger value="active">{t("portal_milestones.tabs.active")}</TabsTrigger>
-            <TabsTrigger value="history">{t("portal_milestones.tabs.history")}</TabsTrigger>
+            <TabsTrigger value="active">Active</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -196,23 +194,23 @@ function PortalMilestonesTab({ showCreate, setShowCreate }: { showCreate: boolea
           ) : filteredMilestones.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
               <Target className="w-10 h-10 mb-3" />
-              <p className="text-lg font-medium">{t("portal_milestones.empty.title")}</p>
+              <p className="text-lg font-medium">No milestones found</p>
               <p className="text-sm mt-1">
                 {contractorsList.length === 0
-                  ? t("portal_milestones.empty.no_contractors")
-                  : t("portal_milestones.empty.hint")}
+                  ? "No contractors available to create milestones for."
+                  : "Create a new milestone to get started."}
               </p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("portal_milestones.table.contractor")}</TableHead>
-                  <TableHead>{t("portal_milestones.table.milestone")}</TableHead>
-                  <TableHead>{t("portal_milestones.table.amount")}</TableHead>
-                  <TableHead>{t("portal_milestones.table.due_date")}</TableHead>
-                  <TableHead>{t("portal_milestones.table.status")}</TableHead>
-                  <TableHead className="text-right">{t("portal_milestones.table.actions")}</TableHead>
+                  <TableHead>Contractor</TableHead>
+                  <TableHead>Milestone</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -279,16 +277,16 @@ function PortalMilestonesTab({ showCreate, setShowCreate }: { showCreate: boolea
       }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{t("portal_milestones.dialog.title")}</DialogTitle>
+            <DialogTitle>Create New Milestone</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label>{t("portal_milestones.form.contractor")} <span className="text-destructive">*</span></Label>
+              <Label>Contractor <span className="text-destructive">*</span></Label>
               <Select value={milestoneForm.contractorId} onValueChange={(v) => {
                 const selectedCon = contractorsList.find((c: any) => String(c.id) === v);
                 setMilestoneForm((f) => ({ ...f, contractorId: v, currency: selectedCon?.currency || f.currency }));
               }}>
-                <SelectTrigger><SelectValue placeholder={t("portal_milestones.form.select_contractor")} /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select a contractor" /></SelectTrigger>
                 <SelectContent>
                   {contractorsList.map((c: any) => (
                     <SelectItem key={c.id} value={String(c.id)}>
@@ -299,33 +297,33 @@ function PortalMilestonesTab({ showCreate, setShowCreate }: { showCreate: boolea
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>{t("portal_milestones.form.title")} <span className="text-destructive">*</span></Label>
-              <Input value={milestoneForm.title} onChange={(e) => setMilestoneForm((f) => ({ ...f, title: e.target.value }))} placeholder={t("portal_milestones.form.title_placeholder")} />
+              <Label>Title <span className="text-destructive">*</span></Label>
+              <Input value={milestoneForm.title} onChange={(e) => setMilestoneForm((f) => ({ ...f, title: e.target.value }))} placeholder="e.g., Project Alpha Completion" />
             </div>
             <div className="space-y-2">
-              <Label>{t("portal_milestones.form.description")}</Label>
-              <Textarea value={milestoneForm.description} onChange={(e) => setMilestoneForm((f) => ({ ...f, description: e.target.value }))} placeholder={t("portal_milestones.form.description_placeholder")} rows={2} />
+              <Label>Description</Label>
+              <Textarea value={milestoneForm.description} onChange={(e) => setMilestoneForm((f) => ({ ...f, description: e.target.value }))} placeholder="Optional description of the milestone" rows={2} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t("portal_milestones.form.amount")} <span className="text-destructive">*</span></Label>
+                <Label>Amount <span className="text-destructive">*</span></Label>
                 <Input type="number" step="0.01" value={milestoneForm.amount} onChange={(e) => setMilestoneForm((f) => ({ ...f, amount: e.target.value }))} placeholder="0.00" />
               </div>
               <div className="space-y-2">
-                <Label>{t("portal_milestones.form.currency")}</Label>
+                <Label>Currency</Label>
                 <Input value={milestoneForm.currency} readOnly disabled className="bg-muted" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>{t("portal_milestones.form.due_date")}</Label>
-              <DatePicker value={milestoneForm.dueDate} onChange={(v) => setMilestoneForm((f) => ({ ...f, dueDate: v }))} placeholder={t("portal_milestones.form.select_due_date")} />
+              <Label>Due Date</Label>
+              <DatePicker value={milestoneForm.dueDate} onChange={(v) => setMilestoneForm((f) => ({ ...f, dueDate: v }))} placeholder="Select due date" />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreate(false)}>{t("common.cancel")}</Button>
+            <Button variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
             <Button onClick={handleCreateMilestone} disabled={createMutation.isPending}>
               {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {t("portal_milestones.button.create")}
+              Create Milestone
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -335,7 +333,6 @@ function PortalMilestonesTab({ showCreate, setShowCreate }: { showCreate: boolea
 }
 
 export default function PortalLeave() {
-  const { t, lang } = useI18n();
   const { user } = usePortalAuth();
   const isHrOrAdmin = user && ["admin", "hr_manager"].includes(user.portalRole);
 
@@ -433,7 +430,7 @@ export default function PortalLeave() {
           { duration: 6000 }
         );
       } else {
-        toast.success(t("portal_leave.toasts.request_submitted"));
+        toast.success("Leave request submitted successfully!");
       }
       setShowCreate(false);
       setForm({ ...emptyForm });
@@ -445,7 +442,7 @@ export default function PortalLeave() {
 
   const deleteMutation = portalTrpc.leave.delete.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_leave.toasts.request_deleted"));
+      toast.success("Leave request deleted successfully!");
       setDeleteId(null);
       utils.leave.list.invalidate();
       utils.leave.balances.invalidate();
@@ -455,7 +452,7 @@ export default function PortalLeave() {
 
   const approveMutation = portalTrpc.leave.approve.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_leave.toasts.request_approved"));
+      toast.success("Leave request approved successfully!");
       utils.leave.list.invalidate();
     },
     onError: (err: any) => toast.error(err.message),
@@ -463,7 +460,7 @@ export default function PortalLeave() {
 
   const rejectMutation = portalTrpc.leave.reject.useMutation({
     onSuccess: () => {
-      toast.success(t("portal_leave.toasts.request_rejected"));
+      toast.success("Leave request rejected successfully!");
       setRejectId(null);
       setRejectReason("");
       utils.leave.list.invalidate();
@@ -491,7 +488,7 @@ export default function PortalLeave() {
 
   function handleCreate() {
     if (!form.employeeId || !form.leaveTypeId || !form.startDate || !form.endDate || !form.days) {
-      toast.error(t("portal_leave.toasts.fill_required_fields"));
+      toast.error("Please fill in all required fields.");
       return;
     }
     createMutation.mutate({
@@ -505,19 +502,19 @@ export default function PortalLeave() {
   }
 
   return (
-    <PortalLayout title={t("portal_leave.title")}>
+    <PortalLayout title="Leave">
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">{t("portal_leave.header.title")}</h2>
+            <h2 className="text-2xl font-bold tracking-tight">Leave Management</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {t("portal_leave.header.description")}
+              View, create, and manage leave requests for your employees.
             </p>
           </div>
           <div className="flex gap-2">
             {activeTab === "milestones" ? (
               <Button onClick={() => setShowMilestoneCreate(true)}>
-                <Plus className="w-4 h-4 mr-2" /> {t("portal_milestones.button.new")}
+                <Plus className="w-4 h-4 mr-2" /> New Milestone
               </Button>
             ) : (
             <>
@@ -532,15 +529,15 @@ export default function PortalLeave() {
                   { header: "Start Date", accessor: (r: any) => r.startDate ? formatDate(r.startDate + "T00:00:00") : "" },
                   { header: "End Date", accessor: (r: any) => r.endDate ? formatDate(r.endDate + "T00:00:00") : "" },
                   { header: "Days", accessor: (r: any) => r.totalDays ?? "" },
-                  { header: "Status", accessor: (r: any) => t(`portal_leave.status.${r.status}`) || r.status || "" },
+                  { header: "Status", accessor: (r: any) => r.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) || r.status || "" },
                   { header: "Reason", accessor: (r: any) => r.reason || "" },
                 ], `leave-requests-${new Date().toISOString().slice(0, 10)}.csv`);
               }}
             >
-              <Download className="w-4 h-4 mr-1" /> {t("common.export") || "Export CSV"}
+              <Download className="w-4 h-4 mr-1" /> Export CSV
             </Button>
             <Button onClick={() => { setForm({ ...emptyForm }); setShowCreate(true); }}>
-              <Plus className="w-4 h-4 mr-2" /> {t("portal_leave.buttons.new_request")}
+              <Plus className="w-4 h-4 mr-2" /> New Request
             </Button>
             </>)
             }
@@ -549,9 +546,9 @@ export default function PortalLeave() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
-            <TabsTrigger value="requests">{t("portal_leave.tabs.requests")}</TabsTrigger>
+            <TabsTrigger value="requests">Requests</TabsTrigger>
             <TabsTrigger value="milestones" className="gap-1.5">
-              <Target className="w-3.5 h-3.5" /> {t("portal_leave.tabs.milestones")}
+              <Target className="w-3.5 h-3.5" /> Milestones
             </TabsTrigger>
           </TabsList>
 
@@ -560,16 +557,16 @@ export default function PortalLeave() {
             <div className="flex gap-3">
               <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder={t("portal_leave.filters.all_statuses")} />
+                  <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("portal_leave.filters.all_statuses")}</SelectItem>
-                  <SelectItem value="submitted">{t("portal_leave.statuses.pending_review")}</SelectItem>
-                  <SelectItem value="client_approved">{t("portal_leave.statuses.approved")}</SelectItem>
-                  <SelectItem value="client_rejected">{t("portal_leave.statuses.rejected")}</SelectItem>
-                  <SelectItem value="admin_approved">{t("portal_leave.statuses.confirmed")}</SelectItem>
-                  <SelectItem value="admin_rejected">{t("portal_leave.statuses.admin_rejected")}</SelectItem>
-                  <SelectItem value="locked">{t("portal_leave.statuses.locked")}</SelectItem>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="submitted">Pending Review</SelectItem>
+                  <SelectItem value="client_approved">Approved</SelectItem>
+                  <SelectItem value="client_rejected">Rejected</SelectItem>
+                  <SelectItem value="admin_approved">Confirmed</SelectItem>
+                  <SelectItem value="admin_rejected">Admin Rejected</SelectItem>
+                  <SelectItem value="locked">Locked</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -585,21 +582,21 @@ export default function PortalLeave() {
                 ) : items.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                     <CalendarDays className="w-10 h-10 mb-3" />
-                    <p className="text-lg font-medium">{t("portal_leave.empty_states.no_requests")}</p>
-                    <p className="text-sm mt-1">{t("portal_leave.empty_states.create_hint")}</p>
+                    <p className="text-lg font-medium">No leave requests found</p>
+                    <p className="text-sm mt-1">Create a new leave request to get started.</p>
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t("portal_leave.table_headers.employee")}</TableHead>
-                        <TableHead>{t("portal_leave.table_headers.leave_type")}</TableHead>
-                        <TableHead>{t("portal_leave.create_dialog.start_date")}</TableHead>
-                        <TableHead>{t("portal_leave.create_dialog.end_date")}</TableHead>
-                        <TableHead>{t("portal_leave.table_headers.days")}</TableHead>
-                        <TableHead>{t("portal_leave.table_headers.status")}</TableHead>
-                        <TableHead>{t("portal_leave.table_headers.reason")}</TableHead>
-                        <TableHead className="text-right">{t("portal_leave.table_headers.actions")}</TableHead>
+                        <TableHead>Employee</TableHead>
+                        <TableHead>Leave Type</TableHead>
+                        <TableHead>Start Date</TableHead>
+                        <TableHead>End Date</TableHead>
+                        <TableHead>Days</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Reason</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -620,7 +617,7 @@ export default function PortalLeave() {
                           <TableCell>{leave.days ?? "-"}</TableCell>
                           <TableCell>
                             <Badge variant="outline" className={statusColors[leave.status] || ""}>
-                              {t(`portal_leave.status.${leave.status}`) || leave.status}
+                              {leave.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) || leave.status}
                             </Badge>
                             {leave.clientRejectionReason && leave.status === "client_rejected" && (
                               <p className="text-xs text-red-600 mt-1 max-w-[200px] truncate" title={leave.clientRejectionReason}>
@@ -677,13 +674,13 @@ export default function PortalLeave() {
             {totalPages > 1 && (
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
-                  {t("common.showing")} {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} {t("common.of")} {total}
+                  Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total}
                 </p>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
-                  <span className="text-sm">{t("common.page")} {page} {t("common.of")} {totalPages}</span>
+                  <span className="text-sm">Page {page} of {totalPages}</span>
                   <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
                     <ChevronRight className="w-4 h-4" />
                   </Button>
@@ -707,15 +704,15 @@ export default function PortalLeave() {
       }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{t("portal_leave.buttons.new_request")}</DialogTitle>
+            <DialogTitle>New Leave Request</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             {/* Payroll Cycle Indicator — matches Admin experience */}
             <PortalPayrollCycleIndicator label="Leave" />
             <div className="space-y-2">
-              <Label>{t("portal_leave.create_dialog.label_employee")} <span className="text-destructive">*</span></Label>
+              <Label>Employee <span className="text-destructive">*</span></Label>
               <Select value={form.employeeId ? String(form.employeeId) : ""} onValueChange={(v) => setForm((f) => ({ ...f, employeeId: Number(v), leaveTypeId: null }))}>
-                <SelectTrigger><SelectValue placeholder={t("portal_leave.create_dialog.placeholder_employee")} /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select an employee" /></SelectTrigger>
                 <SelectContent>
                   {employees.map((emp: any) => (
                     <SelectItem key={emp.id} value={String(emp.id)}>
@@ -726,13 +723,13 @@ export default function PortalLeave() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>{t("portal_leave.table_headers.leave_type")} <span className="text-destructive">*</span></Label>
+              <Label>Leave Type <span className="text-destructive">*</span></Label>
               <Select
                 value={form.leaveTypeId ? String(form.leaveTypeId) : ""}
                 onValueChange={(v) => setForm((f) => ({ ...f, leaveTypeId: Number(v) }))}
                 disabled={!form.employeeId}
               >
-                <SelectTrigger><SelectValue placeholder={form.employeeId ? t("portal_leave.create_dialog.placeholder_leave_type") : t("portal_leave.create_dialog.placeholder_select_employee_first")} /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={form.employeeId ? "Select a leave type" : "Select an employee first"} /></SelectTrigger>
                 <SelectContent>
                   {(filteredLeaveTypes || []).map((lt: any) => {
                     const bal = getFormBalance(lt.id);
@@ -752,19 +749,19 @@ export default function PortalLeave() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t("portal_leave.create_dialog.start_date")} <span className="text-destructive">*</span></Label>
+                <Label>Start Date <span className="text-destructive">*</span></Label>
                 <DatePicker
                   value={form.startDate}
                   onChange={(v) => updateDates("startDate", v)}
-                  placeholder={t("portal_leave.create_dialog.placeholder_start_date")}
+                  placeholder="Select start date"
                 />
               </div>
               <div className="space-y-2">
-                <Label>{t("portal_leave.create_dialog.end_date")} <span className="text-destructive">*</span></Label>
+                <Label>End Date <span className="text-destructive">*</span></Label>
                 <DatePicker
                   value={form.endDate}
                   onChange={(v) => updateDates("endDate", v)}
-                  placeholder={t("portal_leave.create_dialog.placeholder_end_date")}
+                  placeholder="Select end date"
                   minDate={form.startDate}
                 />
               </div>
@@ -778,8 +775,8 @@ export default function PortalLeave() {
               />
             )}
             <div className="space-y-2">
-              <Label>{t("portal_leave.table_headers.days")} <span className="text-destructive">*</span></Label>
-              <Input type="number" step="0.5" value={form.days} onChange={(e) => setForm((f) => ({ ...f, days: e.target.value }))} placeholder={t("portal_leave.create_dialog.placeholder_days")} />
+              <Label>Days <span className="text-destructive">*</span></Label>
+              <Input type="number" step="0.5" value={form.days} onChange={(e) => setForm((f) => ({ ...f, days: e.target.value }))} placeholder="Number of days" />
               <p className="text-xs text-muted-foreground">Auto-calculated as business days (weekdays). Adjust manually if needed.</p>
             </div>
             {/* Insufficient balance warning */}
@@ -816,21 +813,21 @@ export default function PortalLeave() {
                 className="h-4 w-4 rounded border-gray-300"
               />
               <Label htmlFor="isHalfDay" className="text-sm font-normal cursor-pointer">
-                {t("portal_leave.create_dialog.half_day_label")}
+                Half-day leave
               </Label>
             </div>
             <div className="space-y-2">
-              <Label>{t("portal_leave.table_headers.reason")}</Label>
-              <Textarea value={form.reason} onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))} placeholder={t("portal_leave.create_dialog.placeholder_reason")} rows={2} />
+              <Label>Reason</Label>
+              <Textarea value={form.reason} onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))} placeholder="Optional reason for leave" rows={2} />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setShowCreate(false); setForm({ ...emptyForm }); }}>
-              {t("common.cancel") || "Cancel"}
+              Cancel
             </Button>
             <Button onClick={handleCreate} disabled={createMutation.isPending}>
               {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {t("portal_leave.create_dialog.button_submit")}
+              Submit Request
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -840,19 +837,19 @@ export default function PortalLeave() {
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("portal_leave.delete_dialog.title")}</AlertDialogTitle>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("portal_leave.delete_dialog.description")}
+              This action cannot be undone. This will permanently delete the leave request.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("common.cancel") || "Cancel"}</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteId && deleteMutation.mutate({ id: deleteId })}
             >
               {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              {t("common.delete") || "Delete"}
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -862,28 +859,28 @@ export default function PortalLeave() {
       <Dialog open={rejectId !== null} onOpenChange={(open) => { if (!open) { setRejectId(null); setRejectReason(""); } }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{t("portal_leave.reject_dialog.title")}</DialogTitle>
+            <DialogTitle>Reject Leave Request</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label>{t("portal_leave.reject_dialog.reason_label")}</Label>
+              <Label>Reason for Rejection</Label>
               <Textarea
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                placeholder={t("portal_leave.reject_dialog.placeholder_reason")}
+                placeholder="Enter reason for rejection (optional)"
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setRejectId(null); setRejectReason(""); }}>{t("common.cancel") || "Cancel"}</Button>
+            <Button variant="outline" onClick={() => { setRejectId(null); setRejectReason(""); }}>Cancel</Button>
             <Button
               variant="destructive"
               onClick={() => rejectId && rejectMutation.mutate({ id: rejectId, reason: rejectReason || undefined })}
               disabled={rejectMutation.isPending}
             >
               {rejectMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {t("common.reject") || "Reject"}
+              Reject
             </Button>
           </DialogFooter>
         </DialogContent>

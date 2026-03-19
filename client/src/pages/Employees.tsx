@@ -43,7 +43,6 @@ import { ContractorListContent } from "./Contractors";
 import ContractorCreateDialog from "@/components/pages/ContractorCreateDialog";
 import { BankDetailsForm, BankDetails } from "@/components/forms/BankDetailsForm";
 
-import { useI18n } from "@/lib/i18n";
 const statusColors: Record<string, string> = {
   active: "bg-emerald-50 text-emerald-700 border-emerald-200",
   pending_review: "bg-amber-50 text-amber-700 border-amber-200",
@@ -92,7 +91,6 @@ const visaStatusColors: Record<string, string> = {
 
 /* ========== Employee List ========== */
 function EmployeeList() {
-  const { t } = useI18n();
   const [location, setLocation] = useLocation();
   const searchString = useSearch();
   
@@ -348,17 +346,17 @@ function EmployeeList() {
             {activeTab === "employees" && (
             <Dialog open={createOpen} onOpenChange={(o) => { setCreateOpen(o); if (!o) setErrors({}); }}>
             <DialogTrigger asChild>
-              <Button><Plus className="w-4 h-4 mr-2" />{t("employees.actions.addEmployee")}</Button>
+              <Button><Plus className="w-4 h-4 mr-2" />Add Employee</Button>
             </DialogTrigger>
             <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>{t("employees.create.title")}</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>Create Employee</DialogTitle></DialogHeader>
               <div className="space-y-6 mt-4">
                 {/* Section: Client Assignment */}
                 <fieldset className="rounded-lg border p-4 space-y-4">
-                  <legend className="text-sm font-semibold text-muted-foreground px-2 uppercase tracking-wider">{t("employees.create.sections.clientAssignment")}</legend>
+                  <legend className="text-sm font-semibold text-muted-foreground px-2 uppercase tracking-wider">Client Assignment</legend>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.customer")} <span className="text-red-500">*</span></Label>
+                      <Label>Customer <span className="text-red-500">*</span></Label>
                       <Select value={formData.customerId ? String(formData.customerId) : ""} onValueChange={(v) => { setFormData({ ...formData, customerId: parseInt(v) }); setErrors({ ...errors, customerId: false }); }}>
                         <SelectTrigger className={errCls("customerId")}><SelectValue placeholder="Select customer" /></SelectTrigger>
                         <SelectContent>
@@ -367,15 +365,15 @@ function EmployeeList() {
                           ))}
                         </SelectContent>
                       </Select>
-                      {errors.customerId && <p className="text-xs text-red-500">{t("employees.validation.customerRequired")}</p>}
+                      {errors.customerId && <p className="text-xs text-red-500">Customer is required</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.serviceType")} <span className="text-red-500">*</span>{visaCheck?.requiresVisa && formData.serviceType === "visa_eor" && <span className="text-xs text-amber-600 font-normal ml-1">{t("employees.create.form.autoVisaHint")}</span>}</Label>
+                      <Label>Service Type <span className="text-red-500">*</span>{visaCheck?.requiresVisa && formData.serviceType === "visa_eor" && <span className="text-xs text-amber-600 font-normal ml-1">Auto-selected due to visa requirement</span>}</Label>
                       <Select value={formData.serviceType} onValueChange={(v) => setFormData({ ...formData, serviceType: v as any })}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="eor">{t("employees.create.form.serviceType.eor")}</SelectItem>
-                          <SelectItem value="visa_eor">{t("employees.create.form.serviceType.visaEor")}</SelectItem>
+                          <SelectItem value="eor">EOR (Employer of Record)</SelectItem>
+                          <SelectItem value="visa_eor">Visa EOR (Visa Sponsorship)</SelectItem>
                           {/* AOR removed from Employees - use Contractor module */}
                         </SelectContent>
                       </Select>
@@ -385,38 +383,38 @@ function EmployeeList() {
 
                 {/* Section: Personal Information */}
                 <fieldset className="rounded-lg border p-4 space-y-4">
-                  <legend className="text-sm font-semibold text-muted-foreground px-2 uppercase tracking-wider">{t("employees.create.sections.personalInformation")}</legend>
+                  <legend className="text-sm font-semibold text-muted-foreground px-2 uppercase tracking-wider">Personal Information</legend>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.firstName")} <span className="text-red-500">*</span></Label>
+                      <Label>First Name <span className="text-red-500">*</span></Label>
                       <Input className={errCls("firstName")} value={formData.firstName} onChange={(e) => { setFormData({ ...formData, firstName: e.target.value }); setErrors({ ...errors, firstName: false }); }} placeholder="John" />
-                      {errors.firstName && <p className="text-xs text-red-500">{t("common.required")}</p>}
+                      {errors.firstName && <p className="text-xs text-red-500">Required</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.lastName")} <span className="text-red-500">*</span></Label>
+                      <Label>Last Name <span className="text-red-500">*</span></Label>
                       <Input className={errCls("lastName")} value={formData.lastName} onChange={(e) => { setFormData({ ...formData, lastName: e.target.value }); setErrors({ ...errors, lastName: false }); }} placeholder="Doe" />
-                      {errors.lastName && <p className="text-xs text-red-500">{t("common.required")}</p>}
+                      {errors.lastName && <p className="text-xs text-red-500">Required</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.dateOfBirth")} <span className="text-red-500">*</span></Label>
+                      <Label>Date of Birth <span className="text-red-500">*</span></Label>
                       <div className={errors.dateOfBirth ? "rounded-md ring-1 ring-red-500" : ""}>
                         <DatePicker value={formData.dateOfBirth} onChange={(d) => { setFormData({ ...formData, dateOfBirth: d }); setErrors({ ...errors, dateOfBirth: false }); }} />
                       </div>
-                      {errors.dateOfBirth && <p className="text-xs text-red-500">{t("common.required")}</p>}
+                      {errors.dateOfBirth && <p className="text-xs text-red-500">Required</p>}
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.email")} <span className="text-red-500">*</span></Label>
+                      <Label>Email <span className="text-red-500">*</span></Label>
                       <Input type="email" className={errCls("email")} value={formData.email} onChange={(e) => { setFormData({ ...formData, email: e.target.value.toLowerCase() }); setErrors({ ...errors, email: false }); }} placeholder="john@example.com" />
-                      {errors.email && <p className="text-xs text-red-500">{t("common.required")}</p>}
+                      {errors.email && <p className="text-xs text-red-500">Required</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.phone")}</Label>
+                      <Label>Phone</Label>
                       <Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+65 9123 4567" />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.gender")} <span className="text-red-500">*</span></Label>
+                      <Label>Gender <span className="text-red-500">*</span></Label>
                       <div className={errors.gender ? "rounded-md ring-1 ring-red-500" : ""}>
                         <Select value={formData.gender} onValueChange={(v) => { setFormData({ ...formData, gender: v as any }); setErrors({ ...errors, gender: false }); }}>
                           <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
@@ -428,16 +426,16 @@ function EmployeeList() {
                           </SelectContent>
                         </Select>
                       </div>
-                      {errors.gender && <p className="text-xs text-red-500">{t("common.required")}</p>}
+                      {errors.gender && <p className="text-xs text-red-500">Required</p>}
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.nationality")} <span className="text-red-500">*</span></Label>
+                      <Label>Nationality <span className="text-red-500">*</span></Label>
                       <div className={errors.nationality ? "rounded-md ring-1 ring-red-500" : ""}>
                         <CountrySelect value={formData.nationality} onValueChange={(v) => { setFormData({ ...formData, nationality: v }); setErrors({ ...errors, nationality: false }); }} showCode={false} scope="all" />
                       </div>
-                      {errors.nationality && <p className="text-xs text-red-500">{t("common.required")}</p>}
+                      {errors.nationality && <p className="text-xs text-red-500">Required</p>}
                     </div>
                     <div className="space-y-2">
                       <Label>ID Type <span className="text-red-500">*</span></Label>
@@ -452,18 +450,18 @@ function EmployeeList() {
                           </SelectContent>
                         </Select>
                       </div>
-                      {errors.idType && <p className="text-xs text-red-500">{t("common.required")}</p>}
+                      {errors.idType && <p className="text-xs text-red-500">Required</p>}
                     </div>
                     <div className="space-y-2">
                       <Label>ID Number <span className="text-red-500">*</span></Label>
                       <Input className={errCls("idNumber")} value={formData.idNumber} onChange={(e) => { setFormData({ ...formData, idNumber: e.target.value }); setErrors({ ...errors, idNumber: false }); }} placeholder="ID number" />
-                      {errors.idNumber && <p className="text-xs text-red-500">{t("common.required")}</p>}
+                      {errors.idNumber && <p className="text-xs text-red-500">Required</p>}
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Street Address <span className="text-red-500">*</span></Label>
                     <Textarea className={errCls("address")} value={formData.address} onChange={(e) => { setFormData({ ...formData, address: e.target.value }); setErrors({ ...errors, address: false }); }} placeholder="Full street address" rows={2} />
-                    {errors.address && <p className="text-xs text-red-500">{t("common.required")}</p>}
+                    {errors.address && <p className="text-xs text-red-500">Required</p>}
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
@@ -483,10 +481,10 @@ function EmployeeList() {
 
                 {/* Section: Employment */}
                 <fieldset className="rounded-lg border p-4 space-y-4">
-                  <legend className="text-sm font-semibold text-muted-foreground px-2 uppercase tracking-wider">{t("employees.sections.employmentDetails")}</legend>
+                  <legend className="text-sm font-semibold text-muted-foreground px-2 uppercase tracking-wider">Employment Details</legend>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.workCountry")} <span className="text-red-500">*</span></Label>
+                      <Label>Work Country <span className="text-red-500">*</span></Label>
                       <div className={errors.country ? "rounded-md ring-1 ring-red-500" : ""}>
                         <CountrySelect value={formData.country} onValueChange={(v) => {
                           const countryConfig = countriesList?.find((c: any) => c.countryCode === v);
@@ -494,41 +492,41 @@ function EmployeeList() {
                           setErrors({ ...errors, country: false });
                         }} showCode={false} />
                       </div>
-                      {errors.country && <p className="text-xs text-red-500">{t("common.required")}</p>}
+                      {errors.country && <p className="text-xs text-red-500">Required</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.employmentType")}</Label>
+                      <Label>Employment Type</Label>
                       <Select value={formData.employmentType} onValueChange={(v) => setFormData({ ...formData, employmentType: v as any })}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="fixed_term">{t("employees.create.form.employmentType.fixedTerm")}</SelectItem>
-                          <SelectItem value="long_term">{t("employees.create.form.employmentType.longTerm")}</SelectItem>
+                          <SelectItem value="fixed_term">Fixed-Term</SelectItem>
+                          <SelectItem value="long_term">Long-Term</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.jobTitle")} <span className="text-red-500">*</span></Label>
+                      <Label>Job Title <span className="text-red-500">*</span></Label>
                       <Input className={errCls("jobTitle")} value={formData.jobTitle} onChange={(e) => { setFormData({ ...formData, jobTitle: e.target.value }); setErrors({ ...errors, jobTitle: false }); }} placeholder="Software Engineer" />
-                      {errors.jobTitle && <p className="text-xs text-red-500">{t("common.required")}</p>}
+                      {errors.jobTitle && <p className="text-xs text-red-500">Required</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.department")}</Label>
+                      <Label>Department</Label>
                       <Input value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} placeholder="Engineering" />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.startDate")} <span className="text-red-500">*</span></Label>
+                      <Label>Start Date <span className="text-red-500">*</span></Label>
                       <div className={errors.startDate ? "rounded-md ring-1 ring-red-500" : ""}>
                         <DatePicker value={formData.startDate} onChange={(d) => { setFormData({ ...formData, startDate: d }); setErrors({ ...errors, startDate: false }); }} />
                       </div>
-                      {errors.startDate && <p className="text-xs text-red-500">{t("common.required")}</p>}
+                      {errors.startDate && <p className="text-xs text-red-500">Required</p>}
                     </div>
                     {formData.employmentType === "fixed_term" && (
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.endDate")}</Label>
+                      <Label>End Date</Label>
                       <DatePicker value={formData.endDate} onChange={(d) => setFormData({ ...formData, endDate: d })} />
                     </div>
                     )}
@@ -537,21 +535,21 @@ function EmployeeList() {
 
                 {/* Section: Compensation */}
                 <fieldset className="rounded-lg border p-4 space-y-4">
-                  <legend className="text-sm font-semibold text-muted-foreground px-2 uppercase tracking-wider">{t("employees.sections.compensationLeave")}</legend>
+                  <legend className="text-sm font-semibold text-muted-foreground px-2 uppercase tracking-wider">Compensation & Leave</legend>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.baseSalaryMonthly")} <span className="text-red-500">*</span></Label>
+                      <Label>Base Salary (Monthly) <span className="text-red-500">*</span></Label>
                       <Input type="number" step="0.01" className={errCls("baseSalary")} value={formData.baseSalary} onChange={(e) => { setFormData({ ...formData, baseSalary: e.target.value }); setErrors({ ...errors, baseSalary: false }); }} placeholder="5000.00" />
-                      {errors.baseSalary && <p className="text-xs text-red-500">{t("common.required")}</p>}
+                      {errors.baseSalary && <p className="text-xs text-red-500">Required</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.salaryCurrency")} <span className="text-xs text-muted-foreground font-normal">{t("employees.create.form.currencyAutoFromCountry")}</span></Label>
+                      <Label>Salary Currency <span className="text-xs text-muted-foreground font-normal">Auto-detected from work country</span></Label>
                       <Input value={formData.salaryCurrency || (formData.country ? "Loading..." : "Select country first")} disabled className="bg-muted" />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.estimatedEmployerCostMonthly")}</Label>
+                      <Label>Estimated Employer Cost (Monthly)</Label>
                       <div className="relative">
                         <Input 
                           type="number" 
@@ -566,7 +564,7 @@ function EmployeeList() {
                           </div>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">{t("employees.create.form.estimatedEmployerCostMonthlyDescription")}</p>
+                      <p className="text-xs text-muted-foreground">This is an estimate of statutory contributions (e.g., social security, pension) based on the selected country and salary.</p>
                       {estimationBreakdown.length > 0 && (
                         <div className="mt-2 p-2 bg-muted/50 rounded text-xs space-y-1">
                           <p className="font-semibold text-muted-foreground">Employer Cost Breakdown:</p>
@@ -580,12 +578,12 @@ function EmployeeList() {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("employees.create.form.totalEmploymentCost")} <span className="text-xs text-muted-foreground font-normal">{t("employees.create.form.calculated")}</span></Label>
+                      <Label>Total Employment Cost <span className="text-xs text-muted-foreground font-normal">Calculated</span></Label>
                       <Input value={((parseFloat(formData.baseSalary) || 0) + (parseFloat(formData.estimatedEmployerCost) || 0)).toFixed(2)} disabled className="bg-muted font-mono" />
-                      <p className="text-xs text-muted-foreground">{t("employees.create.form.totalEmploymentCostFormula")}</p>
+                      <p className="text-xs text-muted-foreground">Base Salary + Estimated Employer Cost</p>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">{t("employees.create.form.leavePolicyHint")}</p>
+                  <p className="text-xs text-muted-foreground">Leave policy will be applied based on the selected work country and employment type.</p>
                 </fieldset>
 
                 {/* Section: Bank Details */}
@@ -601,7 +599,7 @@ function EmployeeList() {
 
                 {formData.requiresVisa && (
                   <fieldset className="rounded-lg border p-4 space-y-4 border-amber-200 bg-amber-50/30">
-                    <legend className="text-sm font-semibold text-amber-700 px-2 uppercase tracking-wider">{t("employees.create.form.visaRequired")}</legend>
+                    <legend className="text-sm font-semibold text-amber-700 px-2 uppercase tracking-wider">Visa Required</legend>
                     <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
                       <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                       <span>
@@ -618,15 +616,15 @@ function EmployeeList() {
                 )}
 
                 {!formData.requiresVisa && formData.nationality && formData.country && (
-                  <p className="text-xs text-muted-foreground">{t("employees.create.form.noVisaRequiredHint")}</p>
+                  <p className="text-xs text-muted-foreground">No visa appears to be required as the employee's nationality matches the work country.</p>
                 )}
 
-                <p className="text-xs text-muted-foreground">{t("employees.create.form.documentsUploadHint")}</p>
+                <p className="text-xs text-muted-foreground">Documents (e.g., contract, passport, visa) can be uploaded after the employee has been created.</p>
 
                 <div className="flex justify-end gap-3 pt-2 border-t">
-                  <Button variant="outline" onClick={() => { setCreateOpen(false); setErrors({}); }}>{t("common.cancel")}</Button>
+                  <Button variant="outline" onClick={() => { setCreateOpen(false); setErrors({}); }}>Cancel</Button>
                   <Button onClick={handleCreate} disabled={createMutation.isPending}>
-                    {createMutation.isPending ? t("employees.create.creating") : t("employees.create.createEmployee")}
+                    {createMutation.isPending ? "Creating..." : "Create Employee"}
                   </Button>
                 </div>
               </div>
@@ -644,35 +642,35 @@ function EmployeeList() {
             <Input className="pl-9" placeholder="Search employees..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <Select value={customerFilter} onValueChange={setCustomerFilter}>
-            <SelectTrigger className="w-44"><SelectValue placeholder={t("employees.create.form.customer")} /></SelectTrigger>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Customer" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("employees.list.filters.customer.all")}</SelectItem>
+              <SelectItem value="all">All Customers</SelectItem>
               {customers?.data?.map((c) => (
                 <SelectItem key={c.id} value={String(c.id)}>{c.companyName}</SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={countryFilter} onValueChange={setCountryFilter}>
-            <SelectTrigger className="w-36"><SelectValue placeholder={t("employees.list.table.header.country")} /></SelectTrigger>
+            <SelectTrigger className="w-36"><SelectValue placeholder="Country" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("employees.list.filters.country.all")}</SelectItem>
+              <SelectItem value="all">All Countries</SelectItem>
               {countriesList?.map((c: any) => (
                 <SelectItem key={c.countryCode} value={c.countryCode}>{c.countryCode} — {c.countryName}</SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-44"><SelectValue placeholder={t("employees.list.table.header.status")} /></SelectTrigger>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("employees.all_statuses")}</SelectItem>
-              <SelectItem value="active">{t("status.active")}</SelectItem>
-              <SelectItem value="pending_review">{t("status.pending_review")}</SelectItem>
-              <SelectItem value="documents_incomplete">{t("status.documents_incomplete")}</SelectItem>
-              <SelectItem value="onboarding">{t("status.onboarding")}</SelectItem>
-              <SelectItem value="contract_signed">{t("status.contract_signed")}</SelectItem>
-              <SelectItem value="on_leave">{t("status.on_leave")}</SelectItem>
-              <SelectItem value="offboarding">{t("status.offboarding")}</SelectItem>
-              <SelectItem value="terminated">{t("status.terminated")}</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="pending_review">Pending Review</SelectItem>
+              <SelectItem value="documents_incomplete">Documents Incomplete</SelectItem>
+              <SelectItem value="onboarding">Onboarding</SelectItem>
+              <SelectItem value="contract_signed">Contract Signed</SelectItem>
+              <SelectItem value="on_leave">On Leave</SelectItem>
+              <SelectItem value="offboarding">Offboarding</SelectItem>
+              <SelectItem value="terminated">Terminated</SelectItem>
             </SelectContent>
           </Select>
           <Select value={cpFilter} onValueChange={setCpFilter}>
@@ -694,12 +692,12 @@ function EmployeeList() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-16">ID</TableHead>
-                  <TableHead>{t("employees.list.table.header.employee")}</TableHead>
-                  <TableHead>{t("employees.create.form.customer")}</TableHead>
-                  <TableHead className="min-w-[120px]">{t("employees.list.table.header.country")}</TableHead>
-                  <TableHead>{t("employees.list.table.header.service")}</TableHead>
-                  <TableHead>{t("employees.list.table.header.salary")}</TableHead>
-                  <TableHead>{t("employees.list.table.header.status")}</TableHead>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead className="min-w-[120px]">Country</TableHead>
+                  <TableHead>Service</TableHead>
+                  <TableHead>Salary</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -741,7 +739,7 @@ function EmployeeList() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={`text-xs ${statusColors[emp.status] || ""}`}>
-                          {t(`status.${emp.status}`) || emp.status}
+                          {emp.status.replace(/_/g, " ").replace(/\b\w/g,c=>c.toUpperCase())}
                         </Badge>
                       </TableCell>
                       <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
@@ -751,7 +749,7 @@ function EmployeeList() {
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-12">
                       <Users className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                      <p className="text-sm text-muted-foreground">{t("employees.list.empty.message")}</p>
+                      <p className="text-sm text-muted-foreground">No employees found.</p>
                     </TableCell>
                   </TableRow>
                 )}
@@ -766,9 +764,9 @@ function EmployeeList() {
               <p className="text-xs text-muted-foreground">Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, data.total)} of {data.total} employees</p>
               {totalPages > 1 && (
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>{t("employees.list.pagination.previous")}</Button>
+                  <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</Button>
                   <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-                  <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>{t("employees.list.pagination.next")}</Button>
+                  <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</Button>
                 </div>
               )}
             </div>
@@ -798,13 +796,13 @@ function EmployeeList() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t("employees.invites.table.header.employeeName")}</TableHead>
-                        <TableHead>{t("employees.create.form.email")}</TableHead>
-                        <TableHead>{t("employees.create.form.customer")}</TableHead>
-                        <TableHead>{t("employees.list.table.header.status")}</TableHead>
-                        <TableHead>{t("employees.invites.table.header.sent")}</TableHead>
-                        <TableHead>{t("employees.invites.table.header.expires")}</TableHead>
-                        <TableHead className="w-20">{t("employees.invites.table.header.actions")}</TableHead>
+                        <TableHead>Employee Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Sent</TableHead>
+                        <TableHead>Expires</TableHead>
+                        <TableHead className="w-20">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -824,7 +822,7 @@ function EmployeeList() {
                             <TableCell className="text-sm">{inv.customerName || `#${inv.customerId}`}</TableCell>
                             <TableCell>
                               <Badge variant="outline" className={`text-xs ${invStatusColor[invStatus] || ""}`}>
-                                {invStatus === "pending" ? t("employees.invites.awaitingResponse") : t("employees.invites.expired")}
+                                {invStatus === "pending" ? "Awaiting Response" : "Expired"}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">
@@ -855,7 +853,7 @@ function EmployeeList() {
                 ) : (
                   <div className="text-center py-8">
                     <Mail className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                    <p className="text-sm text-muted-foreground">{t("employees.invites.empty.message")}</p>
+                    <p className="text-sm text-muted-foreground">No active onboarding invites.</p>
                   </div>
                 )}
               </CardContent>
@@ -876,14 +874,13 @@ function EmployeeList() {
 type DetailTab = "info" | "leave" | "payroll" | "adjustments" | "visa" | "documents";
 
 function EmployeeDetail({ id }: { id: number }) {
-  const { t, locale } = useI18n();
   const visaStatusLabels: Record<string, string> = {
-    not_required: t("employees.visaStatus.not_required"),
-    pending_application: t("employees.visaStatus.pending_application"),
-    application_submitted: t("employees.visaStatus.application_submitted"),
-    approved: t("employees.visaStatus.approved"),
-    rejected: t("employees.visaStatus.rejected"),
-    expired: t("employees.visaStatus.expired"),
+    not_required: "Not Required",
+    pending_application: "Pending Application",
+    application_submitted: "Application Submitted",
+    approved: "Approved",
+    rejected: "Rejected",
+    expired: "Expired",
   };
   const [, setLocation] = useLocation();
   const searchString = useSearch();
@@ -1025,7 +1022,7 @@ function EmployeeDetail({ id }: { id: number }) {
       });
     });
     return docs;
-  }, [contracts, documents, t]);
+  }, [contracts, documents]);
 
   function openEditDialog() {
     if (!employee) return;
@@ -1103,8 +1100,8 @@ function EmployeeDetail({ id }: { id: number }) {
     return (
       <Layout breadcrumb={["EG", "Employees", "Not Found"]}>
         <div className="p-6 text-center py-20">
-          <p className="text-muted-foreground">{t("employees.detail.notFound")}</p>
-          <Button variant="outline" className="mt-4" onClick={() => setLocation(`/people?page=${fromPage}&tab=employees`)}>{t("employees.button.backToEmployees")}</Button>
+          <p className="text-muted-foreground">Employee not found.</p>
+          <Button variant="outline" className="mt-4" onClick={() => setLocation(`/people?page=${fromPage}&tab=employees`)}>Back to Employees</Button>
         </div>
       </Layout>
     );
@@ -1115,48 +1112,48 @@ function EmployeeDetail({ id }: { id: number }) {
   // Status transitions with rollback capability
   const nextStatuses: Record<string, { label: string; value: string; variant?: string; icon?: any; dialogAction?: string }[]> = {
     pending_review: [
-      { label: t("employees.actions.startOnboarding"), value: "onboarding" },
-      { label: t("employees.actions.markDocumentsIncomplete"), value: "documents_incomplete", variant: "outline" },
-      { label: t("employees.actions.reject"), value: "terminated", variant: "destructive" },
+      { label: "Start Onboarding", value: "onboarding" },
+      { label: "Mark Documents Incomplete", value: "documents_incomplete", variant: "outline" },
+      { label: "Reject", value: "terminated", variant: "destructive" },
     ],
     documents_incomplete: [
-      { label: t("employees.actions.documentsComplete"), value: "pending_review" },
-      { label: t("employees.actions.reject"), value: "terminated", variant: "destructive" },
+      { label: "Documents Complete", value: "pending_review" },
+      { label: "Reject", value: "terminated", variant: "destructive" },
     ],
     onboarding: [
-      { label: t("employees.actions.markContractSigned"), value: "contract_signed" },
-      { label: t("employees.actions.rollbackToReview"), value: "pending_review", variant: "outline", icon: Undo2 },
+      { label: "Mark Contract Signed", value: "contract_signed" },
+      { label: "Rollback to Review", value: "pending_review", variant: "outline", icon: Undo2 },
     ],
     contract_signed: [
       // Note: auto-activation happens via cron when startDate arrives
       // Manual activation is available as fallback
-      { label: t("employees.actions.activateNow"), value: "active", variant: "outline" },
-      { label: t("employees.actions.rollbackToOnboarding"), value: "onboarding", variant: "outline", icon: Undo2 },
+      { label: "Activate Now", value: "active", variant: "outline" },
+      { label: "Rollback to Onboarding", value: "onboarding", variant: "outline", icon: Undo2 },
     ],
     active: [
-      { label: t("employees.actions.startOffboarding"), value: "offboarding", dialogAction: "offboarding" },
-      { label: t("employees.actions.putOnLeave"), value: "on_leave", variant: "outline" },
+      { label: "Start Offboarding", value: "offboarding", dialogAction: "offboarding" },
+      { label: "Put On Leave", value: "on_leave", variant: "outline" },
     ],
     on_leave: [
-      { label: t("employees.actions.returnToActive"), value: "active" },
+      { label: "Return to Active", value: "active" },
     ],
     offboarding: [
-      { label: t("employees.actions.terminate"), value: "terminated", dialogAction: "terminate" },
-      { label: t("employees.actions.rollbackToActive"), value: "active", variant: "outline", icon: Undo2 },
+      { label: "Terminate", value: "terminated", dialogAction: "terminate" },
+      { label: "Rollback to Active", value: "active", variant: "outline", icon: Undo2 },
     ],
     terminated: [
-      { label: t("employees.actions.reactivate"), value: "active", variant: "outline", icon: Undo2 },
+      { label: "Reactivate", value: "active", variant: "outline", icon: Undo2 },
     ],
   };
   const transitions = nextStatuses[employee.status] || [];
 
   const tabs: { key: DetailTab; label: string; show?: boolean }[] = [
-    { key: "info", label: t("employees.detail.tabs.info") },
-    { key: "leave", label: t("employees.detail.tabs.leave"), show: employee.status === "active" || employee.status === "on_leave" || employee.status === "offboarding" },
-    { key: "payroll", label: `${t("employees.detail.tabs.payroll")}${payrollHistory?.length ? ` (${payrollHistory.length})` : ""}` },
-    { key: "adjustments", label: `${t("employees.detail.tabs.adjustments")}${adjustmentHistory?.data?.length ? ` (${adjustmentHistory.data.length})` : ""}` },
-    { key: "visa", label: t("employees.detail.tabs.visa"), show: employee.requiresVisa || employee.serviceType === "visa_eor" },
-    { key: "documents", label: `${t("employees.detail.tabs.documents")} (${allDocuments.length})` },
+    { key: "info", label: "Info" },
+    { key: "leave", label: "Leave", show: employee.status === "active" || employee.status === "on_leave" || employee.status === "offboarding" },
+    { key: "payroll", label: `Payroll${payrollHistory?.length ? ` (${payrollHistory.length})` : ""}` },
+    { key: "adjustments", label: `Adjustments${adjustmentHistory?.data?.length ? ` (${adjustmentHistory.data.length})` : ""}` },
+    { key: "visa", label: "Visa", show: employee.requiresVisa || employee.serviceType === "visa_eor" },
+    { key: "documents", label: `Documents (${allDocuments.length})` },
   ];
 
   return (
@@ -1170,11 +1167,11 @@ function EmployeeDetail({ id }: { id: number }) {
           <div className="flex-1">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight">{employee.firstName} {employee.lastName}</h1>
-              <Badge variant="outline" className={`${statusColors[employee.status] || ""}`}>{t(`status.${employee.status}`) || employee.status}</Badge>
-              <Badge variant="outline" className="text-xs uppercase">{t(`employees.create.form.serviceType.${employee.serviceType?.replace(/_([a-z])/g, g => g[1].toUpperCase()) || "eor"}`) || employee.serviceType}</Badge>
+              <Badge variant="outline" className={`${statusColors[employee.status] || ""}`}>{employee.status.replace(/_/g, " ").replace(/\b\w/g,c=>c.toUpperCase())}</Badge>
+              <Badge variant="outline" className="text-xs uppercase">{employee.serviceType?.replace(/_([a-z])/g, g => g[1].toUpperCase()) || "EOR"}</Badge>
               {employee.requiresVisa && (
                 <Badge variant="outline" className={`text-xs ${visaStatusColors[employee.visaStatus || ""] || ""}`}>
-                  {t("employees.detail.visa.status.title")}: {t(`employees.visaStatus.${employee.visaStatus || "not_required"}`) || employee.visaStatus}
+                  Visa Status: {visaStatusLabels[employee.visaStatus || "not_required"] || employee.visaStatus}
                 </Badge>
               )}
             </div>
@@ -1258,21 +1255,21 @@ function EmployeeDetail({ id }: { id: number }) {
         {activeTab === "info" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
-              <CardHeader><CardTitle className="text-base flex items-center gap-2"><User className="w-4 h-4" />{t("employees.create.sections.personalInformation")}</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base flex items-center gap-2"><User className="w-4 h-4" />Personal Information</CardTitle></CardHeader>
               <CardContent className="space-y-3">
-                <InfoRow icon={<Mail className="w-3.5 h-3.5" />} label={t("employees.create.form.email")} value={employee.email} />
-                <InfoRow icon={<Phone className="w-3.5 h-3.5" />} label={t("employees.create.form.phone")} value={employee.phone} />
-                <InfoRow icon={<Cake className="w-3.5 h-3.5" />} label={t("employees.detail.dateOfBirth")} value={formatDate(employee.dateOfBirth)} />
-                <InfoRow icon={<Globe className="w-3.5 h-3.5" />} label={t("employees.create.form.nationality")} value={countryName(employee.nationality)} />
-                <InfoRow icon={<User className="w-3.5 h-3.5" />} label={t("employees.detail.gender")} value={employee.gender ? employee.gender.charAt(0).toUpperCase() + employee.gender.slice(1) : undefined} />
+                <InfoRow icon={<Mail className="w-3.5 h-3.5" />} label="Email" value={employee.email} />
+                <InfoRow icon={<Phone className="w-3.5 h-3.5" />} label="Phone" value={employee.phone} />
+                <InfoRow icon={<Cake className="w-3.5 h-3.5" />} label="Date of Birth" value={formatDate(employee.dateOfBirth)} />
+                <InfoRow icon={<Globe className="w-3.5 h-3.5" />} label="Nationality" value={countryName(employee.nationality)} />
+                <InfoRow icon={<User className="w-3.5 h-3.5" />} label="Gender" value={employee.gender ? employee.gender.charAt(0).toUpperCase() + employee.gender.slice(1) : undefined} />
                 <div className="border-t pt-3 mt-3">
-                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("employees.detail.identification")}</div>
-                  <InfoRow icon={<CreditCard className="w-3.5 h-3.5" />} label={t("employees.detail.idType")} value={employee.idType ? employee.idType.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) : undefined} />
-                  <InfoRow icon={<Hash className="w-3.5 h-3.5" />} label={t("employees.detail.idNumber")} value={employee.idNumber} />
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Identification</div>
+                  <InfoRow icon={<CreditCard className="w-3.5 h-3.5" />} label="ID Type" value={employee.idType ? employee.idType.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) : undefined} />
+                  <InfoRow icon={<Hash className="w-3.5 h-3.5" />} label="ID Number" value={employee.idNumber} />
                 </div>
                 <div className="border-t pt-3 mt-3">
-                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("employees.detail.info.labels.address")}</div>
-                  <InfoRow icon={<MapPin className="w-3.5 h-3.5" />} label={t("employees.detail.info.labels.address")} value={employee.address} />
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Address</div>
+                  <InfoRow icon={<MapPin className="w-3.5 h-3.5" />} label="Address" value={employee.address} />
                   <InfoRow icon={<MapPin className="w-3.5 h-3.5" />} label="City" value={employee.city} />
                   <InfoRow icon={<MapPin className="w-3.5 h-3.5" />} label="State / Province" value={employee.state} />
                   <InfoRow icon={<MapPin className="w-3.5 h-3.5" />} label="Postal Code" value={employee.postalCode} />
@@ -1281,20 +1278,20 @@ function EmployeeDetail({ id }: { id: number }) {
             </Card>
 
             <Card>
-              <CardHeader><CardTitle className="text-base flex items-center gap-2"><Briefcase className="w-4 h-4" />{t("employees.sections.employmentDetails")}</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base flex items-center gap-2"><Briefcase className="w-4 h-4" />Employment Details</CardTitle></CardHeader>
               <CardContent className="space-y-3">
-                <InfoRow icon={<Building2 className="w-3.5 h-3.5" />} label={t("employees.create.form.customer")} value={customerName} />
-                <InfoRow icon={<Briefcase className="w-3.5 h-3.5" />} label={t("employees.detail.jobTitle")} value={employee.jobTitle} />
-                <InfoRow icon={<Users className="w-3.5 h-3.5" />} label={t("employees.create.form.department")} value={employee.department} />
-                <InfoRow icon={<MapPin className="w-3.5 h-3.5" />} label={t("employees.list.table.header.country")} value={countryName(employee.country)} />
-                <InfoRow icon={<Clock className="w-3.5 h-3.5" />} label={t("employees.detail.employmentType")} value={employee.employmentType?.replace(/_/g, " ")} />
-                <InfoRow icon={<Calendar className="w-3.5 h-3.5" />} label={t("employees.detail.startDate")} value={formatDate(employee.startDate)} />
-                <InfoRow icon={<Calendar className="w-3.5 h-3.5" />} label={t("employees.detail.endDate")} value={formatDate(employee.endDate)} />
+                <InfoRow icon={<Building2 className="w-3.5 h-3.5" />} label="Customer" value={customerName} />
+                <InfoRow icon={<Briefcase className="w-3.5 h-3.5" />} label="Job Title" value={employee.jobTitle} />
+                <InfoRow icon={<Users className="w-3.5 h-3.5" />} label="Department" value={employee.department} />
+                <InfoRow icon={<MapPin className="w-3.5 h-3.5" />} label="Country" value={countryName(employee.country)} />
+                <InfoRow icon={<Clock className="w-3.5 h-3.5" />} label="Employment Type" value={employee.employmentType?.replace(/_/g, " ")} />
+                <InfoRow icon={<Calendar className="w-3.5 h-3.5" />} label="Start Date" value={formatDate(employee.startDate)} />
+                <InfoRow icon={<Calendar className="w-3.5 h-3.5" />} label="End Date" value={formatDate(employee.endDate)} />
                 <div className="border-t pt-3 mt-3">
-                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("employees.create.sections.compensation")}</div>
-                  <InfoRow icon={<DollarSign className="w-3.5 h-3.5" />} label={t("employees.detail.baseSalary")} value={formatCurrencyAmount(employee.baseSalary, employee.salaryCurrency, { showCurrency: true })} />
-                  <InfoRow icon={<DollarSign className="w-3.5 h-3.5" />} label={t("employees.detail.estEmployerCost")} value={formatCurrencyAmount(employee.estimatedEmployerCost, employee.salaryCurrency, { showCurrency: true })} />
-                  <InfoRow icon={<DollarSign className="w-3.5 h-3.5" />} label={t("employees.detail.totalEmplCost")} value={formatCurrencyAmount(parseFloat(employee.baseSalary?.toString() || "0") + parseFloat(employee.estimatedEmployerCost?.toString() || "0"), employee.salaryCurrency, { showCurrency: true })} />
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Compensation</div>
+                  <InfoRow icon={<DollarSign className="w-3.5 h-3.5" />} label="Base Salary" value={formatCurrencyAmount(employee.baseSalary, employee.salaryCurrency, { showCurrency: true })} />
+                  <InfoRow icon={<DollarSign className="w-3.5 h-3.5" />} label="Est. Employer Cost" value={formatCurrencyAmount(employee.estimatedEmployerCost, employee.salaryCurrency, { showCurrency: true })} />
+                  <InfoRow icon={<DollarSign className="w-3.5 h-3.5" />} label="Total Employment Cost" value={formatCurrencyAmount(parseFloat(employee.baseSalary?.toString() || "0") + parseFloat(employee.estimatedEmployerCost?.toString() || "0"), employee.salaryCurrency, { showCurrency: true })} />
                 </div>
                 {(() => {
                   const bd = employee.bankDetails as Record<string, string> | null;
@@ -1345,15 +1342,15 @@ function EmployeeDetail({ id }: { id: number }) {
                       <div className="grid grid-cols-3 gap-2 text-center">
                         <div>
                           <div className="text-lg font-bold text-primary">{lb.totalEntitlement}</div>
-                          <div className="text-xs text-muted-foreground">{t("employees.detail.leave.table.header.entitled")}</div>
+                          <div className="text-xs text-muted-foreground">Entitled</div>
                         </div>
                         <div>
                           <div className="text-lg font-bold text-amber-600">{lb.used}</div>
-                          <div className="text-xs text-muted-foreground">{t("employees.detail.leave.table.header.used")}</div>
+                          <div className="text-xs text-muted-foreground">Used</div>
                         </div>
                         <div>
                           <div className="text-lg font-bold text-emerald-600">{lb.remaining}</div>
-                          <div className="text-xs text-muted-foreground">{t("employees.detail.leave.table.header.remaining")}</div>
+                          <div className="text-xs text-muted-foreground">Remaining</div>
                         </div>
                       </div>
                       {lb.expiryDate && (
@@ -1366,8 +1363,8 @@ function EmployeeDetail({ id }: { id: number }) {
                 <Card className="col-span-full">
                   <CardContent className="py-12 text-center text-muted-foreground">
                     <CalendarDays className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                    <p className="text-sm">{t("employees.detail.leave.empty.message")}</p>
-                    <p className="text-xs mt-1">{t("employees.detail.leave.empty.description")}</p>
+                    <p className="text-sm">No leave balances found for this employee.</p>
+                    <p className="text-xs mt-1">Leave balances are automatically created based on the customer's leave policy.</p>
                   </CardContent>
                 </Card>
               )}
@@ -1379,20 +1376,20 @@ function EmployeeDetail({ id }: { id: number }) {
         {/* Payroll History Tab */}
         {activeTab === "payroll" && (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">{t("employees.detail.payroll.description")}</p>
+            <p className="text-sm text-muted-foreground">Detailed history of payroll runs for this employee.</p>
             <Card>
               <CardContent className="p-0">
                 {payrollHistory && payrollHistory.length > 0 ? (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t("employees.detail.payroll.table.header.month")}</TableHead>
-                        <TableHead>{t("employees.list.table.header.status")}</TableHead>
-                        <TableHead className="text-right">{t("employees.detail.info.labels.baseSalary")}</TableHead>
-                        <TableHead className="text-right">{t("employees.detail.payroll.table.header.gross")}</TableHead>
-                        <TableHead className="text-right">{t("employees.detail.payroll.table.header.deductions")}</TableHead>
-                        <TableHead className="text-right">{t("employees.detail.payroll.table.header.net")}</TableHead>
-                        <TableHead className="text-right">{t("employees.detail.payroll.table.header.employerCost")}</TableHead>
+                        <TableHead>Month</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Base Salary</TableHead>
+                        <TableHead className="text-right">Gross Pay</TableHead>
+                        <TableHead className="text-right">Deductions</TableHead>
+                        <TableHead className="text-right">Net Pay</TableHead>
+                        <TableHead className="text-right">Employer Cost</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1416,8 +1413,8 @@ function EmployeeDetail({ id }: { id: number }) {
                 ) : (
                   <div className="text-center py-12">
                     <DollarSign className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                    <p className="text-sm text-muted-foreground">{t("employees.detail.payroll.empty.message")}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{t("employees.detail.payroll.empty.description")}</p>
+                    <p className="text-sm text-muted-foreground">No payroll history found for this employee.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Payroll records will appear here after each payroll run.</p>
                   </div>
                 )}
               </CardContent>
@@ -1428,18 +1425,18 @@ function EmployeeDetail({ id }: { id: number }) {
         {/* Adjustments Tab */}
         {activeTab === "adjustments" && (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">{t("employees.detail.adjustments.description")}</p>
+            <p className="text-sm text-muted-foreground">View all payroll adjustments (e.g., bonuses, deductions, reimbursements) for this employee.</p>
             <Card>
               <CardContent className="p-0">
                 {adjustmentHistory?.data && adjustmentHistory.data.length > 0 ? (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t("employees.detail.adjustments.table.header.type")}</TableHead>
-                        <TableHead>{t("employees.detail.adjustments.table.header.description")}</TableHead>
-                        <TableHead className="text-right">{t("employees.detail.adjustments.table.header.amount")}</TableHead>
-                        <TableHead>{t("employees.detail.payroll.table.header.month")}</TableHead>
-                        <TableHead>{t("employees.list.table.header.status")}</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead>Month</TableHead>
+                        <TableHead>Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1465,7 +1462,7 @@ function EmployeeDetail({ id }: { id: number }) {
                 ) : (
                   <div className="text-center py-12">
                     <Receipt className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                    <p className="text-sm text-muted-foreground">{t("employees.detail.adjustments.empty.message")}</p>
+                    <p className="text-sm text-muted-foreground">No adjustments found for this employee.</p>
                   </div>
                 )}
               </CardContent>
@@ -1478,7 +1475,7 @@ function EmployeeDetail({ id }: { id: number }) {
           <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
-                <CardHeader><CardTitle className="text-base flex items-center gap-2"><Shield className="w-4 h-4" />{t("employees.detail.visa.status.title")}</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base flex items-center gap-2"><Shield className="w-4 h-4" />Visa Status</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
                   <InfoRow icon={<Shield className="w-3.5 h-3.5" />} label="Requires Visa" value={employee.requiresVisa ? "Yes" : "No"} />
                   <InfoRow icon={<FileCheck className="w-3.5 h-3.5" />} label="Visa Status" value={visaStatusLabels[employee.visaStatus || ""] || employee.visaStatus} />
@@ -1487,35 +1484,35 @@ function EmployeeDetail({ id }: { id: number }) {
                   {employee.visaExpiryDate && new Date(employee.visaExpiryDate) < new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) && (
                     <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 mt-3">
                       <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                      <span>{t("employees.detail.visa.expiryWarning")}</span>
+                      <span>This visa is expiring soon. Please ensure renewal is in progress.</span>
                     </div>
                   )}
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader><CardTitle className="text-base">{t("employees.detail.visa.updateTitle")}</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base">Update Visa Information</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label>{t("employees.detail.visa.status.title")}</Label>
+                    <Label>Visa Status</Label>
                     <Select value={editForm.visaStatus || employee.visaStatus || "not_required"} onValueChange={v => setEditForm((f: any) => ({ ...f, visaStatus: v }))}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="not_required">{t("employees.detail.visa.status.notRequired")}</SelectItem>
-                        <SelectItem value="pending_application">{t("employees.detail.visa.status.pendingApplication")}</SelectItem>
-                        <SelectItem value="application_submitted">{t("employees.detail.visa.status.applicationSubmitted")}</SelectItem>
-                        <SelectItem value="approved">{t("status.approved")}</SelectItem>
-                        <SelectItem value="rejected">{t("status.rejected")}</SelectItem>
-                        <SelectItem value="expired">{t("employees.invites.status.expired")}</SelectItem>
+                        <SelectItem value="not_required">Not Required</SelectItem>
+                        <SelectItem value="pending_application">Pending Application</SelectItem>
+                        <SelectItem value="application_submitted">Application Submitted</SelectItem>
+                        <SelectItem value="approved">Approved</SelectItem>
+                        <SelectItem value="rejected">Rejected</SelectItem>
+                        <SelectItem value="expired">Expired</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("employees.detail.visa.status.labels.expiryDate")}</Label>
+                    <Label>Visa Expiry Date</Label>
                     <DatePicker value={editForm.visaExpiryDate} onChange={d => setEditForm((f: any) => ({ ...f, visaExpiryDate: d }))} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("employees.detail.status.update.notes")}</Label>
+                    <Label>Notes</Label>
                     <Textarea value={editForm.visaNotes ?? employee.visaNotes ?? ""} onChange={e => setEditForm((f: any) => ({ ...f, visaNotes: e.target.value }))} rows={3} />
                   </div>
                   <Button size="sm" onClick={() => {
@@ -1524,7 +1521,7 @@ function EmployeeDetail({ id }: { id: number }) {
                     if (editForm.visaExpiryDate) data.visaExpiryDate = editForm.visaExpiryDate;
                     if (editForm.visaNotes !== undefined) data.visaNotes = editForm.visaNotes;
                     if (Object.keys(data).length) updateMutation.mutate({ id, data });
-                  }} disabled={updateMutation.isPending}>{t("employees.detail.visa.save")}</Button>
+                  }} disabled={updateMutation.isPending}>Save Visa Details</Button>
                 </CardContent>
               </Card>
             </div>
@@ -1533,7 +1530,7 @@ function EmployeeDetail({ id }: { id: number }) {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{t("employees.detail.visa.documents.title")}</CardTitle>
+                  <CardTitle className="text-base">Visa Documents</CardTitle>
                   <Button size="sm" variant="outline" onClick={() => setActiveTab("documents")}>
                     Go to Documents Tab
                   </Button>
@@ -1548,7 +1545,7 @@ function EmployeeDetail({ id }: { id: number }) {
                           <FileText className="w-4 h-4 text-muted-foreground" />
                           <div>
                             <span className="text-sm font-medium max-w-[200px] truncate inline-block align-middle">{doc.name}</span>
-                            <Badge variant="outline" className="text-xs ml-2">{t(`employees.documents.category.${doc.category}`) || t(`employees.documentType.${doc.category}`) || doc.category}</Badge>
+                            <Badge variant="outline" className="text-xs ml-2">{doc.category.replace(/_/g, " ").replace(/\b\w/g,c=>c.toUpperCase())}</Badge>
                           </div>
                         </div>
                         {doc.fileUrl && (
@@ -1560,7 +1557,7 @@ function EmployeeDetail({ id }: { id: number }) {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">{t("employees.detail.visa.documents.emptyHint")}</p>
+                  <p className="text-sm text-muted-foreground">No visa or work permit documents uploaded yet. Please upload them in the Documents tab.</p>
                 )}
               </CardContent>
             </Card>
@@ -1571,16 +1568,16 @@ function EmployeeDetail({ id }: { id: number }) {
         {activeTab === "documents" && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <p className="text-sm text-muted-foreground">{t("employees.documents.allFilesHint")}</p>
+              <p className="text-sm text-muted-foreground">All contracts, visa documents, and general documents related to this employee.</p>
               <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm"><Upload className="w-4 h-4 mr-2" />{t("employees.detail.actions.uploadDocument")}</Button>
+                  <Button size="sm"><Upload className="w-4 h-4 mr-2" />Upload Document</Button>
                 </DialogTrigger>
                 <DialogContent>
-                  <DialogHeader><DialogTitle>{t("employees.detail.actions.uploadDocument")}</DialogTitle></DialogHeader>
+                  <DialogHeader><DialogTitle>Upload Document</DialogTitle></DialogHeader>
                   <div className="space-y-4 mt-4">
                     <div className="space-y-2">
-                      <Label>{t("employees.detail.documents.upload.form.documentType")}</Label>
+                      <Label>Document Type</Label>
                       <Select value={uploadDocType} onValueChange={setUploadDocType}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -1591,29 +1588,29 @@ function EmployeeDetail({ id }: { id: number }) {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("employees.documents.documentName")}</Label>
-                      <Input value={uploadDocName} onChange={(e) => setUploadDocName(e.target.value)} placeholder={t("employees.documents.documentNamePlaceholder")} />
+                      <Label>Document Name</Label>
+                      <Input value={uploadDocName} onChange={(e) => setUploadDocName(e.target.value)} placeholder="e.g., Passport Copy, Employment Contract" />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("employees.detail.documents.upload.form.notes")}</Label>
+                      <Label>Notes</Label>
                       <Textarea value={uploadNotes} onChange={(e) => setUploadNotes(e.target.value)} rows={2} placeholder="Any additional notes..." />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t("employees.documents.fileMax10mb")}</Label>
+                      <Label>File (Max 10MB)</Label>
                       <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif" onChange={handleFileSelect} className="hidden" />
                       <div className="flex items-center gap-3">
                         <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                           <Upload className="w-4 h-4 mr-2" />
-                          {t("employees.documents.chooseFile")}
+                          Choose File
                         </Button>
                         {selectedFile && <span className="text-sm text-muted-foreground">{selectedFile.name} ({(selectedFile.size / 1024).toFixed(0)} KB)</span>}
                       </div>
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setUploadDialogOpen(false)}>{t("common.cancel")}</Button>
+                    <Button variant="outline" onClick={() => setUploadDialogOpen(false)}>Cancel</Button>
                     <Button onClick={handleConfirmUpload} disabled={!selectedFile || uploadMutation.isPending}>
-                      {uploadMutation.isPending ? t("employees.documents.uploading") : t("employees.documents.upload")}
+                      {uploadMutation.isPending ? "Uploading..." : "Upload"}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -1626,12 +1623,12 @@ function EmployeeDetail({ id }: { id: number }) {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t("employees.documents.table.document")}</TableHead>
-                        <TableHead>{t("employees.documents.table.category")}</TableHead>
-                        <TableHead>{t("employees.list.table.header.status")}</TableHead>
-                        <TableHead>{t("common.date")}</TableHead>
-                        <TableHead>{t("employees.detail.status.update.notes")}</TableHead>
-                        <TableHead className="w-24">{t("employees.invites.table.header.actions")}</TableHead>
+                        <TableHead>Document</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Notes</TableHead>
+                        <TableHead className="w-24">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1644,12 +1641,12 @@ function EmployeeDetail({ id }: { id: number }) {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="text-xs">{t(`employees.documents.category.${doc.category}`) || t(`employees.documentType.${doc.category}`) || doc.category}</Badge>
+                            <Badge variant="outline" className="text-xs">{doc.category.replace(/_/g, " ").replace(/\b\w/g,c=>c.toUpperCase())}</Badge>
                           </TableCell>
                           <TableCell>
                             {doc.status ? (
                               <Badge variant="outline" className={`text-xs ${doc.status === "signed" ? "bg-emerald-50 text-emerald-700" : doc.status === "expired" ? "bg-red-50 text-red-700" : "bg-gray-50 text-gray-700"}`}>
-                                {t(`employees.documents.status.${doc.status}`) || doc.status}
+                                {doc.status.replace(/_/g, " ").replace(/\b\w/g,c=>c.toUpperCase())}
                               </Badge>
                             ) : "—"}
                           </TableCell>
@@ -1666,19 +1663,19 @@ function EmployeeDetail({ id }: { id: number }) {
                               )}
                               {doc.contractId && doc.status === "draft" && (
                                 <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => contractUpdateMut.mutate({ id: doc.contractId, data: { status: "signed", signedDate: formatDateISO(new Date()) } })}>
-                                  <FileCheck className="w-3 h-3 mr-1" /> {t("employees.documents.sign")}
+                                  <FileCheck className="w-3 h-3 mr-1" /> Sign
                                 </Button>
                               )}
                               {doc.docId && (
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-700" onClick={() => {
-                                  if (confirm(t("employees.documents.confirmDeleteDoc"))) deleteMutation.mutate({ id: doc.docId });
+                                  if (confirm("Are you sure you want to delete this document?")) deleteMutation.mutate({ id: doc.docId });
                                 }} title="Delete">
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </Button>
                               )}
                               {doc.contractId && (
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-700" onClick={() => {
-                                  if (confirm(t("employees.documents.confirmDeleteContract"))) contractDeleteMut.mutate({ id: doc.contractId });
+                                  if (confirm("Are you sure you want to delete this contract?")) contractDeleteMut.mutate({ id: doc.contractId });
                                 }} title="Delete">
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </Button>
@@ -1692,8 +1689,8 @@ function EmployeeDetail({ id }: { id: number }) {
                 ) : (
                   <div className="text-center py-12">
                     <FileText className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                    <p className="text-sm text-muted-foreground">{t("employees.documents.empty")}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{t("employees.documents.emptyHint")}</p>
+                    <p className="text-sm text-muted-foreground">No documents found for this employee.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Upload contracts, passports, visas, and other relevant documents here.</p>
                   </div>
                 )}
               </CardContent>
@@ -1704,51 +1701,51 @@ function EmployeeDetail({ id }: { id: number }) {
         {/* Edit Employee Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>{t("employees.edit.title")}</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Edit Employee</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-4">
               <fieldset className="rounded-lg border p-4 space-y-4">
-                <legend className="text-sm font-semibold text-muted-foreground px-2">{t("employees.detail.info.sections.personal")}</legend>
+                <legend className="text-sm font-semibold text-muted-foreground px-2">Personal Information</legend>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("employees.create.form.firstName")}</Label>
+                    <Label>First Name</Label>
                     <Input value={editForm.firstName || ""} onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("employees.create.form.lastName")}</Label>
+                    <Label>Last Name</Label>
                     <Input value={editForm.lastName || ""} onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("employees.create.form.email")}</Label>
+                    <Label>Email</Label>
                     <Input type="email" value={editForm.email || ""} onChange={(e) => setEditForm({ ...editForm, email: e.target.value.toLowerCase() })} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("employees.create.form.phone")}</Label>
+                    <Label>Phone</Label>
                     <Input value={editForm.phone || ""} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("employees.create.form.dateOfBirth")}</Label>
+                    <Label>Date of Birth</Label>
                     <DatePicker value={editForm.dateOfBirth} onChange={(d) => setEditForm({ ...editForm, dateOfBirth: d })} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("employees.edit.gender")}</Label>
+                    <Label>Gender</Label>
                     <Select value={editForm.gender || "_none"} onValueChange={(v) => setEditForm({ ...editForm, gender: v === "_none" ? "" : v })}>
                       <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="_none">{t("common.notSpecified")}</SelectItem>
-                        <SelectItem value="male">{t("employees.detail.gender.male")}</SelectItem>
-                        <SelectItem value="female">{t("employees.detail.gender.female")}</SelectItem>
-                        <SelectItem value="other">{t("employees.detail.gender.other")}</SelectItem>
-                        <SelectItem value="prefer_not_to_say">{t("employees.detail.gender.preferNotToSay")}</SelectItem>
+                        <SelectItem value="_none">Not Specified</SelectItem>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                   <div className="space-y-2">
-                    <Label>{t("employees.create.form.nationality")}</Label>
+                    <Label>Nationality</Label>
                     <CountrySelect value={editForm.nationality || ""} onValueChange={(v) => setEditForm({ ...editForm, nationality: v })} showCode={false} scope="all" />
                   </div>
                   {editVisaCheck && editForm.nationality && editForm.country && (
@@ -1760,99 +1757,99 @@ function EmployeeDetail({ id }: { id: number }) {
                   )}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("employees.edit.idType")}</Label>
+                    <Label>ID Type</Label>
                     <Select value={editForm.idType || "_none"} onValueChange={(v) => setEditForm({ ...editForm, idType: v === "_none" ? "" : v })}>
                       <SelectTrigger><SelectValue placeholder="Select ID type" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="_none">{t("common.notSpecified")}</SelectItem>
-                        <SelectItem value="passport">{t("employees.detail.idType.passport")}</SelectItem>
-                        <SelectItem value="national_id">{t("employees.detail.idType.nationalId")}</SelectItem>
-                        <SelectItem value="drivers_license">{t("employees.detail.idType.driversLicense")}</SelectItem>
-                        <SelectItem value="other">{t("employees.detail.gender.other")}</SelectItem>
+                        <SelectItem value="_none">Not Specified</SelectItem>
+                        <SelectItem value="passport">Passport</SelectItem>
+                        <SelectItem value="national_id">National ID</SelectItem>
+                        <SelectItem value="drivers_license">Driver's License</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("employees.edit.idNumber")}</Label>
+                    <Label>ID Number</Label>
                     <Input value={editForm.idNumber || ""} onChange={(e) => setEditForm({ ...editForm, idNumber: e.target.value })} placeholder="ID document number" />
                   </div>
                 </div>
               </fieldset>
 
               <fieldset className="rounded-lg border p-4 space-y-4">
-                <legend className="text-sm font-semibold text-muted-foreground px-2">{t("employees.detail.info.labels.address")}</legend>
+                <legend className="text-sm font-semibold text-muted-foreground px-2">Address</legend>
                 <div className="space-y-2">
-                  <Label>{t("employees.edit.streetAddress")}</Label>
+                  <Label>Street Address</Label>
                   <Input value={editForm.address || ""} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })} placeholder="Street address" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("common.city")}</Label>
+                    <Label>City</Label>
                     <Input value={editForm.city || ""} onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("common.stateProvince")}</Label>
+                    <Label>State / Province</Label>
                     <Input value={editForm.state || ""} onChange={(e) => setEditForm({ ...editForm, state: e.target.value })} />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("common.postalCode")}</Label>
+                  <Label>Postal Code</Label>
                   <Input value={editForm.postalCode || ""} onChange={(e) => setEditForm({ ...editForm, postalCode: e.target.value })} className="max-w-[200px]" />
                 </div>
               </fieldset>
 
               <fieldset className="rounded-lg border p-4 space-y-4">
-                <legend className="text-sm font-semibold text-muted-foreground px-2">{t("employees.sections.employment")}</legend>
+                <legend className="text-sm font-semibold text-muted-foreground px-2">Employment</legend>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("employees.create.form.jobTitle")}</Label>
+                    <Label>Job Title</Label>
                     <Input value={editForm.jobTitle || ""} onChange={(e) => setEditForm({ ...editForm, jobTitle: e.target.value })} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("employees.create.form.department")}</Label>
+                    <Label>Department</Label>
                     <Input value={editForm.department || ""} onChange={(e) => setEditForm({ ...editForm, department: e.target.value })} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("employees.list.table.header.country")}</Label>
+                    <Label>Work Country</Label>
                     <CountrySelect value={editForm.country || ""} onValueChange={(v) => {
                       const countryConfig = detailCountriesList?.find((c: any) => c.countryCode === v);
                       setEditForm({ ...editForm, country: v, salaryCurrency: countryConfig?.localCurrency || editForm.salaryCurrency });
                     }} showCode={false} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("employees.create.form.serviceType")}</Label>
+                    <Label>Service Type</Label>
                     <Select value={editForm.serviceType || "eor"} onValueChange={(v) => setEditForm({ ...editForm, serviceType: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="eor">{t("employees.create.form.serviceType.eor")}</SelectItem>
-                        <SelectItem value="visa_eor">{t("employees.create.form.serviceType.visaEor")}</SelectItem>
-                        <SelectItem value="aor">{t("employees.create.form.serviceType.aor")}</SelectItem>
+                        <SelectItem value="eor">EOR (Employer of Record)</SelectItem>
+                        <SelectItem value="visa_eor">Visa EOR (Visa Sponsorship)</SelectItem>
+                        <SelectItem value="aor">AOR (Agent of Record)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("employees.create.form.employmentType")}</Label>
+                    <Label>Employment Type</Label>
                     <Select value={editForm.employmentType || "long_term"} onValueChange={(v) => setEditForm({ ...editForm, employmentType: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="fixed_term">{t("employees.create.form.employmentType.fixedTerm")}</SelectItem>
-                        <SelectItem value="long_term">{t("employees.create.form.employmentType.longTerm")}</SelectItem>
+                        <SelectItem value="fixed_term">Fixed-Term</SelectItem>
+                        <SelectItem value="long_term">Long-Term</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("employees.edit.startDateContractEffective")}</Label>
+                    <Label>Start Date (Contract Effective)</Label>
                     <DatePicker value={editForm.startDate} onChange={(d) => setEditForm({ ...editForm, startDate: d })} />
                   </div>
                   {(editForm.employmentType === "fixed_term") && (
                   <div className="space-y-2">
-                    <Label>{t("employees.create.form.endDate")}</Label>
+                    <Label>End Date</Label>
                     <DatePicker value={editForm.endDate} onChange={(d) => setEditForm({ ...editForm, endDate: d })} />
                   </div>
                   )}
@@ -1860,33 +1857,33 @@ function EmployeeDetail({ id }: { id: number }) {
               </fieldset>
 
               <fieldset className="rounded-lg border p-4 space-y-4">
-                <legend className="text-sm font-semibold text-muted-foreground px-2">{t("employees.sections.compensationLeave")}</legend>
+                <legend className="text-sm font-semibold text-muted-foreground px-2">Compensation & Leave</legend>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("employees.detail.info.labels.baseSalary")}</Label>
+                    <Label>Base Salary</Label>
                     <Input type="number" step="0.01" value={editForm.baseSalary || ""} onChange={(e) => setEditForm({ ...editForm, baseSalary: e.target.value })} />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("employees.create.form.salaryCurrency")} <span className="text-xs text-muted-foreground font-normal">{t("employees.create.form.currencyAutoFromCountry")}</span></Label>
+                    <Label>Salary Currency <span className="text-xs text-muted-foreground font-normal">Auto-detected from work country</span></Label>
                     <Input value={editForm.salaryCurrency || "—"} disabled className="bg-muted" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("employees.create.form.estimatedEmployerCostMonthly")}</Label>
+                    <Label>Estimated Employer Cost (Monthly)</Label>
                     <Input type="number" step="0.01" value={editForm.estimatedEmployerCost || ""} onChange={(e) => setEditForm({ ...editForm, estimatedEmployerCost: e.target.value })} placeholder="0.00" />
-                    <p className="text-xs text-muted-foreground">{t("employees.edit.usedForDepositCalculation")}</p>
+                    <p className="text-xs text-muted-foreground">This value is used for deposit calculation and internal reporting.</p>
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("employees.create.form.totalEmploymentCost")} <span className="text-xs text-muted-foreground font-normal">{t("employees.create.form.calculated")}</span></Label>
+                    <Label>Total Employment Cost <span className="text-xs text-muted-foreground font-normal">Calculated</span></Label>
                     <Input value={((parseFloat(editForm.baseSalary?.toString() || "0") || 0) + (parseFloat(editForm.estimatedEmployerCost?.toString() || "0") || 0)).toFixed(2)} disabled className="bg-muted font-mono" />
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground">{t("employees.create.form.leavePolicyHint")}</p>
+                <p className="text-xs text-muted-foreground">Leave policy will be applied based on the selected work country and employment type.</p>
               </fieldset>
 
               <div className="flex justify-end gap-3 pt-2">
-                <Button variant="outline" onClick={() => setEditOpen(false)}>{t("common.cancel")}</Button>
+                <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
                 <Button onClick={() => updateMutation.mutate({ id, data: editForm })} disabled={updateMutation.isPending}>
                   {updateMutation.isPending ? "Saving..." : "Save Changes"}
                 </Button>
@@ -1898,14 +1895,14 @@ function EmployeeDetail({ id }: { id: number }) {
         <Dialog open={offboardingDialogOpen} onOpenChange={setOffboardingDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{t("employees.actions.startOffboarding")}</DialogTitle>
+              <DialogTitle>Start Offboarding</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <p className="text-sm text-muted-foreground">
-                {t("offboarding.dialog.description")}
+                Setting an end date will initiate the offboarding process for this employee. The employee's status will change to 'Offboarding'.
               </p>
               <div className="space-y-2">
-                <Label>{t("offboarding.dialog.endDate")}</Label>
+                <Label>End Date</Label>
                 <DatePicker
                   value={offboardingEndDate}
                   onChange={(d) => setOffboardingEndDate(d || "")}
@@ -1914,18 +1911,18 @@ function EmployeeDetail({ id }: { id: number }) {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOffboardingDialogOpen(false)}>
-                {t("common.cancel")}
+                Cancel
               </Button>
               <Button
                 disabled={!offboardingEndDate || updateMutation.isPending}
                 onClick={() => {
                   updateMutation.mutate(
                     { id: employee.id, data: { status: "offboarding" as any, endDate: offboardingEndDate } },
-                    { onSuccess: () => { setOffboardingDialogOpen(false); toast.success(t("offboarding.dialog.success")); refetch(); } }
+                    { onSuccess: () => { setOffboardingDialogOpen(false); toast.success("Offboarding initiated successfully."); refetch(); } }
                   );
                 }}
               >
-                {updateMutation.isPending ? t("common.processing") : t("offboarding.dialog.confirm")}
+                {updateMutation.isPending ? "Processing..." : "Confirm Offboarding"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -1935,32 +1932,32 @@ function EmployeeDetail({ id }: { id: number }) {
         <Dialog open={terminateDialogOpen} onOpenChange={setTerminateDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{t("employees.actions.terminate")}</DialogTitle>
+              <DialogTitle>Terminate Employee</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <p className="text-sm text-muted-foreground">
-                {t("terminate.dialog.description")}
+                Terminating an employee will set their status to 'Terminated' and mark their employment as ended. This action cannot be undone.
               </p>
               <div className="space-y-2">
-                <Label>{t("terminate.dialog.endDate")}</Label>
+                <Label>Termination Date</Label>
                 <DatePicker
                   value={terminateEndDate}
                   onChange={(d) => setTerminateEndDate(d || new Date().toISOString().split('T')[0])}
                 />
               </div>
               <div className="space-y-2">
-                <Label>{t("terminate.dialog.reason")}</Label>
+                <Label>Reason for Termination</Label>
                 <Textarea
                   value={terminateReason}
                   onChange={(e) => setTerminateReason(e.target.value)}
-                  placeholder={t("terminate.dialog.reasonPlaceholder")}
+                  placeholder="e.g., Resignation, End of Contract, Performance Issues"
                   rows={3}
                 />
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setTerminateDialogOpen(false)}>
-                {t("common.cancel")}
+                Cancel
               </Button>
               <Button
                 variant="destructive"
@@ -1970,11 +1967,11 @@ function EmployeeDetail({ id }: { id: number }) {
                   if (terminateEndDate) data.endDate = terminateEndDate;
                   updateMutation.mutate(
                     { id: employee.id, data },
-                    { onSuccess: () => { setTerminateDialogOpen(false); toast.success(t("terminate.dialog.success")); refetch(); } }
+                    { onSuccess: () => { setTerminateDialogOpen(false); toast.success("Employee terminated successfully."); refetch(); } }
                   );
                 }}
               >
-                {updateMutation.isPending ? t("common.processing") : t("terminate.dialog.confirm")}
+                {updateMutation.isPending ? "Processing..." : "Confirm Termination"}
               </Button>
             </DialogFooter>
           </DialogContent>

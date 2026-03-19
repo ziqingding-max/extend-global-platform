@@ -11,7 +11,6 @@ import CurrencySelect from "@/components/CurrencySelect";
 import { DatePicker, MonthPicker } from "@/components/DatePicker";
 import { formatDate, formatAmount, countryName } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
-import { useI18n } from "@/lib/i18n";
 import { useState, useMemo } from "react";
 import { useRoute, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,7 +72,6 @@ const statusKeys = [
 
 /* ========== Vendor Bill List ========== */
 function VendorBillList() {
-  const { t } = useI18n();
   const [, setLocation] = useLocation();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -122,22 +120,22 @@ function VendorBillList() {
   }
 
   return (
-    <Layout breadcrumb={["EG", t("vendorBills.title")]}>
+    <Layout breadcrumb={["EG", "Vendor Bills"]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t("vendorBills.title")}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Vendor Bills</h1>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={bills.length === 0}>
-              <Download className="w-4 h-4 mr-1" /> {t("vendorBills.actions.export")}
+              <Download className="w-4 h-4 mr-1" /> Export
             </Button>
             <Button variant="outline" size="sm" onClick={() => setLocation("/vendor-bills/new?mode=manual")}>
-              <Plus className="w-4 h-4 mr-1" /> {t("vendorBills.actions.createBill")}
+              <Plus className="w-4 h-4 mr-1" /> Create Bill
             </Button>
             <Button size="sm" onClick={() => setLocation("/vendor-bills/new?mode=ai")}>
-              <Upload className="w-4 h-4 mr-1" /> {t("vendorBills.actions.analyzeWithAI")}
+              <Upload className="w-4 h-4 mr-1" /> Analyze with AI
             </Button>
           </div>
         </div>
@@ -145,10 +143,10 @@ function VendorBillList() {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: t("vendorBills.stats.totalBills"), value: stats.total, icon: FileStack, color: "text-foreground" },
-            { label: t("vendorBills.stats.totalAmount"), value: formatAmount(stats.totalAmount), icon: DollarSign, color: "text-blue-600" },
-            { label: t("vendorBills.stats.pending"), value: stats.pending, icon: Clock, color: "text-amber-600" },
-            { label: t("vendorBills.stats.overdue"), value: stats.overdue, icon: AlertTriangle, color: "text-red-600" },
+            { label: "Total Bills", value: stats.total, icon: FileStack, color: "text-foreground" },
+            { label: "Total Amount", value: formatAmount(stats.totalAmount), icon: DollarSign, color: "text-blue-600" },
+            { label: "Pending", value: stats.pending, icon: Clock, color: "text-amber-600" },
+            { label: "Overdue", value: stats.overdue, icon: AlertTriangle, color: "text-red-600" },
           ].map((s, i) => (
             <Card key={i}>
               <CardContent className="p-4 flex items-center gap-3">
@@ -166,26 +164,26 @@ function VendorBillList() {
         <div className="flex flex-wrap gap-3">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder={t("vendorBills.filters.searchPlaceholder")} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
+            <Input placeholder="Search bills..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder={t("vendorBills.filters.allStatuses")} /></SelectTrigger>
+            <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder="All Statuses" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("vendorBills.filters.allStatuses")}</SelectItem>
-              {statusKeys.map((s) => <SelectItem key={s} value={s}>{t(`vendorBills.status.${s}`)}</SelectItem>)}
+              <SelectItem value="all">All Statuses</SelectItem>
+              {statusKeys.map((s) => <SelectItem key={s} value={s}>{s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder={t("vendorBills.filters.allCategories")} /></SelectTrigger>
+            <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder="All Categories" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("vendorBills.filters.allCategories")}</SelectItem>
-              {categoryKeys.map((c) => <SelectItem key={c} value={c}>{t(`vendorBills.category.${c}`)}</SelectItem>)}
+              <SelectItem value="all">All Categories</SelectItem>
+              {categoryKeys.map((c) => <SelectItem key={c} value={c}>{c.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={vendorFilter} onValueChange={setVendorFilter}>
-            <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder={t("vendorBills.filters.allVendors")} /></SelectTrigger>
+            <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder="All Vendors" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("vendorBills.filters.allVendors")}</SelectItem>
+              <SelectItem value="all">All Vendors</SelectItem>
               {vendors.map((v: any) => <SelectItem key={v.id} value={v.id.toString()}>{v.name}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -197,22 +195,22 @@ function VendorBillList() {
         ) : bills.length === 0 ? (
           <div className="text-center py-16 border rounded-lg">
             <FileStack className="w-10 h-10 mx-auto mb-3 text-muted-foreground opacity-30" />
-            <p className="text-muted-foreground">{t("vendorBills.empty.title")}</p>
-            <p className="text-sm text-muted-foreground mt-1">{t("vendorBills.empty.prompt")}</p>
+            <p className="text-muted-foreground">No vendor bills found.</p>
+            <p className="text-sm text-muted-foreground mt-1">Start by creating a new bill or analyzing one with AI.</p>
           </div>
         ) : (
           <div className="rounded-lg border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs">{t("vendorBills.table.billNumberHeader")}</TableHead>
-                  <TableHead className="text-xs">{t("vendorBills.table.vendorHeader")}</TableHead>
-                  <TableHead className="text-xs">{t("vendorBills.table.statusHeader")}</TableHead>
-                  <TableHead className="text-xs">{t("vendorBills.table.billDateHeader")}</TableHead>
-                  <TableHead className="text-xs">{t("vendorBills.table.dueDateHeader")}</TableHead>
-                  <TableHead className="text-xs text-right">{t("vendorBills.table.totalHeader")}</TableHead>
-                  <TableHead className="text-xs text-right">{t("vendorBills.table.paidHeader")}</TableHead>
-                  <TableHead className="text-xs text-right">{t("vendorBills.table.balanceHeader")}</TableHead>
+                  <TableHead className="text-xs">Bill #</TableHead>
+                  <TableHead className="text-xs">Vendor</TableHead>
+                  <TableHead className="text-xs">Status</TableHead>
+                  <TableHead className="text-xs">Bill Date</TableHead>
+                  <TableHead className="text-xs">Due Date</TableHead>
+                  <TableHead className="text-xs text-right">Total</TableHead>
+                  <TableHead className="text-xs text-right">Paid</TableHead>
+                  <TableHead className="text-xs text-right">Balance</TableHead>
                   <TableHead className="w-8"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -227,7 +225,7 @@ function VendorBillList() {
                       <TableCell className="text-sm">{bill.vendor?.name || "\u2014"}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={`text-xs ${statusColorMap[bill.status] || ""}`}>
-                          {t(`vendorBills.status.${bill.status}`)}
+                          {bill.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{formatDate(bill.billDate)}</TableCell>
@@ -244,7 +242,7 @@ function VendorBillList() {
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-xs font-medium">{t("common.total")}</TableCell>
+                  <TableCell colSpan={5} className="text-xs font-medium">Total</TableCell>
                   <TableCell className="text-right text-xs font-bold">{formatAmount(bills.reduce((s: number, b: any) => s + parseFloat(b.totalAmount || "0"), 0))}</TableCell>
                   <TableCell className="text-right text-xs font-bold">{formatAmount(bills.reduce((s: number, b: any) => s + parseFloat(b.paidAmount || "0"), 0))}</TableCell>
                   <TableCell className="text-right text-xs font-bold">{formatAmount(bills.reduce((s: number, b: any) => s + parseFloat(b.totalAmount || "0") - parseFloat(b.paidAmount || "0"), 0))}</TableCell>
@@ -261,7 +259,6 @@ function VendorBillList() {
 
 /* ========== Vendor Bill Detail ========== */
 function VendorBillDetail() {
-  const { t } = useI18n();
   const [, setLocation] = useLocation();
   const [, params] = useRoute("/vendor-bills/:id");
   const billId = params?.id ? parseInt(params.id) : 0;
@@ -317,7 +314,7 @@ function VendorBillDetail() {
 
   // Mutations
   const updateMutation = trpc.vendorBills.update.useMutation({
-    onSuccess: () => { toast.success(t("vendorBills.toast.updated")); setEditOpen(false); refetch(); },
+    onSuccess: () => { toast.success("Vendor bill updated successfully."); setEditOpen(false); refetch(); },
     onError: (err) => toast.error(err.message),
   });
 
@@ -328,17 +325,17 @@ function VendorBillDetail() {
 
   const createAllocMutation = trpc.allocations.create.useMutation({
     onSuccess: () => {
-      toast.success(t("vendorBills.toast.allocationCreated"));
+      toast.success("Allocation created successfully.");
       setAllocOpen(false);
       setAllocEmployeeId(""); setAllocInvoiceId(""); setAllocAmount(""); setAllocNote("");
       refetchAllocs(); refetch();
     },
-    onError: (err) => toast.error(err.message || t("vendorBills.toast.allocationFailed")),
+    onError: (err) => toast.error(err.message || "Failed to create allocation."),
   });
 
   const deleteAllocMutation = trpc.allocations.delete.useMutation({
-    onSuccess: () => { toast.success(t("vendorBills.toast.allocationDeleted")); refetchAllocs(); refetch(); },
-    onError: (err) => toast.error(err.message || t("vendorBills.toast.deleteFailed")),
+    onSuccess: () => { toast.success("Allocation deleted successfully."); refetchAllocs(); refetch(); },
+    onError: (err) => toast.error(err.message || "Failed to delete allocation."),
   });
 
   function openEdit() {
@@ -378,7 +375,7 @@ function VendorBillDetail() {
 
   function handleCreateAlloc() {
     if (!allocEmployeeId || !allocInvoiceId || !allocAmount) {
-      toast.error(t("vendorBills.toast.fillRequired"));
+      toast.error("Please fill in all required fields.");
       return;
     }
     createAllocMutation.mutate({
@@ -392,7 +389,7 @@ function VendorBillDetail() {
 
   if (isLoading) {
     return (
-      <Layout breadcrumb={["EG", t("vendorBills.title"), "..."]}>
+      <Layout breadcrumb={["EG", "Vendor Bills", "..."]}>
         <div className="p-6 space-y-4">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-48 w-full" />
@@ -403,12 +400,12 @@ function VendorBillDetail() {
 
   if (!bill) {
     return (
-      <Layout breadcrumb={["EG", t("vendorBills.title")]}>
+      <Layout breadcrumb={["EG", "Vendor Bills"]}>
         <div className="p-6 text-center py-16">
           <FileStack className="w-10 h-10 mx-auto mb-3 text-muted-foreground opacity-30" />
-          <p className="text-muted-foreground">{t("vendorBills.detail.notFound")}</p>
+          <p className="text-muted-foreground">Vendor bill not found.</p>
           <Button variant="link" onClick={() => setLocation("/vendor-bills")} className="mt-2">
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("vendorBills.detail.backToList")}
+            <ArrowLeft className="w-4 h-4 mr-1" /> Back to List
           </Button>
         </div>
       </Layout>
@@ -431,7 +428,7 @@ function VendorBillDetail() {
   ];
 
   return (
-    <Layout breadcrumb={["EG", t("vendorBills.title"), bill.billNumber || `#${billId}`]}>
+    <Layout breadcrumb={["EG", "Vendor Bills", bill.billNumber || `#${billId}`]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -444,32 +441,32 @@ function VendorBillDetail() {
               <p className="text-sm text-muted-foreground">{(bill as any).vendor?.name || ""}</p>
             </div>
             <Badge variant="outline" className={statusColorMap[bill.status] || ""}>
-              {t(`vendorBills.status.${bill.status}`)}
+              {bill.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
             </Badge>
           </div>
           <div className="flex gap-2">
             {bill.status === "draft" && (
               <Button size="sm" variant="outline" onClick={() => statusMutation.mutate({ id: billId, status: "pending_approval" })}>
-                {t("vendorBills.actions.submitApproval")}
+                Submit for Approval
               </Button>
             )}
             {bill.status === "pending_approval" && (
               <>
                 <Button size="sm" variant="outline" className="text-red-600" onClick={() => statusMutation.mutate({ id: billId, status: "draft" })}>
-                  {t("vendorBills.actions.reject")}
+                  Reject
                 </Button>
                 <Button size="sm" onClick={() => statusMutation.mutate({ id: billId, status: "approved" })}>
-                  <Check className="w-4 h-4 mr-1" /> {t("vendorBills.actions.approve")}
+                  <Check className="w-4 h-4 mr-1" /> Approve
                 </Button>
               </>
             )}
             {(bill.status === "approved" || bill.status === "partially_paid") && (
               <Button size="sm" onClick={() => statusMutation.mutate({ id: billId, status: "paid" })}>
-                <DollarSign className="w-4 h-4 mr-1" /> {t("vendorBills.actions.markPaid")}
+                <DollarSign className="w-4 h-4 mr-1" /> Mark Paid
               </Button>
             )}
             <Button size="sm" variant="outline" onClick={openEdit}>
-              <Pencil className="w-4 h-4 mr-1" /> {t("common.edit")}
+              <Pencil className="w-4 h-4 mr-1" /> Edit
             </Button>
           </div>
         </div>
@@ -478,25 +475,25 @@ function VendorBillDetail() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">{t("vendorBills.detail.amount")}</p>
+              <p className="text-xs text-muted-foreground">Amount</p>
               <p className="text-lg font-bold">{bill.currency} {formatAmount(totalAmt)}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">{t("vendorBills.table.paidHeader")}</p>
+              <p className="text-xs text-muted-foreground">Paid</p>
               <p className="text-lg font-bold text-emerald-600">{formatAmount(paidAmt)}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">{t("vendorBills.detail.allocated")}</p>
+              <p className="text-xs text-muted-foreground">Allocated</p>
               <p className="text-lg font-bold text-blue-600">{formatAmount(allocatedAmt)}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">{t("vendorBills.allocations.unallocated")}</p>
+              <p className="text-xs text-muted-foreground">Unallocated</p>
               <p className={`text-lg font-bold ${unallocatedAmt > 0 ? "text-amber-600" : "text-emerald-600"}`}>{formatAmount(unallocatedAmt)}</p>
             </CardContent>
           </Card>
@@ -504,29 +501,29 @@ function VendorBillDetail() {
 
         {/* Bill Info */}
         <Card>
-          <CardHeader><CardTitle className="text-sm">{t("vendorBills.detail.dates")}</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm">Dates & Details</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
-                <p className="text-xs text-muted-foreground">{t("vendorBills.details.billDateLabel")}</p>
+                <p className="text-xs text-muted-foreground">Bill Date</p>
                 <p>{formatDate(bill.billDate) || "\u2014"}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">{t("vendorBills.details.dueDateLabel")}</p>
+                <p className="text-xs text-muted-foreground">Due Date</p>
                 <p>{formatDate(bill.dueDate) || "\u2014"}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">{t("vendorBills.details.serviceMonthLabel")}</p>
+                <p className="text-xs text-muted-foreground">Service Month</p>
                 <p>{bill.billMonth || "\u2014"}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">{t("vendorBills.filters.allCategories")}</p>
-                <p>{t(`vendorBills.category.${bill.category}`)}</p>
+                <p className="text-xs text-muted-foreground">Category</p>
+                <p>{bill.category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</p>
               </div>
             </div>
             {bill.description && (
               <div className="mt-3 pt-3 border-t">
-                <p className="text-xs text-muted-foreground">{t("vendorBills.details.descriptionLabel")}</p>
+                <p className="text-xs text-muted-foreground">Description</p>
                 <p className="text-sm mt-1">{bill.description}</p>
               </div>
             )}
@@ -539,7 +536,7 @@ function VendorBillDetail() {
             <CardContent className="p-4">
               <a href={(bill as any).receiptFileUrl} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm text-primary hover:underline">
-                <FileText className="w-4 h-4" /> {t("vendorBills.detail.viewAttachment")}
+                <FileText className="w-4 h-4" /> View Attachment
               </a>
             </CardContent>
           </Card>
@@ -548,7 +545,7 @@ function VendorBillDetail() {
         {/* Line Items */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">{t("vendorBills.detail.lineItems")} ({(bill as any).items?.length || 0})</CardTitle>
+            <CardTitle className="text-sm">Line Items ({(bill as any).items?.length || 0})</CardTitle>
           </CardHeader>
           <CardContent>
             {(bill as any).items?.length > 0 ? (
@@ -556,11 +553,11 @@ function VendorBillDetail() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs">{t("vendorBills.details.descriptionLabel")}</TableHead>
-                      <TableHead className="text-xs">{t("vendorBills.createBill.costType")}</TableHead>
-                      <TableHead className="text-xs text-right">{t("vendorBills.lineItems.quantityHeader")}</TableHead>
-                      <TableHead className="text-xs text-right">{t("vendorBills.lineItems.unitPriceHeader")}</TableHead>
-                      <TableHead className="text-xs text-right">{t("vendorBills.lineItems.amountHeader")}</TableHead>
+                      <TableHead className="text-xs">Description</TableHead>
+                      <TableHead className="text-xs">Cost Type</TableHead>
+                      <TableHead className="text-xs text-right">Quantity</TableHead>
+                      <TableHead className="text-xs text-right">Unit Price</TableHead>
+                      <TableHead className="text-xs text-right">Amount</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -568,7 +565,7 @@ function VendorBillDetail() {
                       <TableRow key={idx}>
                         <TableCell className="text-sm">{item.description}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="text-xs">{t(`vendorBills.itemType.${item.itemType || "other"}`)}</Badge>
+                          <Badge variant="outline" className="text-xs">{(item.itemType || "other").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</Badge>
                         </TableCell>
                         <TableCell className="text-sm text-right">{item.quantity}</TableCell>
                         <TableCell className="text-sm text-right">{formatAmount(parseFloat(item.unitPrice || "0"))}</TableCell>
@@ -579,7 +576,7 @@ function VendorBillDetail() {
                 </Table>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">{t("vendorBills.detail.noLineItems")}</p>
+              <p className="text-sm text-muted-foreground text-center py-4">No line items found.</p>
             )}
           </CardContent>
         </Card>
@@ -587,9 +584,9 @@ function VendorBillDetail() {
         {/* Cost Allocations */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm">{t("vendorBills.detail.costAllocations")}</CardTitle>
+            <CardTitle className="text-sm">Cost Allocations</CardTitle>
             <Button size="sm" variant="outline" onClick={() => setAllocOpen(true)}>
-              <Plus className="w-4 h-4 mr-1" /> {t("vendorBills.actions.newAllocation")}
+              <Plus className="w-4 h-4 mr-1" /> New Allocation
             </Button>
           </CardHeader>
           <CardContent>
@@ -598,18 +595,18 @@ function VendorBillDetail() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs">{t("vendorBills.lineItems.employeeHeader")}</TableHead>
-                      <TableHead className="text-xs">{t("vendorBills.review.invoiceHeader")}</TableHead>
-                      <TableHead className="text-xs text-right">{t("vendorBills.lineItems.amountHeader")}</TableHead>
-                      <TableHead className="text-xs">{t("vendorBills.allocations.noteLabel")}</TableHead>
+                      <TableHead className="text-xs">Employee</TableHead>
+                      <TableHead className="text-xs">Invoice</TableHead>
+                      <TableHead className="text-xs text-right">Amount</TableHead>
+                      <TableHead className="text-xs">Note</TableHead>
                       <TableHead className="w-8"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {allocs.map((a: any) => (
                       <TableRow key={a.id}>
-                        <TableCell className="text-sm">{a.employeeName || t("vendorBills.allocations.unknownEmployee")}{a.employeeCode ? ` (${a.employeeCode})` : ""}</TableCell>
-                        <TableCell className="text-sm">{a.invoiceNumber || t("vendorBills.allocations.unknownInvoice")}{a.invoiceCurrency && a.invoiceTotal ? ` - ${a.invoiceCurrency} ${formatAmount(parseFloat(a.invoiceTotal))}` : ""}</TableCell>
+                        <TableCell className="text-sm">{a.employeeName || "Unknown Employee"}{a.employeeCode ? ` (${a.employeeCode})` : ""}</TableCell>
+                        <TableCell className="text-sm">{a.invoiceNumber || "Unknown Invoice"}{a.invoiceCurrency && a.invoiceTotal ? ` - ${a.invoiceCurrency} ${formatAmount(parseFloat(a.invoiceTotal))}` : ""}</TableCell>
                         <TableCell className="text-sm text-right font-medium">{formatAmount(parseFloat(a.allocatedAmount || "0"))}</TableCell>
                         <TableCell className="text-sm text-muted-foreground truncate max-w-[200px]">{a.description || "\u2014"}</TableCell>
                         <TableCell>
@@ -623,7 +620,7 @@ function VendorBillDetail() {
                 </Table>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">{t("vendorBills.allocations.noAllocations")}</p>
+              <p className="text-sm text-muted-foreground text-center py-4">No allocations found for this bill.</p>
             )}
           </CardContent>
         </Card>
@@ -631,62 +628,62 @@ function VendorBillDetail() {
         {/* Edit Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>{t("common.edit")}</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Edit Bill</DialogTitle></DialogHeader>
             <div className="py-4 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs">{t("vendorBills.table.billNumberHeader")}</Label>
+                  <Label className="text-xs">Bill Number</Label>
                   <Input value={editBill.billNumber || ""} onChange={(e) => setEditBill({ ...editBill, billNumber: e.target.value })} className="h-8 text-sm" />
                 </div>
                 <div>
-                  <Label className="text-xs">{t("vendorBills.createBill.billType")}</Label>
+                  <Label className="text-xs">Bill Type</Label>
                   <Select value={editBill.billType || "operational"} onValueChange={(v) => setEditBill({ ...editBill, billType: v })}>
                     <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="operational">{t("vendorBills.billType.operational")}</SelectItem>
-                      <SelectItem value="deposit">{t("vendorBills.billType.deposit")}</SelectItem>
-                      <SelectItem value="deposit_refund">{t("vendorBills.billType.deposit_refund")}</SelectItem>
+                      <SelectItem value="operational">Operational</SelectItem>
+                      <SelectItem value="deposit">Deposit</SelectItem>
+                      <SelectItem value="deposit_refund">Deposit Refund</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <Label className="text-xs">{t("vendorBills.details.billDateLabel")}</Label>
+                  <Label className="text-xs">Bill Date</Label>
                   <DatePicker value={editBill.billDate || ""} onChange={(d: string) => setEditBill({ ...editBill, billDate: d })} placeholder="" />
                 </div>
                 <div>
-                  <Label className="text-xs">{t("vendorBills.details.dueDateLabel")}</Label>
+                  <Label className="text-xs">Due Date</Label>
                   <DatePicker value={editBill.dueDate || ""} onChange={(d: string) => setEditBill({ ...editBill, dueDate: d })} placeholder="" />
                 </div>
                 <div>
-                  <Label className="text-xs">{t("vendorBills.details.serviceMonthLabel")}</Label>
-                  <MonthPicker value={editBill.billMonth || ""} onChange={(v: string) => setEditBill({ ...editBill, billMonth: v })} placeholder={t("vendorBills.details.serviceMonthPlaceholder")} className="h-8 text-sm" />
+                  <Label className="text-xs">Service Month</Label>
+                  <MonthPicker value={editBill.billMonth || ""} onChange={(v: string) => setEditBill({ ...editBill, billMonth: v })} placeholder="YYYY-MM" className="h-8 text-sm" />
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <Label className="text-xs">{t("vendorBills.details.subtotalLabel")}</Label>
+                  <Label className="text-xs">Subtotal</Label>
                   <Input type="number" step="0.01" value={editBill.subtotal || ""} onChange={(e) => setEditBill({ ...editBill, subtotal: e.target.value })} className={`h-8 text-sm ${noSpin}`} />
                 </div>
                 <div>
-                  <Label className="text-xs">{t("vendorBills.details.taxLabel")}</Label>
+                  <Label className="text-xs">Tax</Label>
                   <Input type="number" step="0.01" value={editBill.tax || "0"} onChange={(e) => setEditBill({ ...editBill, tax: e.target.value })} className={`h-8 text-sm ${noSpin}`} />
                 </div>
                 <div>
-                  <Label className="text-xs">{t("vendorBills.details.totalAmountLabel")} *</Label>
+                  <Label className="text-xs">Total Amount *</Label>
                   <Input type="number" step="0.01" value={editBill.totalAmount || ""} onChange={(e) => setEditBill({ ...editBill, totalAmount: e.target.value })} className={`h-8 text-sm font-medium ${noSpin}`} />
                 </div>
               </div>
               <div>
-                <Label className="text-xs">{t("vendorBills.details.descriptionLabel")}</Label>
+                <Label className="text-xs">Description</Label>
                 <Textarea value={editBill.description || ""} onChange={(e) => setEditBill({ ...editBill, description: e.target.value })} rows={2} className="text-sm" />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setEditOpen(false)}>{t("common.cancel")}</Button>
+              <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
               <Button onClick={handleSaveEdit} disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? t("vendorBills.actions.saving") : t("vendorBills.actions.saveChanges")}
+                {updateMutation.isPending ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -695,12 +692,12 @@ function VendorBillDetail() {
         {/* Allocation Dialog */}
         <Dialog open={allocOpen} onOpenChange={setAllocOpen}>
           <DialogContent className="max-w-lg">
-            <DialogHeader><DialogTitle>{t("vendorBills.actions.createAllocation")}</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Create Allocation</DialogTitle></DialogHeader>
             <div className="py-4 space-y-4">
               <div>
-                <Label className="text-xs">{t("vendorBills.allocations.selectEmployee")}</Label>
+                <Label className="text-xs">Select Employee</Label>
                 <Select value={allocEmployeeId} onValueChange={setAllocEmployeeId}>
-                  <SelectTrigger className="h-8 text-sm"><SelectValue placeholder={t("vendorBills.allocations.selectEmployee")} /></SelectTrigger>
+                  <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Select an employee" /></SelectTrigger>
                   <SelectContent>
                     {employees.map((emp: any) => (
                       <SelectItem key={emp.id} value={emp.id.toString()}>
@@ -711,7 +708,7 @@ function VendorBillDetail() {
                 </Select>
                 {allocEmployeeId && empRevenue && (
                   <div className="mt-1 p-2 rounded bg-muted/50 text-xs">
-                    <span className="text-muted-foreground">{t("vendorBills.allocations.revenueHint")}: </span>
+                    <span className="text-muted-foreground">Employee's total revenue for this month: </span>
                     <span className="font-medium">{formatAmount(revTotal)}</span>
                     {(empRevenue as any)?.breakdown?.map((b: any, i: number) => (
                       <span key={i} className="ml-2 text-muted-foreground">({b.itemType}: {formatAmount(parseFloat(b.total || "0"))})</span>
@@ -720,9 +717,9 @@ function VendorBillDetail() {
                 )}
               </div>
               <div>
-                <Label className="text-xs">{t("vendorBills.allocations.selectInvoice")}</Label>
+                <Label className="text-xs">Select Invoice</Label>
                 <Select value={allocInvoiceId} onValueChange={setAllocInvoiceId}>
-                  <SelectTrigger className="h-8 text-sm"><SelectValue placeholder={t("vendorBills.allocations.selectInvoice")} /></SelectTrigger>
+                  <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Select an invoice" /></SelectTrigger>
                   <SelectContent>
                     {invoices.map((inv: any) => (
                       <SelectItem key={inv.id} value={inv.id.toString()}>
@@ -733,23 +730,23 @@ function VendorBillDetail() {
                 </Select>
               </div>
               <div>
-                <Label className="text-xs">{t("vendorBills.allocations.amountLabel")}</Label>
+                <Label className="text-xs">Amount</Label>
                 <Input type="number" step="0.01" value={allocAmount} onChange={(e) => setAllocAmount(e.target.value)} className={`h-8 text-sm ${noSpin}`} />
                 {exceedsRevenue && (
                   <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
-                    <AlertTriangle className="w-3 h-3" /> {t("vendorBills.allocations.revenueExceeded")}
+                    <AlertTriangle className="w-3 h-3" /> Allocated amount exceeds employee's revenue for this month.
                   </p>
                 )}
               </div>
               <div>
-                <Label className="text-xs">{t("vendorBills.allocations.noteLabel")}</Label>
+                <Label className="text-xs">Note</Label>
                 <Input value={allocNote} onChange={(e) => setAllocNote(e.target.value)} className="h-8 text-sm" />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setAllocOpen(false)}>{t("common.cancel")}</Button>
+              <Button variant="outline" onClick={() => setAllocOpen(false)}>Cancel</Button>
               <Button onClick={handleCreateAlloc} disabled={createAllocMutation.isPending}>
-                {createAllocMutation.isPending ? t("vendorBills.actions.creating") : t("vendorBills.actions.createAllocation")}
+                {createAllocMutation.isPending ? "Creating..." : "Create Allocation"}
               </Button>
             </DialogFooter>
           </DialogContent>

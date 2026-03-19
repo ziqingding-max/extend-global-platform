@@ -1,13 +1,10 @@
-
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { useI18n } from "@/lib/i18n";
 import { useCpContext } from "@/_core/store/cpContextStore";
 
 export function useInvoices() {
-  const { t } = useI18n();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [monthFilter, setMonthFilter] = useState<string>("");
@@ -128,7 +125,7 @@ export function useInvoices() {
 
   const handleBatchAction = (status: "pending_review" | "sent" | "paid" | "cancelled", paidAmount?: string) => {
     if (selectedIds.size === 0) {
-      toast.warning(t("invoices.list.batch.noSelectionWarning"));
+      toast.warning("No invoices selected for batch update");
       return;
     }
     batchMutation.mutate({ 

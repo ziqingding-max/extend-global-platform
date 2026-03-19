@@ -11,7 +11,6 @@ import { formatDateTime, formatCurrencyCompact, formatMonthShort, countryName } 
 import { formatActivitySummary } from "@/lib/auditDescriptions";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { useI18n } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -181,7 +180,6 @@ function ChartSkeleton({ height = "h-[300px]" }: { height?: string }) {
 
 // ── Tab: Overview ──
 function OverviewTab() {
-  const { t } = useI18n();
   const { data: stats, isLoading } = trpc.dashboard.stats.useQuery();
   const { data: byCountry } = trpc.dashboard.employeesByCountry.useQuery();
   const { data: byStatus } = trpc.dashboard.employeesByStatus.useQuery();
@@ -197,8 +195,8 @@ function OverviewTab() {
   }, [trends]);
 
   const trendConfig: ChartConfig = {
-    employees: { label: t("dashboard.total_employees"), color: "oklch(0.65 0.19 250)" },
-    customers: { label: t("dashboard.total_customers"), color: "oklch(0.72 0.17 150)" },
+    employees: { label: "Total Employees", color: "oklch(0.65 0.19 250)" },
+    customers: { label: "Total Customers", color: "oklch(0.72 0.17 150)" },
   };
 
   const statusColors: Record<string, string> = {
@@ -214,7 +212,7 @@ function OverviewTab() {
   const pieData = useMemo(() => {
     if (!byStatus) return [];
     return byStatus.map(s => ({
-      name: t(`status.${s.status}`) || s.status || "Unknown",
+      name: (s.status || "Unknown").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
       value: Number(s.count),
       fill: statusColors[s.status ?? ""] || "#9ca3af",
     }));
@@ -228,10 +226,10 @@ function OverviewTab() {
           Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
         ) : (
           <>
-            <StatCard title={t("dashboard.total_customers")} value={stats?.totalCustomers ?? 0} icon={Building2} href="/customers" description={t("dashboard.active_customer_accounts")} />
-            <StatCard title={t("dashboard.total_employees")} value={stats?.totalEmployees ?? 0} icon={Users} description={`${stats?.activeEmployees ?? 0} ${t("dashboard.active")}`} href="/employees" />
-            <StatCard title={t("dashboard.pending_payrolls")} value={stats?.pendingPayrolls ?? 0} icon={DollarSign} description={t("dashboard.awaiting_approval")} href="/payroll" variant={Number(stats?.pendingPayrolls) > 0 ? "warning" : "default"} />
-            <StatCard title={t("dashboard.draft_invoices")} value={stats?.pendingInvoices ?? 0} icon={FileText} description={t("dashboard.ready_for_review")} href="/invoices" variant={Number(stats?.pendingInvoices) > 0 ? "warning" : "default"} />
+            <StatCard title="Total Customers" value={stats?.totalCustomers ?? 0} icon={Building2} href="/customers" description="Active customer accounts" />
+            <StatCard title="Total Employees" value={stats?.totalEmployees ?? 0} icon={Users} description={`${stats?.activeEmployees ?? 0} Active`} href="/employees" />
+            <StatCard title="Pending Payrolls" value={stats?.pendingPayrolls ?? 0} icon={DollarSign} description="Awaiting approval" href="/payroll" variant={Number(stats?.pendingPayrolls) > 0 ? "warning" : "default"} />
+            <StatCard title="Draft Invoices" value={stats?.pendingInvoices ?? 0} icon={FileText} description="Ready for review" href="/invoices" variant={Number(stats?.pendingInvoices) > 0 ? "warning" : "default"} />
           </>
         )}
       </div>
@@ -242,12 +240,12 @@ function OverviewTab() {
           Array.from({ length: 6 }).map((_, i) => <StatCardSkeleton key={i} />)
         ) : (
           <>
-            <StatCard title={t("dashboard.new_hires_month")} value={stats?.newHiresThisMonth ?? 0} icon={UserPlus} href="/employees" description={t("dashboard.this_month")} />
-            <StatCard title={t("dashboard.terminations_month")} value={stats?.terminationsThisMonth ?? 0} icon={UserMinus} href="/employees" variant={Number(stats?.terminationsThisMonth) > 0 ? "danger" : "default"} description={t("dashboard.this_month")} />
-            <StatCard title={t("dashboard.new_clients_month")} value={stats?.newClientsThisMonth ?? 0} icon={Building2} href="/customers" description={t("dashboard.this_month")} />
-            <StatCard title={t("dashboard.pending_adjustments")} value={stats?.pendingAdjustments ?? 0} icon={ArrowUpDown} href="/adjustments" variant={Number(stats?.pendingAdjustments) > 0 ? "warning" : "default"} description={t("dashboard.bonus_allowance_reimbursement")} />
-            <StatCard title={t("dashboard.pending_leave")} value={stats?.pendingLeaves ?? 0} icon={CalendarDays} href="/leave" variant={Number(stats?.pendingLeaves) > 0 ? "warning" : "default"} description={t("dashboard.leave_awaiting_approval")} />
-            <StatCard title={t("dashboard.countries_active")} value={byCountry?.length ?? 0} icon={Globe} href="/countries" variant="success" description={t("dashboard.countries_with_employees")} />
+            <StatCard title="New Hires This Month" value={stats?.newHiresThisMonth ?? 0} icon={UserPlus} href="/employees" description="This month" />
+            <StatCard title="Terminations This Month" value={stats?.terminationsThisMonth ?? 0} icon={UserMinus} href="/employees" variant={Number(stats?.terminationsThisMonth) > 0 ? "danger" : "default"} description="This month" />
+            <StatCard title="New Clients This Month" value={stats?.newClientsThisMonth ?? 0} icon={Building2} href="/customers" description="This month" />
+            <StatCard title="Pending Adjustments" value={stats?.pendingAdjustments ?? 0} icon={ArrowUpDown} href="/adjustments" variant={Number(stats?.pendingAdjustments) > 0 ? "warning" : "default"} description="Bonus, allowance, reimbursement" />
+            <StatCard title="Pending Leave" value={stats?.pendingLeaves ?? 0} icon={CalendarDays} href="/leave" variant={Number(stats?.pendingLeaves) > 0 ? "warning" : "default"} description="Leave awaiting approval" />
+            <StatCard title="Active Countries" value={byCountry?.length ?? 0} icon={Globe} href="/countries" variant="success" description="Countries with employees" />
           </>
         )}
       </div>
@@ -256,7 +254,7 @@ function OverviewTab() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">{t("dashboard.growth_trend")}</CardTitle>
+            <CardTitle className="text-base font-semibold">Growth Trend</CardTitle>
           </CardHeader>
           <CardContent>
             {trendChartData.length > 0 ? (
@@ -289,7 +287,7 @@ function OverviewTab() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">{t("dashboard.employee_status_distribution")}</CardTitle>
+            <CardTitle className="text-base font-semibold">Employee Status Distribution</CardTitle>
           </CardHeader>
           <CardContent>
             {pieData.length > 0 ? (
@@ -317,7 +315,7 @@ function OverviewTab() {
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                 <Users className="w-8 h-8 mb-2 opacity-40" />
-                <p className="text-sm">{t("common.no_data")}</p>
+                <p className="text-sm">No data</p>
               </div>
             )}
           </CardContent>
@@ -327,7 +325,7 @@ function OverviewTab() {
       {/* Employees by Country */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold">{t("dashboard.employees_by_country")}</CardTitle>
+          <CardTitle className="text-base font-semibold">Employees by Country</CardTitle>
         </CardHeader>
         <CardContent>
           {byCountry && byCountry.length > 0 ? (
@@ -349,7 +347,7 @@ function OverviewTab() {
           ) : (
             <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
               <Globe className="w-8 h-8 mb-2 opacity-40" />
-              <p className="text-sm">{t("common.no_data")}</p>
+              <p className="text-sm">No data</p>
             </div>
           )}
         </CardContent>
@@ -360,7 +358,6 @@ function OverviewTab() {
 
 // ── Tab: Operations ──
 function OperationsTab() {
-  const { t } = useI18n();
   const { data: ops, isLoading } = trpc.dashboard.operationsOverview.useQuery();
   const { data: trends } = trpc.dashboard.monthlyTrends.useQuery();
 
@@ -376,7 +373,7 @@ function OperationsTab() {
   const payrollPieData = useMemo(() => {
     if (!ops) return [];
     return ops.payrollByStatus.map(s => ({
-      name: t(`status.${s.status}`) || s.status,
+      name: (s.status || "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
       value: s.count,
       fill: payrollStatusColors[s.status] || "#9ca3af",
     }));
@@ -403,28 +400,28 @@ function OperationsTab() {
       {/* Pending Approvals */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
-          title={t("dashboard.pending_payrolls")}
+          title="Pending Payrolls"
           value={ops?.pendingApprovals.payrolls ?? 0}
           icon={DollarSign}
           href="/payroll"
           variant={Number(ops?.pendingApprovals.payrolls) > 0 ? "warning" : "default"}
-          description={t("dashboard.awaiting_review")}
+          description="Awaiting review"
         />
         <StatCard
-          title={t("dashboard.onboarding")}
+          title="Onboarding"
           value={ops?.employeeOnboarding ?? 0}
           icon={Briefcase}
           href="/employees"
           variant={Number(ops?.employeeOnboarding) > 0 ? "warning" : "success"}
-          description={t("dashboard.employee_onboarding")}
+          description="Employee onboarding"
         />
         <StatCard
-          title={t("dashboard.offboarding")}
+          title="Offboarding"
           value={ops?.employeeOffboarding ?? 0}
           icon={XCircle}
           href="/employees"
           variant={Number(ops?.employeeOffboarding) > 0 ? "danger" : "default"}
-          description={t("dashboard.employee_offboarding")}
+          description="Employee offboarding"
         />
       </div>
 
@@ -433,7 +430,7 @@ function OperationsTab() {
         {/* Payroll & Invoice trend */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">{t("dashboard.monthly_payroll_invoice_volume")}</CardTitle>
+            <CardTitle className="text-base font-semibold">Monthly Payroll & Invoice Volume</CardTitle>
           </CardHeader>
           <CardContent>
             {payrollTrendData.length > 0 ? (
@@ -457,7 +454,7 @@ function OperationsTab() {
         {/* Payroll status distribution */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">{t("dashboard.payroll_status")}</CardTitle>
+            <CardTitle className="text-base font-semibold">Payroll Status</CardTitle>
           </CardHeader>
           <CardContent>
             {payrollPieData.length > 0 ? (
@@ -485,7 +482,7 @@ function OperationsTab() {
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                 <BarChart3 className="w-8 h-8 mb-2 opacity-40" />
-                <p className="text-sm">{t("common.no_data")}</p>
+                <p className="text-sm">No data</p>
               </div>
             )}
           </CardContent>
@@ -495,7 +492,7 @@ function OperationsTab() {
       {/* Recent Payroll Runs */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold">{t("dashboard.recent_payroll_runs")}</CardTitle>
+          <CardTitle className="text-base font-semibold">Recent Payroll Runs</CardTitle>
         </CardHeader>
         <CardContent>
           {ops?.recentPayrollRuns && ops.recentPayrollRuns.length > 0 ? (
@@ -517,7 +514,7 @@ function OperationsTab() {
                       <td className="py-2.5">{run.payrollMonth ? formatMonthShort(String(run.payrollMonth).substring(0, 7)) : "-"}</td>
                       <td className="py-2.5">
                         <Badge variant="outline" className="text-xs font-normal">
-                          {t(`status.${run.status}`) || run.status}
+                          {(run.status || "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                         </Badge>
                       </td>
                       <td className="py-2.5 text-right font-mono">{run.totalGrossSalary ? formatCurrencyCompact(run.totalGrossSalary) : "-"}</td>
@@ -530,7 +527,7 @@ function OperationsTab() {
           ) : (
             <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
               <ClipboardList className="w-8 h-8 mb-2 opacity-40" />
-              <p className="text-sm">{t("common.no_data")}</p>
+              <p className="text-sm">No data</p>
             </div>
           )}
         </CardContent>
@@ -541,7 +538,6 @@ function OperationsTab() {
 
 // ── Tab: Finance ──
 function FinanceTab() {
-  const { t } = useI18n();
   const { data: finance, isLoading } = trpc.dashboard.financeOverview.useQuery();
 
   const revenueChartData = useMemo(() => {
@@ -570,48 +566,48 @@ function FinanceTab() {
       {/* Finance KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard
-          title={t("dashboard.total_revenue")}
+          title="Total Revenue"
           value={formatCurrencyCompact(finance?.totalRevenue ?? "0")}
           icon={DollarSign}
           variant="success"
-          description={t("dashboard.from_paid_invoices")}
+          description="From paid invoices"
         />
         <StatCard
-          title={t("dashboard.service_fee_revenue")}
+          title="Service Fee Revenue"
           value={formatCurrencyCompact(finance?.totalServiceFeeRevenue ?? "0")}
           icon={Wallet}
           variant="success"
-          description={t("dashboard.management_service_fees")}
+          description="Management service fees"
         />
         <StatCard
-          title={t("dashboard.deferred_revenue")}
+          title="Deferred Revenue"
           value={formatCurrencyCompact(finance?.totalDeferredRevenue ?? "0")}
           icon={Landmark}
           variant="default"
-          description={t("dashboard.deposit_liability")}
+          description="Deposit liability"
         />
         <StatCard
-          title={t("dashboard.outstanding")}
+          title="Outstanding"
           value={formatCurrencyCompact(finance?.totalOutstandingAmount ?? "0")}
           icon={Clock}
           href="/invoices"
           variant={parseFloat(finance?.totalOutstandingAmount ?? "0") > 0 ? "warning" : "default"}
-          description={t("dashboard.unpaid_invoices")}
+          description="Unpaid invoices"
         />
         <StatCard
-          title={t("dashboard.overdue")}
+          title="Overdue"
           value={formatCurrencyCompact(finance?.totalOverdueAmount ?? "0")}
           icon={AlertCircle}
           href="/invoices"
           variant={parseFloat(finance?.totalOverdueAmount ?? "0") > 0 ? "danger" : "default"}
-          description={t("dashboard.past_due_invoices")}
+          description="Past due invoices"
         />
       </div>
 
       {/* Revenue trend chart */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold">{t("dashboard.monthly_revenue_12m")}</CardTitle>
+          <CardTitle className="text-base font-semibold">Monthly Revenue (12 months)</CardTitle>
           <p className="text-xs text-muted-foreground mt-0.5">By payment date (Cash Basis) · Excludes deposits & credit notes</p>
         </CardHeader>
         <CardContent>
@@ -644,7 +640,7 @@ function FinanceTab() {
       {/* Invoice count trend */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold">{t("dashboard.monthly_paid_invoice_count")}</CardTitle>
+          <CardTitle className="text-base font-semibold">Monthly Paid Invoice Count</CardTitle>
         </CardHeader>
         <CardContent>
           {revenueChartData.length > 0 ? (
@@ -683,7 +679,6 @@ function FinanceTab() {
 }
 // ── Tab: HR & Leave ───
 function HRLeaveTab() {
-  const { t } = useI18n();
   const { data: hr, isLoading } = trpc.dashboard.hrOverview.useQuery();
 
   const leaveStatusColors: Record<string, string> = {
@@ -695,7 +690,7 @@ function HRLeaveTab() {
   const leavePieData = useMemo(() => {
     if (!hr) return [];
     return hr.leaveByStatus.map(s => ({
-      name: t(`status.${s.status}`) || s.status,
+      name: (s.status || "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
       value: s.count,
       fill: leaveStatusColors[s.status] || "#9ca3af",
     }));
@@ -760,12 +755,12 @@ function HRLeaveTab() {
     <div className="space-y-6">
       {/* Workforce KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        <StatCard title={t("dashboard.active_employees")} value={hr?.activeEmployees ?? 0} icon={Users} variant="success" href="/employees" />
-        <StatCard title={t("dashboard.on_leave_employees")} value={hr?.onLeaveEmployees ?? 0} icon={CalendarDays} variant={Number(hr?.onLeaveEmployees) > 0 ? "warning" : "default"} href="/employees" />
-        <StatCard title={t("dashboard.new_hires_month")} value={hr?.newHiresThisMonth ?? 0} icon={UserPlus} variant="default" href="/employees" />
-        <StatCard title={t("dashboard.terminations_month")} value={hr?.terminationsThisMonth ?? 0} icon={UserMinus} variant={Number(hr?.terminationsThisMonth) > 0 ? "danger" : "default"} href="/employees" />
-        <StatCard title={t("dashboard.onboarding")} value={hr?.onboardingEmployees ?? 0} icon={Briefcase} variant="default" href="/employees" />
-        <StatCard title={t("dashboard.offboarding")} value={hr?.offboardingEmployees ?? 0} icon={XCircle} variant={Number(hr?.offboardingEmployees) > 0 ? "warning" : "default"} href="/employees" />
+        <StatCard title="Active Employees" value={hr?.activeEmployees ?? 0} icon={Users} variant="success" href="/employees" />
+        <StatCard title="On Leave Employees" value={hr?.onLeaveEmployees ?? 0} icon={CalendarDays} variant={Number(hr?.onLeaveEmployees) > 0 ? "warning" : "default"} href="/employees" />
+        <StatCard title="New Hires This Month" value={hr?.newHiresThisMonth ?? 0} icon={UserPlus} variant="default" href="/employees" />
+        <StatCard title="Terminations This Month" value={hr?.terminationsThisMonth ?? 0} icon={UserMinus} variant={Number(hr?.terminationsThisMonth) > 0 ? "danger" : "default"} href="/employees" />
+        <StatCard title="Onboarding" value={hr?.onboardingEmployees ?? 0} icon={Briefcase} variant="default" href="/employees" />
+        <StatCard title="Offboarding" value={hr?.offboardingEmployees ?? 0} icon={XCircle} variant={Number(hr?.offboardingEmployees) > 0 ? "warning" : "default"} href="/employees" />
       </div>
 
       {/* Contract Expiry Alerts */}
@@ -774,7 +769,7 @@ function HRLeaveTab() {
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <FileWarning className="w-4 h-4 text-amber-500" />
-              {t("dashboard.contract_expiry_alerts")} ({contractAlerts.length})
+              Contract Expiry Alerts ({contractAlerts.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -813,7 +808,7 @@ function HRLeaveTab() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">{t("dashboard.monthly_workforce_trend")}</CardTitle>
+            <CardTitle className="text-base font-semibold">Monthly Workforce Trend</CardTitle>
           </CardHeader>
           <CardContent>
             {workforceTrendData.length > 0 ? (
@@ -843,7 +838,7 @@ function HRLeaveTab() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">{t("dashboard.leave_status")}</CardTitle>
+            <CardTitle className="text-base font-semibold">Leave Status</CardTitle>
           </CardHeader>
           <CardContent>
             {leavePieData.length > 0 ? (
@@ -871,7 +866,7 @@ function HRLeaveTab() {
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                 <CalendarDays className="w-8 h-8 mb-2 opacity-40" />
-                <p className="text-sm">{t("common.no_data")}</p>
+                <p className="text-sm">No data</p>
               </div>
             )}
           </CardContent>
@@ -882,7 +877,7 @@ function HRLeaveTab() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">{t("dashboard.monthly_leave_trend")}</CardTitle>
+            <CardTitle className="text-base font-semibold">Monthly Leave Trend</CardTitle>
           </CardHeader>
           <CardContent>
             {monthlyLeaveData.length > 0 ? (
@@ -905,7 +900,7 @@ function HRLeaveTab() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">{t("dashboard.adjustment_breakdown")}</CardTitle>
+            <CardTitle className="text-base font-semibold">Adjustment Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
             {hr?.adjustmentByType && hr.adjustmentByType.length > 0 ? (
@@ -924,7 +919,7 @@ function HRLeaveTab() {
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                 <ArrowUpDown className="w-8 h-8 mb-2 opacity-40" />
-                <p className="text-sm">{t("common.no_data")}</p>
+                <p className="text-sm">No data</p>
               </div>
             )}
           </CardContent>
@@ -936,14 +931,13 @@ function HRLeaveTab() {
 
 // ── Tab: Activity Log ──
 function ActivityLogTab() {
-  const { t } = useI18n();
   const { data: recentActivity, isLoading } = trpc.dashboard.recentActivity.useQuery();
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-semibold">{t("dashboard.recent_activity")}</CardTitle>
+          <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
           <Link href="/audit-logs">
             <Badge variant="outline" className="cursor-pointer hover:bg-muted text-xs font-normal">
               View All Audit Logs →
@@ -980,7 +974,7 @@ function ActivityLogTab() {
           ) : (
             <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
               <Activity className="w-8 h-8 mb-2 opacity-40" />
-              <p className="text-sm">{t("common.no_data")}</p>
+              <p className="text-sm">No data</p>
             </div>
           )}
         </CardContent>
@@ -991,7 +985,6 @@ function ActivityLogTab() {
 
 // ── Main Dashboard ──
 export default function Dashboard() {
-  const { t } = useI18n();
   const { user } = useAuth();
   const role = user?.role;
 
@@ -1001,30 +994,30 @@ export default function Dashboard() {
   // Build visible tabs
   const tabs = useMemo(() => {
     const result: { value: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-      { value: "overview", label: t("dashboard.tab_overview"), icon: BarChart3 },
+      { value: "overview", label: "Overview", icon: BarChart3 },
     ];
     if (canSeeOperations(role)) {
-      result.push({ value: "operations", label: t("dashboard.tab_operations"), icon: ClipboardList });
+      result.push({ value: "operations", label: "Operations", icon: ClipboardList });
     }
     if (canSeeFinance(role)) {
-      result.push({ value: "finance", label: t("dashboard.tab_finance"), icon: Wallet });
+      result.push({ value: "finance", label: "Finance", icon: Wallet });
     }
     if (canSeeHR(role)) {
-      result.push({ value: "hr", label: t("dashboard.tab_hr"), icon: CalendarDays });
+      result.push({ value: "hr", label: "HR & Leave", icon: CalendarDays });
     }
     if (canSeeActivity(role)) {
-      result.push({ value: "activity", label: t("dashboard.tab_activity"), icon: Activity });
+      result.push({ value: "activity", label: "Activity Log", icon: Activity });
     }
     return result;
-  }, [role, t]);
+  }, [role]);
 
   return (
-    <Layout breadcrumb={["EG", t("nav.dashboard")]}>
+    <Layout breadcrumb={["EG", "Dashboard"]}>
       <div className="p-6 space-y-6 page-enter">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t("dashboard.title")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t("dashboard.subtitle")}</p>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">Overview of key metrics and recent activity</p>
         </div>
 
         {/* Tabs */}

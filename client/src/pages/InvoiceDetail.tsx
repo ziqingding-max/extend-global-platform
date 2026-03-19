@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatDate, formatAmount, formatMonth } from "@/lib/format";
-import { useI18n } from "@/lib/i18n";
 import { useState, useEffect, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -122,7 +121,6 @@ function parseBankDetails(bankDetailsStr: string | null | undefined): Record<str
 /* ========== Main Component ========== */
 
 export default function InvoiceDetail() {
-  const { t } = useI18n();
   const { user } = useAuth();
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
