@@ -63,43 +63,66 @@ export function PageSkeleton({ cards = 3, hasTable = false }: { cards?: number; 
   );
 }
 
-/** Dashboard-style skeleton */
+/** Dashboard skeleton — matches simplified command center layout */
 export function DashboardSkeleton() {
   return (
-    <div className="p-6 space-y-6 animate-pulse-subtle">
-      {/* Title */}
-      <div className="space-y-2">
-        <Skeleton className="h-8 w-40" />
-        <Skeleton className="h-4 w-64" />
+    <div className="p-6 space-y-8 animate-pulse-subtle max-w-6xl">
+      {/* Greeting */}
+      <div className="flex items-start justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <Skeleton className="h-4 w-40 hidden sm:block" />
       </div>
-
-      {/* KPI row */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        {Array.from({ length: 6 }).map((_, i) => (
+      {/* KPI row — 4 columns */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i}>
-            <CardContent className="p-4">
-              <Skeleton className="h-3 w-16 mb-2" />
-              <Skeleton className="h-6 w-12 mb-1" />
-              <Skeleton className="h-2 w-20" />
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+                <Skeleton className="h-10 w-10 rounded-xl" />
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
-
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <CardContent className="p-6">
-            <Skeleton className="h-4 w-40 mb-4" />
-            <Skeleton className="h-[280px] w-full rounded-lg" />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <Skeleton className="h-4 w-32 mb-4" />
-            <Skeleton className="h-[280px] w-full rounded-lg" />
-          </CardContent>
-        </Card>
+      {/* Action Required */}
+      <div className="space-y-3">
+        <Skeleton className="h-4 w-32" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-8 w-8 rounded-lg" />
+                  <Skeleton className="h-4 w-32 flex-1" />
+                  <Skeleton className="h-6 w-10" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+      {/* Quick Links */}
+      <div className="space-y-3">
+        <Skeleton className="h-4 w-24" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4 text-center">
+                <Skeleton className="h-10 w-10 rounded-xl mx-auto mb-2" />
+                <Skeleton className="h-4 w-24 mx-auto" />
+                <Skeleton className="h-3 w-32 mx-auto mt-1" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
