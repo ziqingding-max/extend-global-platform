@@ -37,6 +37,7 @@ import { cpPortalQuotationsRouter } from "./routers/cpPortalQuotationsRouter";
 import { cpPortalOperationsRouter } from "./routers/cpPortalOperationsRouter";
 import { cpPortalDashboardRouter } from "./routers/cpPortalDashboardRouter";
 import { cpPortalReleaseTasksRouter } from "./routers/cpPortalReleaseTasksRouter";
+import { cpPortalNotificationsRouter } from "./routers/cpPortalNotificationsRouter";
 
 export const cpPortalAppRouter = cpPortalRouter({
   auth: cpPortalAuthRouter,
@@ -50,6 +51,7 @@ export const cpPortalAppRouter = cpPortalRouter({
   operations: cpPortalOperationsRouter,
   dashboard: cpPortalDashboardRouter,
   releaseTasks: cpPortalReleaseTasksRouter,
+  notifications: cpPortalNotificationsRouter,
 });
 
 export type CpPortalAppRouter = typeof cpPortalAppRouter;

@@ -563,12 +563,23 @@ export const invoicesRouter = router({
       if (input.status === "sent") {
         updateData.sentDate = new Date();
         
-        // Trigger notification
+        // Trigger notification — route based on invoiceLayer
         const invoice = await getInvoiceById(input.id);
         if (invoice) {
+          const layer = (invoice as any).invoiceLayer || "legacy";
+          let notificationType = "invoice_sent";
+          if (layer === "eg_to_cp") {
+            notificationType = "invoice_sent_to_cp";
+          } else if (layer === "eg_to_client" || layer === "legacy") {
+            notificationType = "invoice_sent_to_direct_client";
+          }
+          // Note: cp_to_client invoices are sent via cpEmailService.sendCpInvoiceToClient,
+          // not through the notificationService pipeline.
+
           notificationService.send({
-            type: "invoice_sent",
+            type: notificationType,
             customerId: invoice.customerId,
+            channelPartnerId: (invoice as any).channelPartnerId ?? undefined,
             data: {
               invoiceId: invoice.id,
               invoiceNumber: invoice.invoiceNumber,

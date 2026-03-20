@@ -36,6 +36,9 @@ import {
   customerContracts,
 } from "../../../drizzle/schema";
 import { storagePut, storageGet } from "../../storage";
+import { generateInviteToken, getInviteExpiryDate } from "../../portal/portalAuth";
+import { sendPortalInviteEmail } from "../../services/authEmailService";
+import { logAuditAction } from "../../db";
 
 // ── Helper: Generate client code ──────────────────────────────────────
 async function generateClientCode(db: any): Promise<string> {
@@ -500,7 +503,7 @@ export const cpPortalClientsRouter = cpPortalRouter({
         updateData.portalRole = input.portalRole;
       }
 
-      // If revoking access, clear auth tokens
+       // If revoking access, clear auth tokens
       if (!input.hasPortalAccess) {
         updateData.inviteToken = null;
         updateData.inviteExpiresAt = null;
@@ -508,10 +511,69 @@ export const cpPortalClientsRouter = cpPortalRouter({
         updateData.resetExpiresAt = null;
       }
 
+      // If granting access, generate invite token and send email
+      if (input.hasPortalAccess) {
+        // Check if the contact already has a password (already activated)
+        const existingContact = await db
+          .select({
+            id: customerContacts.id,
+            email: customerContacts.email,
+            contactName: customerContacts.contactName,
+            passwordHash: customerContacts.passwordHash,
+            isPortalActive: customerContacts.isPortalActive,
+          })
+          .from(customerContacts)
+          .where(eq(customerContacts.id, input.contactId))
+          .limit(1);
+
+        const contact = existingContact[0];
+        if (contact && !contact.passwordHash) {
+          // Contact hasn't set password yet — generate invite token
+          const inviteToken = generateInviteToken();
+          const inviteExpiresAt = getInviteExpiryDate();
+          updateData.inviteToken = inviteToken;
+          updateData.inviteExpiresAt = inviteExpiresAt;
+          updateData.isPortalActive = false;
+
+          // Send white-labeled invite email
+          try {
+            const custRows = await db
+              .select({ companyName: customers.companyName })
+              .from(customers)
+              .where(eq(customers.id, input.customerId))
+              .limit(1);
+            const companyName = custRows[0]?.companyName || "Your Company";
+            const portalOrigin = process.env.PORTAL_APP_URL || "https://app.extendglobal.ai";
+            const inviteUrl = `${portalOrigin}/register?token=${inviteToken}`;
+
+            await sendPortalInviteEmail({
+              to: contact.email,
+              contactName: contact.contactName,
+              companyName,
+              portalRole: input.portalRole || "viewer",
+              inviteUrl,
+              channelPartnerId: cpId, // Enables CP white-label branding
+            });
+          } catch (err) {
+            console.error(`[CP Portal] Failed to send client portal invite email:`, err);
+          }
+        }
+      }
+
       await db
         .update(customerContacts)
         .set(updateData)
         .where(eq(customerContacts.id, input.contactId));
+
+      await logAuditAction({
+        action: "cp_toggle_client_portal_access",
+        entityType: "customer_contact",
+        entityId: input.contactId,
+        channelPartnerId: cpId,
+        portalSource: "cp_portal",
+        userName: ctx.cpUser.contactName,
+        changes: JSON.stringify({ hasPortalAccess: input.hasPortalAccess, portalRole: input.portalRole }),
+      });
 
       return { success: true };
     }),

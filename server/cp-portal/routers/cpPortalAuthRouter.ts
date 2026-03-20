@@ -34,6 +34,7 @@ import {
 import { getDb } from "../../db";
 import { channelPartnerContacts, channelPartners } from "../../../drizzle/schema";
 import { logAuditAction } from "../../db";
+import { sendCpPasswordReset } from "../../services/cpEmailService";
 
 // ============================================================================
 // Auth Router
@@ -332,9 +333,32 @@ export const cpPortalAuthRouter = cpPortalRouter({
           .set({ resetToken, resetExpiresAt })
           .where(eq(channelPartnerContacts.id, contacts[0].id));
 
-        // TODO: Send white-labeled reset email using CP branding config
-        // For now, log the token for development
-        console.log(`[CP Portal] Reset token for ${input.email}: ${resetToken}`);
+        // Send white-labeled reset email
+        try {
+          const cpRows = await db
+            .select({ subdomain: channelPartners.subdomain, contactName: channelPartnerContacts.contactName })
+            .from(channelPartnerContacts)
+            .innerJoin(channelPartners, eq(channelPartners.id, channelPartnerContacts.channelPartnerId))
+            .where(eq(channelPartnerContacts.id, contacts[0].id))
+            .limit(1);
+
+          const subdomain = cpRows[0]?.subdomain;
+          const contactName = cpRows[0]?.contactName || "User";
+
+          if (subdomain) {
+            await sendCpPasswordReset({
+              channelPartnerId: contacts[0].channelPartnerId,
+              contactName,
+              email: input.email.toLowerCase().trim(),
+              resetToken,
+              subdomain,
+            });
+          } else {
+            console.warn(`[CP Portal] CP #${contacts[0].channelPartnerId} has no subdomain, cannot send reset email`);
+          }
+        } catch (err) {
+          console.error(`[CP Portal] Failed to send password reset email to ${input.email}:`, err);
+        }
 
         // Audit log
         await logAuditAction({

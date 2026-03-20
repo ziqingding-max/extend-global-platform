@@ -352,18 +352,34 @@ export const portalAuthRouter = portalRouter({
 
       // Send password reset email
       try {
-        // Get contact name for the email
+        // Get contact name and customerId for the email
         const contactDetails = await db
-          .select({ contactName: customerContacts.contactName })
+          .select({
+            contactName: customerContacts.contactName,
+            customerId: customerContacts.customerId,
+          })
           .from(customerContacts)
           .where(eq(customerContacts.id, contact.id))
           .limit(1);
         const contactName = contactDetails[0]?.contactName || "User";
 
+        // Check if this customer belongs to a CP (for white-label branding)
+        let channelPartnerId: number | undefined;
+        if (contactDetails[0]?.customerId) {
+          const { customers } = await import("../../../drizzle/schema");
+          const custRows = await db
+            .select({ channelPartnerId: customers.channelPartnerId })
+            .from(customers)
+            .where(eq(customers.id, contactDetails[0].customerId))
+            .limit(1);
+          channelPartnerId = custRows[0]?.channelPartnerId ?? undefined;
+        }
+
         await sendPortalPasswordResetEmail({
           to: contact.email,
           contactName,
           resetUrl,
+          channelPartnerId,
         });
       } catch (err) {
         console.error("[PortalAuth] Failed to send password reset email:", err);
