@@ -13,6 +13,8 @@ const NotificationConfigSchema = z.object({
   enabled: z.boolean().default(false),
   channels: z.array(z.enum(["email", "in_app"])).default([]),
   recipients: z.array(z.string()).default([]),
+  audience: z.enum(["admin", "client", "worker", "cp"]).default("admin"),
+  emailLayout: z.enum(["eg", "cp_whitelabel"]).default("eg"),
   templates: z.object({
     en: z.object({
       emailSubject: z.string().default(""),
@@ -160,10 +162,20 @@ export const notificationsRouter = router({
       const db = getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
 
+      const userId = ctx.user.id;
+      const userRoles = (ctx.user.role || "").split(",").map((r: string) => r.trim()).filter(Boolean);
+      const roleConditions = userRoles.map((role: string) => eq(notifications.targetRole, role));
+
       await db
         .update(notifications)
         .set({ isRead: true, readAt: new Date() })
-        .where(eq(notifications.id, input.id));
+        .where(
+          and(
+            eq(notifications.id, input.id),
+            eq(notifications.targetPortal, "admin"),
+            sql`(${eq(notifications.targetUserId, userId)}${roleConditions.length > 0 ? sql` OR ${sql.join(roleConditions.map((c: any) => c), sql` OR `)}` : sql``})`
+          )
+        );
         
       return { success: true };
     }),
@@ -176,15 +188,17 @@ export const notificationsRouter = router({
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
 
     const userId = ctx.user.id;
-    
+    const userRoles = (ctx.user.role || "").split(",").map((r: string) => r.trim()).filter(Boolean);
+    const roleConditions = userRoles.map((role: string) => eq(notifications.targetRole, role));
+
     await db
       .update(notifications)
       .set({ isRead: true, readAt: new Date() })
       .where(
         and(
           eq(notifications.targetPortal, "admin"),
-          eq(notifications.targetUserId, userId),
-          eq(notifications.isRead, false)
+          eq(notifications.isRead, false),
+          sql`(${eq(notifications.targetUserId, userId)}${roleConditions.length > 0 ? sql` OR ${sql.join(roleConditions.map((c: any) => c), sql` OR `)}` : sql``})`
         )
       );
       

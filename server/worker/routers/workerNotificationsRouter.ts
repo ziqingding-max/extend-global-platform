@@ -21,7 +21,7 @@ export const workerNotificationsRouter = workerRouter({
   getUnread: protectedWorkerProcedure
     .input(z.object({ limit: z.number().default(20) }))
     .query(async ({ ctx, input }) => {
-      const db = await getDb();
+      const db = getDb();
       if (!db) return [];
 
       return await db.select()
@@ -38,12 +38,37 @@ export const workerNotificationsRouter = workerRouter({
     }),
 
   /**
+   * Get all notifications (read + unread) with pagination.
+   */
+  getAll: protectedWorkerProcedure
+    .input(z.object({
+      limit: z.number().default(50),
+      offset: z.number().default(0),
+    }))
+    .query(async ({ ctx, input }) => {
+      const db = getDb();
+      if (!db) return [];
+
+      return await db.select()
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.targetPortal, "worker"),
+            eq(notifications.targetUserId, ctx.workerUser.id)
+          )
+        )
+        .orderBy(desc(notifications.createdAt))
+        .limit(input.limit)
+        .offset(input.offset);
+    }),
+
+  /**
    * Mark as read
    */
   markAsRead: protectedWorkerProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      const db = await getDb();
+      const db = getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
       await db
@@ -65,7 +90,7 @@ export const workerNotificationsRouter = workerRouter({
    */
   markAllAsRead: protectedWorkerProcedure
     .mutation(async ({ ctx }) => {
-      const db = await getDb();
+      const db = getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
       await db

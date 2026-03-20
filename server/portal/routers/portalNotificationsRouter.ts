@@ -23,7 +23,7 @@ export const portalNotificationsRouter = portalRouter({
   getUnread: protectedPortalProcedure
     .input(z.object({ limit: z.number().default(20) }))
     .query(async ({ ctx, input }) => {
-      const db = await getDb();
+      const db = getDb();
       if (!db) return [];
 
       return await db.select()
@@ -48,7 +48,7 @@ export const portalNotificationsRouter = portalRouter({
       offset: z.number().default(0),
     }))
     .query(async ({ ctx, input }) => {
-      const db = await getDb();
+      const db = getDb();
       if (!db) return [];
 
       return await db.select()
@@ -70,7 +70,7 @@ export const portalNotificationsRouter = portalRouter({
   markAsRead: protectedPortalProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      const db = await getDb();
+      const db = getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
       await db
@@ -92,7 +92,7 @@ export const portalNotificationsRouter = portalRouter({
    */
   markAllAsRead: protectedPortalProcedure
     .mutation(async ({ ctx }) => {
-      const db = await getDb();
+      const db = getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
       await db

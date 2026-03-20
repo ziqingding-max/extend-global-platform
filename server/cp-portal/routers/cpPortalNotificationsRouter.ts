@@ -51,6 +51,7 @@ export const cpPortalNotificationsRouter = cpPortalRouter({
       const db = getDb();
       if (!db) return [];
 
+
       return await db.select()
         .from(notifications)
         .where(
