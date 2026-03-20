@@ -6,15 +6,17 @@
  *   /vendor-bills/new?mode=ai      → AI upload → parse → review → save
  *   /vendor-bills/new?mode=manual   → empty form → fill → save
  *
- * Key design decisions:
- *   - Full-page layout gives ample room for line-items table
- *   - Number inputs hide browser spin buttons via CSS
- *   - Long match-reason text shown in Tooltip, not inline
- *   - Confidence badge uses colour-coded system (green ≥85, yellow 50-84, red <50)
- *   - Upload area clearly warns: one vendor, one batch of related files per upload
+ * Refactored:
+ *   - Bill Type simplified to 3 options (operational, service_fee, pass_through)
+ *   - Cost Type simplified to 5 options (removed deposit/deposit_refund)
+ *   - Government vendor auto-detection: auto-sets billType to pass_through
+ *   - Dual-Currency section only visible for pass_through bills
+ *   - Country Code uses CountrySelect component
+ *   - Items total auto-syncs to header with mismatch warning
  */
 import Layout from "@/components/Layout";
 import CurrencySelect from "@/components/CurrencySelect";
+import CountrySelect from "@/components/CountrySelect";
 import { DatePicker, MonthPicker } from "@/components/DatePicker";
 import { formatDate, formatAmount } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
@@ -35,7 +37,7 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Upload, Check, X, Loader2, Plus,
-  DollarSign, FileText, Users, Info, AlertTriangle, FileUp, Paperclip,
+  DollarSign, FileText, Users, Info, AlertTriangle, FileUp, Paperclip, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -46,8 +48,10 @@ const categoryKeys = [
   "bank_charges", "consulting", "equipment", "travel", "marketing",
   "penalty", "late_payment_fee", "other",
 ];
+
+/** Simplified Cost Type: removed deposit/deposit_refund (historical legacy from invoice module) */
 const itemTypeKeys = [
-  "employment_cost", "service_fee", "visa_fee", "equipment_purchase", "deposit", "deposit_refund", "other",
+  "employment_cost", "service_fee", "visa_fee", "equipment_purchase", "other",
 ];
 
 /* ─── Types ─── */
@@ -96,16 +100,62 @@ function OverallConfidenceBanner({ cv }: { cv: any }) {
 }
 
 /* ========== Bill Form Fields ========== */
-function BillFormFields({ bill, onChange, vendors }: {
-  bill: any; onChange: (b: any) => void; vendors: any[];
+function BillFormFields({ bill, onChange, vendors, items }: {
+  bill: any; onChange: (b: any) => void; vendors: any[]; items: LineItem[];
 }) {
   const set = (key: string, val: any) => onChange({ ...bill, [key]: val });
+
+  // Determine if the selected vendor is a government vendor
+  const selectedVendor = useMemo(() => {
+    if (!bill.vendorId) return null;
+    return vendors.find((v: any) => v.id.toString() === bill.vendorId.toString()) || null;
+  }, [bill.vendorId, vendors]);
+
+  const isGovVendor = selectedVendor?.vendorType === "government";
+  const isPassThrough = bill.billType === "pass_through";
+
+  // Auto-set billType and countryCode when a government vendor is selected
+  useEffect(() => {
+    if (isGovVendor) {
+      const updates: any = {};
+      if (bill.billType !== "pass_through") {
+        updates.billType = "pass_through";
+      }
+      // Auto-fill countryCode from vendor's country
+      if (selectedVendor?.country && !bill.countryCode) {
+        updates.countryCode = selectedVendor.country;
+      }
+      if (Object.keys(updates).length > 0) {
+        onChange({ ...bill, ...updates });
+      }
+    }
+  }, [isGovVendor, selectedVendor]);
+
+  // Calculate items total for mismatch warning
+  const itemsTotal = useMemo(() => {
+    return items.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
+  }, [items]);
+
+  const headerSubtotal = parseFloat(bill.subtotal) || 0;
+  const hasMismatch = items.length > 0 && itemsTotal > 0 && Math.abs(itemsTotal - headerSubtotal) > 0.01;
+
+  function syncItemsToHeader() {
+    const tax = parseFloat(bill.tax) || 0;
+    onChange({
+      ...bill,
+      subtotal: itemsTotal.toFixed(2),
+      totalAmount: (itemsTotal + tax).toFixed(2),
+    });
+    toast.success("Header amounts synced from line items");
+  }
+
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold">Vendor Bills</CardTitle>
+        <CardTitle className="text-sm font-semibold">Vendor Bill Details</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* ── Row 1: Core fields ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="col-span-1">
             <Label className="text-xs">Vendor *</Label>
@@ -113,7 +163,14 @@ function BillFormFields({ bill, onChange, vendors }: {
               <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Select Vendor" /></SelectTrigger>
               <SelectContent>
                 {vendors.map((v: any) => (
-                  <SelectItem key={v.id} value={v.id.toString()}>{v.name}</SelectItem>
+                  <SelectItem key={v.id} value={v.id.toString()}>
+                    <span className="flex items-center gap-1.5">
+                      {v.name}
+                      {v.vendorType === "government" && (
+                        <Badge variant="outline" className="bg-red-500/15 text-red-600 border-red-500/30 text-[9px] px-1 py-0 ml-1">Gov</Badge>
+                      )}
+                    </span>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -123,21 +180,36 @@ function BillFormFields({ bill, onChange, vendors }: {
             <Input value={bill.billNumber || ""} onChange={(e) => set("billNumber", e.target.value)} className="h-8 text-sm" />
           </div>
           <div className="col-span-1">
-            <Label className="text-xs">Bill Type</Label>
-            <Select value={bill.billType || "operational"} onValueChange={(v) => set("billType", v)}>
-              <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="operational">Operational</SelectItem>
-                <SelectItem value="service_fee">Service Fee</SelectItem>
-                <SelectItem value="pass_through">Pass-through (Gov)</SelectItem>
-                <SelectItem value="bank_charge">Bank Charge</SelectItem>
-                <SelectItem value="deposit">Deposit</SelectItem>
-                <SelectItem value="deposit_refund">Deposit Refund</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label className="text-xs">Service Month</Label>
+            <MonthPicker value={bill.billMonth || ""} onChange={(v: string) => set("billMonth", v)} placeholder="Select service month" className="h-8 text-sm" />
           </div>
           <div className="col-span-1">
-            <Label className="text-xs">All Categories</Label>
+            <Label className="text-xs">Bill Date</Label>
+            <DatePicker value={bill.billDate || ""} onChange={(d: string) => set("billDate", d)} placeholder="Select bill date" />
+          </div>
+        </div>
+
+        {/* ── Row 2: Bill Type + Category + Currency ── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="col-span-1">
+            <Label className="text-xs">Bill Type</Label>
+            {isGovVendor ? (
+              <div className="h-8 flex items-center px-3 text-sm bg-muted rounded-md border">
+                <Badge variant="outline" className="bg-red-500/15 text-red-600 border-red-500/30 text-xs">Pass-through (Gov)</Badge>
+              </div>
+            ) : (
+              <Select value={bill.billType || "operational"} onValueChange={(v) => set("billType", v)}>
+                <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="operational">Operational</SelectItem>
+                  <SelectItem value="service_fee">Service Fee</SelectItem>
+                  <SelectItem value="pass_through">Pass-through (Gov)</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+          <div className="col-span-1">
+            <Label className="text-xs">Category</Label>
             <Select value={bill.category || "other"} onValueChange={(v) => set("category", v)}>
               <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -147,29 +219,26 @@ function BillFormFields({ bill, onChange, vendors }: {
               </SelectContent>
             </Select>
           </div>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div>
-            <Label className="text-xs">Service Month</Label>
-            <MonthPicker value={bill.billMonth || ""} onChange={(v: string) => set("billMonth", v)} placeholder="Select service month" className="h-8 text-sm" />
-          </div>
-          <div>
-            <Label className="text-xs">Bill Date</Label>
-            <DatePicker value={bill.billDate || ""} onChange={(d: string) => set("billDate", d)} placeholder="Select bill date" />
-          </div>
-          <div>
-            <Label className="text-xs">Due Date</Label>
-            <DatePicker value={bill.dueDate || ""} onChange={(d: string) => set("dueDate", d)} placeholder="Select due date" />
-          </div>
-          <div>
+          <div className="col-span-1">
             <Label className="text-xs">Currency</Label>
             <CurrencySelect value={bill.currency || "USD"} onValueChange={(v) => set("currency", v)} />
           </div>
+          <div className="col-span-1">
+            <Label className="text-xs">Due Date</Label>
+            <DatePicker value={bill.dueDate || ""} onChange={(d: string) => set("dueDate", d)} placeholder="Select due date" />
+          </div>
         </div>
+
+        {/* ── Row 3: Amounts + Mismatch Warning ── */}
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <Label className="text-xs">Subtotal</Label>
-            <Input type="number" step="0.01" value={bill.subtotal || ""} onChange={(e) => set("subtotal", e.target.value)} className={`h-8 text-sm ${noSpin}`} />
+            <Label className="text-xs flex items-center gap-1.5">
+              Subtotal
+              {hasMismatch && (
+                <span className="text-amber-600 text-[10px]">(Items: {itemsTotal.toFixed(2)})</span>
+              )}
+            </Label>
+            <Input type="number" step="0.01" value={bill.subtotal || ""} onChange={(e) => set("subtotal", e.target.value)} className={`h-8 text-sm ${noSpin} ${hasMismatch ? "border-amber-400" : ""}`} />
           </div>
           <div>
             <Label className="text-xs">Tax</Label>
@@ -180,36 +249,73 @@ function BillFormFields({ bill, onChange, vendors }: {
             <Input type="number" step="0.01" value={bill.totalAmount || ""} onChange={(e) => set("totalAmount", e.target.value)} className={`h-8 text-sm font-medium ${noSpin}`} />
           </div>
         </div>
-        {/* ─── Dual-Currency Tracking (for Government / Pass-through bills) ─── */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-3 rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20">
-          <div className="col-span-full">
-            <p className="text-xs font-semibold text-muted-foreground">Dual-Currency Tracking {bill.billType === 'pass_through' && <span className="text-red-500">*</span>}</p>
+
+        {/* ── Mismatch Warning Banner ── */}
+        {hasMismatch && (
+          <div className="flex items-center justify-between p-2.5 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/20">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600" />
+              <span className="text-xs text-amber-700 dark:text-amber-400">
+                Line items total ({itemsTotal.toFixed(2)}) does not match header subtotal ({headerSubtotal.toFixed(2)}).
+              </span>
+            </div>
+            <Button variant="outline" size="sm" className="h-7 text-xs" onClick={syncItemsToHeader}>
+              <RefreshCw className="w-3 h-3 mr-1" />Sync to Header
+            </Button>
           </div>
-          <div>
-            <Label className="text-xs">Local Amount</Label>
-            <Input type="number" step="0.01" value={bill.localAmount || ""} onChange={(e) => set("localAmount", e.target.value)} className={`h-8 text-sm ${noSpin}`} placeholder="e.g. 50000" />
+        )}
+
+        {/* ── Government vendor hint ── */}
+        {isGovVendor && (
+          <div className="flex items-center gap-2 p-2.5 rounded-lg border border-dashed border-red-300 bg-red-50 dark:bg-red-950/20">
+            <Info className="w-4 h-4 text-red-500 flex-shrink-0" />
+            <p className="text-xs text-red-600 dark:text-red-400">
+              Government vendor detected — Bill Type is locked to Pass-through. Dual-Currency Tracking fields are required below.
+            </p>
           </div>
-          <div>
-            <Label className="text-xs">Local Currency</Label>
-            <CurrencySelect value={bill.localCurrency || ""} onValueChange={(v) => set("localCurrency", v)} />
+        )}
+
+        {/* ── Dual-Currency Tracking (only for pass_through) ── */}
+        {isPassThrough && (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-3 rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20">
+            <div className="col-span-full">
+              <p className="text-xs font-semibold text-muted-foreground">
+                Dual-Currency Tracking <span className="text-red-500">* Required for Pass-through</span>
+              </p>
+            </div>
+            <div>
+              <Label className="text-xs">Local Amount *</Label>
+              <Input type="number" step="0.01" value={bill.localAmount || ""} onChange={(e) => set("localAmount", e.target.value)} className={`h-8 text-sm ${noSpin}`} placeholder="e.g. 50000" />
+            </div>
+            <div>
+              <Label className="text-xs">Local Currency *</Label>
+              <CurrencySelect value={bill.localCurrency || ""} onValueChange={(v) => set("localCurrency", v)} />
+            </div>
+            <div>
+              <Label className="text-xs">Settlement Amount (USD) *</Label>
+              <Input type="number" step="0.01" value={bill.settlementAmountUsd || ""} onChange={(e) => set("settlementAmountUsd", e.target.value)} className={`h-8 text-sm ${noSpin}`} placeholder="Actual USD paid" />
+            </div>
+            <div>
+              <Label className="text-xs">FX Rate (Actual)</Label>
+              <Input type="number" step="0.000001" value={bill.fxRateActual || ""} onChange={(e) => set("fxRateActual", e.target.value)} className={`h-8 text-sm ${noSpin}`} placeholder="e.g. 1.0850" />
+            </div>
+            <div>
+              <Label className="text-xs">Country Code *</Label>
+              <CountrySelect
+                value={bill.countryCode || ""}
+                onValueChange={(v) => set("countryCode", v)}
+                scope="all"
+                placeholder="Select country"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Payroll Month</Label>
+              <MonthPicker value={bill.payrollMonth || ""} onChange={(v: string) => set("payrollMonth", v)} placeholder="Select payroll month" className="h-8 text-sm" />
+            </div>
           </div>
-          <div>
-            <Label className="text-xs">Settlement Amount (USD)</Label>
-            <Input type="number" step="0.01" value={bill.settlementAmountUsd || ""} onChange={(e) => set("settlementAmountUsd", e.target.value)} className={`h-8 text-sm ${noSpin}`} placeholder="Actual USD paid" />
-          </div>
-          <div>
-            <Label className="text-xs">FX Rate (Actual)</Label>
-            <Input type="number" step="0.000001" value={bill.fxRateActual || ""} onChange={(e) => set("fxRateActual", e.target.value)} className={`h-8 text-sm ${noSpin}`} placeholder="e.g. 1.0850" />
-          </div>
-          <div>
-            <Label className="text-xs">Country Code</Label>
-            <Input value={bill.countryCode || ""} onChange={(e) => set("countryCode", e.target.value)} className="h-8 text-sm" placeholder="e.g. DE, JP" />
-          </div>
-          <div>
-            <Label className="text-xs">Payroll Month</Label>
-            <MonthPicker value={bill.payrollMonth || ""} onChange={(v: string) => set("payrollMonth", v)} placeholder="Select payroll month" className="h-8 text-sm" />
-          </div>
-        </div>
+        )}
+
+        {/* ── Description ── */}
         <div>
           <Label className="text-xs">Description</Label>
           <Textarea value={bill.description || ""} onChange={(e) => set("description", e.target.value)} rows={2} className="text-sm" />
@@ -250,6 +356,11 @@ function LineItemsEditor({ items, onChange, showConfidence = false }: {
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <FileText className="w-4 h-4" /> Line Items ({items.length})
+            {items.length > 0 && (
+              <span className="text-xs font-normal text-muted-foreground ml-2">
+                Total: {total.toFixed(2)}
+              </span>
+            )}
           </CardTitle>
           <Button variant="outline" size="sm" onClick={addItem}>
             <Plus className="w-3.5 h-3.5 mr-1" /> Add Line Item
@@ -526,7 +637,6 @@ function AIUploadStep({ onParsed }: {
       return;
     }
     setPendingFiles((prev) => [...prev, ...files]);
-    // Reset input so same file can be re-selected
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
@@ -536,7 +646,6 @@ function AIUploadStep({ onParsed }: {
 
     setIsParsing(true);
     try {
-      // Step 1: Upload all files to OSS
       const uploadedFiles: Array<{ fileUrl: string; fileKey: string; fileName: string; fileType: "invoice" | "payment_receipt" | "statement" | "other" }> = [];
       for (const pf of pendingFiles) {
         const reader = new FileReader();
@@ -561,7 +670,6 @@ function AIUploadStep({ onParsed }: {
         });
       }
 
-      // Step 2: AI parse
       const result = await parseMutation.mutateAsync({
         files: uploadedFiles,
         serviceMonth,
@@ -895,8 +1003,8 @@ export default function AnalyzeBill() {
               </div>
             )}
 
-            {/* Bill Details */}
-            <BillFormFields bill={bill} onChange={setBill} vendors={vendors} />
+            {/* Bill Details — now passes items for mismatch detection */}
+            <BillFormFields bill={bill} onChange={setBill} vendors={vendors} items={items} />
 
             {/* Payment Info (AI detected) */}
             <PaymentInfoCard payment={payment} onChange={setPayment} onRemove={() => setPayment(null)} />

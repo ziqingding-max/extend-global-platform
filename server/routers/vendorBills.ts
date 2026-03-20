@@ -234,6 +234,27 @@ export const vendorBillsRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Vendor bill not found" });
       }
 
+      // Government vendor: enforce pass_through billType and require dual-currency fields
+      const effectiveVendorId = data.vendorId || existing.vendorId;
+      const vendor = await getVendorById(effectiveVendorId);
+      if (vendor?.vendorType === "government") {
+        const effectiveBillType = data.billType || existing.billType;
+        if (effectiveBillType !== "pass_through") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Government vendor bills must use 'pass_through' bill type" });
+        }
+        // Check dual-currency fields: use updated value if provided, otherwise fall back to existing
+        const effectiveLocalAmount = data.localAmount !== undefined ? data.localAmount : existing.localAmount;
+        const effectiveLocalCurrency = data.localCurrency !== undefined ? data.localCurrency : existing.localCurrency;
+        const effectiveSettlementUsd = data.settlementAmountUsd !== undefined ? data.settlementAmountUsd : existing.settlementAmountUsd;
+        const effectiveCountryCode = data.countryCode !== undefined ? data.countryCode : existing.countryCode;
+        if (!effectiveLocalAmount || !effectiveLocalCurrency || !effectiveSettlementUsd) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Government vendor bills require localAmount, localCurrency, and settlementAmountUsd" });
+        }
+        if (!effectiveCountryCode) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Government vendor bills require a countryCode" });
+        }
+      }
+
       // Convert date strings
       const updateValues: any = { ...data };
       if (data.billDate) updateValues.billDate = new Date(data.billDate);

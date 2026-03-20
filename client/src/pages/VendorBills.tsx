@@ -439,7 +439,7 @@ function VendorBillDetail() {
   const exceedsRevenue = allocEmployeeId && revTotal > 0 && allocAmtNum > revTotal;
 
   const itemTypeKeys = [
-    "employment_cost", "service_fee", "visa_fee", "equipment_purchase", "deposit", "deposit_refund", "other",
+    "employment_cost", "service_fee", "visa_fee", "equipment_purchase", "other",
   ];
 
   return (
@@ -690,9 +690,6 @@ function VendorBillDetail() {
                       <SelectItem value="operational">Operational</SelectItem>
                       <SelectItem value="service_fee">Service Fee</SelectItem>
                       <SelectItem value="pass_through">Pass-through (Gov)</SelectItem>
-                      <SelectItem value="bank_charge">Bank Charge</SelectItem>
-                      <SelectItem value="deposit">Deposit</SelectItem>
-                      <SelectItem value="deposit_refund">Deposit Refund</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

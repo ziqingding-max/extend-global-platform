@@ -10,6 +10,7 @@ import {
   updateVendorBill,
   listVendors,
   createVendor,
+  getVendorById,
   createBillInvoiceAllocation,
   recalcBillAllocation,
   recalcInvoiceCostAllocation,
@@ -583,6 +584,20 @@ CONFIDENCE SCORING RULES:
     )
     .mutation(async ({ input, ctx }) => {
       const { items, allocations, paymentInfo, ...billData } = input;
+
+      // Government vendor: enforce pass_through billType and require dual-currency fields
+      const vendor = await getVendorById(billData.vendorId);
+      if (vendor?.vendorType === "government") {
+        if (billData.billType !== "pass_through") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Government vendor bills must use 'pass_through' bill type" });
+        }
+        if (!billData.localAmount || !billData.localCurrency || !billData.settlementAmountUsd) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Government vendor bills require localAmount, localCurrency, and settlementAmountUsd" });
+        }
+        if (!billData.countryCode) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Government vendor bills require a countryCode" });
+        }
+      }
 
       // Create the vendor bill
       const billValues: any = {
