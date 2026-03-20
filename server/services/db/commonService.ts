@@ -1,5 +1,5 @@
 
-import { eq, desc, count, like, sql, and } from "drizzle-orm";
+import { eq, desc, count, like, sql, and, inArray, isNotNull, gte, lt } from "drizzle-orm";
 import { 
   countriesConfig, InsertCountryConfig,
   systemConfig, InsertSystemConfig,
@@ -12,7 +12,16 @@ import {
   leadChangeLogs, InsertLeadChangeLog
 } from "../../../drizzle/schema";
 import { getDb } from "./connection";
-import { customers, employees } from "../../../drizzle/schema";
+import {
+  customers,
+  employees,
+  channelPartners,
+  payrollRuns,
+  invoices,
+  adjustments,
+  leaveRecords,
+  employeeContracts,
+} from "../../../drizzle/schema";
 
 // COUNTRIES CONFIG
 export async function listCountriesConfig() {
@@ -173,27 +182,115 @@ export async function getDashboardStats() {
     newHiresThisMonth: 0,
     terminationsThisMonth: 0,
     newClientsThisMonth: 0,
+    // New fields for simplified dashboard
+    activePartners: 0,
+    activeCountries: 0,
+    onboardingEmployees: 0,
+    offboardingEmployees: 0,
+    overdueInvoiceAmount: "0",
+    expiringContracts30: 0,
   };
 
+  const now = new Date();
+  const currentMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  const nextMonthStart = now.getMonth() === 11
+    ? `${now.getFullYear() + 1}-01-01`
+    : `${now.getFullYear()}-${String(now.getMonth() + 2).padStart(2, "0")}-01`;
+  const todayStr = now.toISOString().slice(0, 10);
+  const futureDate30 = new Date(now);
+  futureDate30.setDate(futureDate30.getDate() + 30);
+  const futureDate30Str = futureDate30.toISOString().slice(0, 10);
+
   const [
-    custCount, empCount, activeEmpCount
+    custCount, empCount, activeEmpCount,
+    partnerCount, countryCount,
+    pendingPayrollCount, draftInvoiceCount,
+    pendingAdjCount, pendingLeaveCount,
+    onboardingCount, offboardingCount,
+    overdueResult,
+    newHiresCount, terminationsCount, newClientsCount,
+    expiringContractsCount,
   ] = await Promise.all([
     db.select({ count: count() }).from(customers),
     db.select({ count: count() }).from(employees),
-    db.select({ count: count() }).from(employees).where(eq(employees.status, 'active'))
+    db.select({ count: count() }).from(employees).where(eq(employees.status, 'active')),
+    // Active partners (excluding internal EG-DIRECT)
+    db.select({ count: count() }).from(channelPartners).where(
+      and(eq(channelPartners.status, 'active'), eq(channelPartners.isInternal, false))
+    ),
+    // Active countries (distinct countries with active employees)
+    db.select({ count: sql<number>`COUNT(DISTINCT ${employees.country})` }).from(employees)
+      .where(inArray(employees.status, ['active', 'on_leave'])),
+    // Pending payrolls
+    db.select({ count: count() }).from(payrollRuns)
+      .where(eq(payrollRuns.status, 'pending_approval')),
+    // Draft invoices
+    db.select({ count: count() }).from(invoices)
+      .where(eq(invoices.status, 'draft')),
+    // Pending adjustments
+    db.select({ count: count() }).from(adjustments)
+      .where(eq(adjustments.status, 'submitted')),
+    // Pending leave requests
+    db.select({ count: count() }).from(leaveRecords)
+      .where(eq(leaveRecords.status, 'submitted')),
+    // Onboarding employees
+    db.select({ count: count() }).from(employees)
+      .where(inArray(employees.status, ['pending_review', 'documents_incomplete', 'onboarding', 'contract_signed'])),
+    // Offboarding employees
+    db.select({ count: count() }).from(employees)
+      .where(eq(employees.status, 'offboarding')),
+    // Overdue invoice amount
+    db.select({ total: sql<string>`COALESCE(SUM(${invoices.total}), 0)` }).from(invoices)
+      .where(eq(invoices.status, 'overdue')),
+    // New hires this month
+    db.select({ count: count() }).from(employees)
+      .where(and(
+        sql`${employees.startDate} >= ${currentMonthStart}`,
+        sql`${employees.startDate} < ${nextMonthStart}`,
+      )),
+    // Terminations this month
+    db.select({ count: count() }).from(employees)
+      .where(and(
+        eq(employees.status, 'terminated'),
+        sql`${employees.updatedAt} >= ${currentMonthStart}`,
+        sql`${employees.updatedAt} < ${nextMonthStart}`,
+      )),
+    // New clients this month
+    db.select({ count: count() }).from(customers)
+      .where(and(
+        sql`${customers.createdAt} >= ${currentMonthStart}`,
+        sql`${customers.createdAt} < ${nextMonthStart}`,
+      )),
+    // Expiring contracts within 30 days
+    db.select({ count: count() }).from(employeeContracts)
+      .innerJoin(employees, eq(employeeContracts.employeeId, employees.id))
+      .where(and(
+        isNotNull(employeeContracts.expiryDate),
+        sql`${employeeContracts.expiryDate} >= ${todayStr}`,
+        sql`${employeeContracts.expiryDate} <= ${futureDate30Str}`,
+        eq(employeeContracts.status, 'signed'),
+        inArray(employees.status, ['active', 'on_leave']),
+      )),
   ]);
 
   return {
     totalCustomers: custCount[0]?.count || 0,
     totalEmployees: empCount[0]?.count || 0,
     activeEmployees: activeEmpCount[0]?.count || 0,
-    pendingPayrolls: 0, // Placeholder
-    pendingInvoices: 0, // Placeholder
-    pendingAdjustments: 0, // Placeholder
-    pendingLeaves: 0, // Placeholder
-    newHiresThisMonth: 0, // Placeholder
-    terminationsThisMonth: 0, // Placeholder
-    newClientsThisMonth: 0, // Placeholder
+    pendingPayrolls: pendingPayrollCount[0]?.count || 0,
+    pendingInvoices: draftInvoiceCount[0]?.count || 0,
+    pendingAdjustments: pendingAdjCount[0]?.count || 0,
+    pendingLeaves: pendingLeaveCount[0]?.count || 0,
+    newHiresThisMonth: newHiresCount[0]?.count || 0,
+    terminationsThisMonth: terminationsCount[0]?.count || 0,
+    newClientsThisMonth: newClientsCount[0]?.count || 0,
+    // New fields for simplified dashboard
+    activePartners: partnerCount[0]?.count || 0,
+    activeCountries: countryCount[0]?.count || 0,
+    onboardingEmployees: onboardingCount[0]?.count || 0,
+    offboardingEmployees: offboardingCount[0]?.count || 0,
+    overdueInvoiceAmount: overdueResult[0]?.total ?? "0",
+    expiringContracts30: expiringContractsCount[0]?.count || 0,
   };
 }
 
