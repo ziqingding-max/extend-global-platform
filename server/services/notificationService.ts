@@ -1,6 +1,6 @@
 
 import { getDb } from "../db";
-import { notifications, systemSettings, users, customerContacts, workerUsers } from "../../drizzle/schema";
+import { notifications, systemSettings, users, customerContacts, workerUsers, channelPartnerContacts, channelPartners, customers } from "../../drizzle/schema";
 import { eq, and, like, inArray, or } from "drizzle-orm";
 import { generateInvoicePdf } from "./invoicePdfService";
 import { TRPCError } from "@trpc/server";
@@ -14,16 +14,149 @@ import {
   type EmailAudience,
 } from "./emailLayout";
 
+// ============================================================================
+// Types
+// ============================================================================
+
 export type NotificationEvent = {
   type: string;
-  customerId?: number; // Required for client-side notifications
+  customerId?: number;       // Required for client-side notifications
+  channelPartnerId?: number; // Required for CP-side notifications
   data: Record<string, any>;
 };
+
+type ResolvedRecipient = {
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+  portal: "admin" | "client" | "worker" | "cp";
+  language: string;
+};
+
+// ============================================================================
+// CP Branding Resolution (for white-label email layout)
+// ============================================================================
+
+interface CpBrandingInfo {
+  companyName: string;
+  logoUrl: string | null;
+  logoFileKey: string | null;
+  primaryColor: string;
+  secondaryColor: string | null;
+  subdomain: string | null;
+}
+
+async function resolveCpBranding(channelPartnerId: number): Promise<CpBrandingInfo | null> {
+  const db = getDb();
+  if (!db) return null;
+
+  const cp = await db.query.channelPartners.findFirst({
+    where: eq(channelPartners.id, channelPartnerId),
+  });
+
+  if (!cp) return null;
+
+  return {
+    companyName: cp.cpBillingEntityName || cp.companyName,
+    logoUrl: cp.logoUrl,
+    logoFileKey: cp.logoFileKey,
+    primaryColor: cp.brandPrimaryColor || "#1a73e8",
+    secondaryColor: cp.brandSecondaryColor,
+    subdomain: cp.subdomain,
+  };
+}
+
+// ============================================================================
+// CP White-Label Email Layout Renderer
+// ============================================================================
+
+async function getCpLogoHtml(branding: CpBrandingInfo): Promise<string> {
+  let logoSrc: string | null = null;
+
+  if (branding.logoFileKey) {
+    try {
+      const { storageGet } = await import("../storage");
+      const { url } = await storageGet(branding.logoFileKey);
+      logoSrc = url;
+    } catch (err) {
+      console.warn("[Notification] Failed to get signed CP logo URL:", err);
+    }
+  } else if (branding.logoUrl) {
+    logoSrc = branding.logoUrl;
+  }
+
+  if (logoSrc) {
+    return `<img src="${logoSrc}" alt="${branding.companyName}" width="200" style="display:block;margin:0 auto;max-width:200px;height:auto;" />`;
+  }
+
+  return `<span style="color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:1px;">${branding.companyName}</span>`;
+}
+
+async function renderCpWhitelabelLayout(
+  bodyHtml: string,
+  branding: CpBrandingInfo,
+  options: { preheader?: string } = {}
+): Promise<string> {
+  const primaryColor = branding.primaryColor;
+  const logoHtml = await getCpLogoHtml(branding);
+  const preheaderHtml = options.preheader
+    ? `<div style="display:none;font-size:1px;color:#f4f5f7;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${options.preheader}</div>`
+    : "";
+
+  const year = new Date().getFullYear();
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<title>${branding.companyName}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f5f7;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;-webkit-font-smoothing:antialiased;">
+${preheaderHtml}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f5f7;">
+<tr><td align="center" style="padding:24px 16px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+<!-- Header with CP branding -->
+<tr><td style="background-color:${primaryColor};padding:24px 32px;border-radius:8px 8px 0 0;text-align:center;">
+${logoHtml}
+</td></tr>
+<!-- Body -->
+<tr><td style="background-color:#ffffff;padding:32px;border-radius:0 0 8px 8px;color:#1a1a1a;font-size:15px;line-height:1.65;">
+${bodyHtml}
+</td></tr>
+<!-- Footer -->
+<tr><td style="padding:20px 32px;text-align:center;">
+<p style="margin:0 0 6px 0;font-size:12px;color:#888888;line-height:1.5;">
+This email was sent by ${branding.companyName}.<br/>
+If you have questions, please contact your account manager.
+</p>
+<p style="margin:0;font-size:11px;color:#aaaaaa;">&copy; ${year} ${branding.companyName}. All rights reserved.</p>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+}
+
+// ============================================================================
+// Notification Service
+// ============================================================================
 
 export const notificationService = {
   /**
    * Main entry point to send notifications.
    * Handles configuration lookup, recipient resolution, template rendering, and multi-channel delivery.
+   * 
+   * Supports B2B2B routing:
+   * - EG → Admin (Layer 0): EG brand, admin audience
+   * - EG → CP (Layer 1): EG brand, cp audience
+   * - CP → Client (Layer 2): CP white-label brand, client audience
+   * - EG → Direct Client (Layer 3): EG brand, client audience
+   * - EG → Worker (Layer 4): EG brand, worker audience (delegation tone)
    */
   async send(event: NotificationEvent) {
     const db = getDb();
@@ -40,20 +173,40 @@ export const notificationService = {
         return;
       }
 
-      console.log(`[Notification] Processing ${event.type} for customer ${event.customerId || 'N/A'}`);
+      console.log(`[Notification] Processing ${event.type} | customer=${event.customerId || 'N/A'} | cp=${event.channelPartnerId || 'N/A'}`);
 
-      // 2. Resolve recipients
-      const recipients = await this.resolveRecipients(config.recipients, event.customerId, event.data.workerId);
+      // 2. Resolve recipients (now supports cp:* prefix)
+      const recipients = await this.resolveRecipients(
+        config.recipients,
+        event.customerId,
+        event.data.workerId,
+        event.channelPartnerId
+      );
       if (recipients.length === 0) {
         console.warn(`[Notification] No recipients found for ${event.type}`);
         return;
       }
 
-      // 3. Prepare attachments (if any)
+      // 3. Resolve CP branding if needed for white-label layout
+      let cpBranding: CpBrandingInfo | null = null;
+      if (config.emailLayout === "cp_whitelabel" && event.channelPartnerId) {
+        cpBranding = await resolveCpBranding(event.channelPartnerId);
+        if (!cpBranding) {
+          console.warn(`[Notification] CP branding not found for CP #${event.channelPartnerId}, falling back to EG layout`);
+        }
+      }
+
+      // 4. Prepare attachments (if any)
       const attachments: { filename: string; content: Buffer; contentType: string }[] = [];
       
       // Special handling for invoice PDFs
-      if ((event.type === "invoice_sent" || event.type === "invoice_overdue") && event.data.invoiceId) {
+      const invoiceTypes = [
+        "invoice_sent_to_cp", "invoice_overdue_to_cp",
+        "invoice_sent_to_direct_client", "invoice_overdue_to_direct_client",
+        // Legacy event names for backward compatibility
+        "invoice_sent", "invoice_overdue"
+      ];
+      if (invoiceTypes.includes(event.type) && event.data.invoiceId) {
         try {
           const pdfBuffer = await generateInvoicePdf({ invoiceId: event.data.invoiceId });
           attachments.push({
@@ -66,20 +219,37 @@ export const notificationService = {
         }
       }
 
-      // 4. Send to each recipient
+      // 5. Send to each recipient
       for (const recipient of recipients) {
         const lang = (recipient.language as "en" | "zh") || "en";
         const template = config.templates[lang] || config.templates.en;
 
-        // Render content — substitute variables, expand custom tags, wrap in branded layout
-        const emailSubject = this.renderTemplate(template.emailSubject, event.data);
-        const rawBody = this.renderTemplate(template.emailBody, { ...event.data, contactName: recipient.name, workerName: recipient.name });
+        // Merge event data with recipient-specific data
+        const mergedData = {
+          ...event.data,
+          contactName: recipient.name,
+          workerName: recipient.name,
+        };
+
+        // Render content — substitute variables, expand custom tags
+        const emailSubject = this.renderTemplate(template.emailSubject, mergedData);
+        const rawBody = this.renderTemplate(template.emailBody, mergedData);
         const processedBody = this.processCustomTags(rawBody);
-        const emailBody = renderEmailLayout(processedBody, {
-          audience: (config.audience || "admin") as EmailAudience,
-          preheader: emailSubject,
-        });
-        const inAppMessage = this.renderTemplate(template.inAppMessage, event.data);
+
+        // Choose layout renderer based on config
+        let emailBody: string;
+        if (config.emailLayout === "cp_whitelabel" && cpBranding) {
+          emailBody = await renderCpWhitelabelLayout(processedBody, cpBranding, {
+            preheader: emailSubject,
+          });
+        } else {
+          emailBody = renderEmailLayout(processedBody, {
+            audience: (config.audience === "cp" ? "client" : config.audience || "admin") as EmailAudience,
+            preheader: emailSubject,
+          });
+        }
+
+        const inAppMessage = this.renderTemplate(template.inAppMessage, mergedData);
 
         // Channel: In-App
         if (config.channels.includes("in_app")) {
@@ -88,21 +258,26 @@ export const notificationService = {
             targetUserId: recipient.id,
             targetRole: recipient.role,
             targetCustomerId: recipient.portal === "client" ? event.customerId : undefined,
+            targetChannelPartnerId: recipient.portal === "cp" ? event.channelPartnerId : undefined,
             type: event.type,
-            title: inAppMessage, // Using the short message as title for now
-            data: JSON.stringify(event.data), // Fix: data should be stringified JSON
+            title: inAppMessage,
+            data: JSON.stringify(event.data),
             isRead: false,
           });
         }
 
         // Channel: Email
         if (config.channels.includes("email") && recipient.email) {
-          // Use internal sendRawEmail instead of imported sendEmail
+          const fromName = (config.emailLayout === "cp_whitelabel" && cpBranding)
+            ? cpBranding.companyName
+            : "EG Notification";
+
           await this.sendRawEmail({
             to: recipient.email,
             subject: emailSubject,
             html: emailBody,
-            attachments
+            attachments,
+            fromName,
           });
         }
       }
@@ -117,7 +292,7 @@ export const notificationService = {
     const db = getDb();
     if (!db) return null;
 
-    // Try to get from DB first
+    // Try to get from DB first (admin-configurable overrides)
     const setting = await db.query.systemSettings.findFirst({
       where: eq(systemSettings.key, "notification_rules")
     });
@@ -138,21 +313,28 @@ export const notificationService = {
     return DEFAULT_RULES[type] || null;
   },
 
-  async resolveRecipients(recipientRules: string[], customerId?: number, workerId?: number) {
+  /**
+   * Resolve recipients from rule strings.
+   * 
+   * Supported prefixes:
+   * - "admin:<role>"    → Admin panel users matching role
+   * - "client:<role>"   → Customer contacts with portal role (requires customerId)
+   * - "worker:user"     → Worker user (requires workerId in data)
+   * - "cp:<role>"       → Channel Partner contacts with portal role (requires channelPartnerId)
+   */
+  async resolveRecipients(
+    recipientRules: string[],
+    customerId?: number,
+    workerId?: number,
+    channelPartnerId?: number
+  ): Promise<ResolvedRecipient[]> {
     const db = getDb();
     if (!db) return [];
 
-    const targets: Array<{
-      id: number;
-      email: string;
-      name: string;
-      role: string;
-      portal: "admin" | "client" | "worker";
-      language: string;
-    }> = [];
+    const targets: ResolvedRecipient[] = [];
 
     for (const rule of recipientRules) {
-      const [portal, role] = rule.split(":"); // e.g. "client:finance"
+      const [portal, role] = rule.split(":"); // e.g. "cp:finance"
 
       if (portal === "worker" && workerId) {
         // Find worker user
@@ -164,7 +346,7 @@ export const notificationService = {
           targets.push({
             id: worker.id,
             email: worker.email,
-            name: worker.email, // TODO: Join with contractors table to get name
+            name: worker.email, // TODO: Join with contractors/employees table to get name
             role: "user",
             portal: "worker",
             language: "en"
@@ -191,7 +373,7 @@ export const notificationService = {
         const contacts = await db.query.customerContacts.findMany({
           where: and(
             eq(customerContacts.customerId, customerId),
-            eq(customerContacts.portalRole, role as any), // portalRole is enum
+            eq(customerContacts.portalRole, role as any),
             eq(customerContacts.hasPortalAccess, true)
           )
         });
@@ -209,9 +391,9 @@ export const notificationService = {
             id: c.id,
             email: c.email,
             name: c.contactName,
-            role: "admin", // Fallback role
+            role: "admin",
             portal: "client" as const,
-            language: "en" // Contacts don't have language field yet, default to en
+            language: "en"
           })));
         } else {
           targets.push(...contacts.map((c: typeof customerContacts.$inferSelect) => ({
@@ -223,11 +405,48 @@ export const notificationService = {
             language: "en"
           })));
         }
+      } else if (portal === "cp" && channelPartnerId) {
+        // Find CP contacts with matching portal role
+        const cpContacts = await db.query.channelPartnerContacts.findMany({
+          where: and(
+            eq(channelPartnerContacts.channelPartnerId, channelPartnerId),
+            eq(channelPartnerContacts.portalRole, role as any),
+            eq(channelPartnerContacts.hasPortalAccess, true)
+          )
+        });
+
+        // Fallback: If no matching role found, try 'admin'
+        if (cpContacts.length === 0 && role !== "admin") {
+          const cpAdminContacts = await db.query.channelPartnerContacts.findMany({
+            where: and(
+              eq(channelPartnerContacts.channelPartnerId, channelPartnerId),
+              eq(channelPartnerContacts.portalRole, "admin"),
+              eq(channelPartnerContacts.hasPortalAccess, true)
+            )
+          });
+          targets.push(...cpAdminContacts.map((c: typeof channelPartnerContacts.$inferSelect) => ({
+            id: c.id,
+            email: c.email,
+            name: c.contactName,
+            role: "admin",
+            portal: "cp" as const,
+            language: "en"
+          })));
+        } else {
+          targets.push(...cpContacts.map((c: typeof channelPartnerContacts.$inferSelect) => ({
+            id: c.id,
+            email: c.email,
+            name: c.contactName,
+            role: role,
+            portal: "cp" as const,
+            language: "en"
+          })));
+        }
       }
     }
 
     // Dedup by email
-    const uniqueTargets = new Map();
+    const uniqueTargets = new Map<string, ResolvedRecipient>();
     for (const t of targets) {
       if (t.email) uniqueTargets.set(t.email, t);
     }
@@ -279,9 +498,38 @@ export const notificationService = {
     return html;
   },
 
+  /**
+   * Build the delegation statement for Worker emails.
+   * 
+   * Direct client: "We have been engaged by [Client Name] as the local delivery partner and Employer of Record (EOR) to provide employment services on their behalf."
+   * CP channel: "We have been engaged by [Client Name] and [CP Name] as the local delivery partner and Employer of Record (EOR) to provide employment services on their behalf."
+   */
+  buildDelegationStatement(clientName?: string, channelPartnerName?: string): string {
+    if (channelPartnerName && clientName) {
+      return `We have been engaged by <strong>${clientName}</strong> and <strong>${channelPartnerName}</strong> as the local delivery partner and Employer of Record (EOR) to provide employment services on their behalf.`;
+    } else if (clientName) {
+      return `We have been engaged by <strong>${clientName}</strong> as the local delivery partner and Employer of Record (EOR) to provide employment services on their behalf.`;
+    }
+    return "As your Employer of Record (EOR), we handle your employment administration, payroll, and compliance.";
+  },
+
+  buildDelegationStatementZh(clientName?: string, channelPartnerName?: string): string {
+    if (channelPartnerName && clientName) {
+      return `我们受 <strong>${clientName}</strong> 和 <strong>${channelPartnerName}</strong> 的委托，作为本地交付服务商和名义雇主（EOR），为您提供雇佣服务。`;
+    } else if (clientName) {
+      return `我们受 <strong>${clientName}</strong> 的委托，作为本地交付服务商和名义雇主（EOR），为您提供雇佣服务。`;
+    }
+    return "作为您的名义雇主（EOR），我们负责处理您的雇佣管理、薪资和合规事务。";
+  },
+
   // Internal mailer using nodemailer + Alibaba Cloud DirectMail SMTP
-  async sendRawEmail(payload: { to: string; subject: string; html: string; attachments?: any[] }) {
-    // Dynamic import to avoid circular dependency issues if any, though nodemailer is external
+  async sendRawEmail(payload: {
+    to: string;
+    subject: string;
+    html: string;
+    attachments?: any[];
+    fromName?: string;
+  }) {
     const nodemailer = (await import("nodemailer")).default;
     const { ENV } = await import("../_core/env");
 
@@ -300,8 +548,9 @@ export const notificationService = {
       },
     });
 
+    const fromName = payload.fromName || "EG Notification";
     await transporter.sendMail({
-      from: `EG Notification <${ENV.emailFrom}>`,
+      from: `${fromName} <${ENV.emailFrom}>`,
       to: payload.to,
       subject: payload.subject,
       html: payload.html,

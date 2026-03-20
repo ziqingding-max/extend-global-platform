@@ -15,7 +15,7 @@
  */
 
 import { getDb } from "./db/connection";
-import { workerUsers, contractors, employees, customers } from "../../drizzle/schema";
+import { workerUsers, contractors, employees, customers, channelPartners } from "../../drizzle/schema";
 import { eq, or } from "drizzle-orm";
 import crypto from "crypto";
 import { sendWorkerPortalInviteEmail } from "./authEmailService";
@@ -153,6 +153,22 @@ export async function provisionWorkerUser(input: ProvisionWorkerInput): Promise<
     const baseUrl = input.baseUrl || process.env.WORKER_PORTAL_URL || "https://worker.extendglobal.ai";
     const inviteUrl = `${baseUrl}/invite/${inviteToken}`;
 
+    // Look up client name and optional CP name for delegation statement
+    let clientName: string | undefined;
+    let channelPartnerName: string | undefined;
+    if (customerId) {
+      const [customer] = await db.select({
+        companyName: customers.companyName,
+        channelPartnerId: customers.channelPartnerId,
+      }).from(customers).where(eq(customers.id, customerId)).limit(1);
+      clientName = customer?.companyName || undefined;
+      if (customer?.channelPartnerId) {
+        const [cp] = await db.select({ companyName: channelPartners.companyName })
+          .from(channelPartners).where(eq(channelPartners.id, customer.channelPartnerId)).limit(1);
+        channelPartnerName = cp?.companyName || undefined;
+      }
+    }
+
     try {
       await sendWorkerPortalInviteEmail({
         to: email,
@@ -160,6 +176,8 @@ export async function provisionWorkerUser(input: ProvisionWorkerInput): Promise<
         companyName,
         workerType,
         inviteUrl,
+        clientName,
+        channelPartnerName,
       });
     } catch (err) {
       console.error("[WorkerProvisioning] Failed to send invite email:", err);
@@ -217,6 +235,27 @@ export async function resendWorkerInvite(workerUserId: number, baseUrl?: string)
     }
   }
 
+  // Look up client name and optional CP name for delegation statement
+  let clientName: string | undefined;
+  let channelPartnerName: string | undefined;
+  const lookupCustomerId = workerUser.contractorId
+    ? (await db.select({ customerId: contractors.customerId }).from(contractors).where(eq(contractors.id, workerUser.contractorId)).limit(1))[0]?.customerId
+    : workerUser.employeeId
+      ? (await db.select({ customerId: employees.customerId }).from(employees).where(eq(employees.id, workerUser.employeeId!)).limit(1))[0]?.customerId
+      : null;
+  if (lookupCustomerId) {
+    const [customer] = await db.select({
+      companyName: customers.companyName,
+      channelPartnerId: customers.channelPartnerId,
+    }).from(customers).where(eq(customers.id, lookupCustomerId)).limit(1);
+    clientName = customer?.companyName || undefined;
+    if (customer?.channelPartnerId) {
+      const [cp] = await db.select({ companyName: channelPartners.companyName })
+        .from(channelPartners).where(eq(channelPartners.id, customer.channelPartnerId)).limit(1);
+      channelPartnerName = cp?.companyName || undefined;
+    }
+  }
+
   const url = baseUrl || process.env.WORKER_PORTAL_URL || "https://worker.extendglobal.ai";
   const inviteUrl = `${url}/invite/${inviteToken}`;
 
@@ -226,5 +265,7 @@ export async function resendWorkerInvite(workerUserId: number, baseUrl?: string)
     companyName: companyName || "your company",
     workerType,
     inviteUrl,
+    clientName,
+    channelPartnerName,
   });
 }

@@ -510,6 +510,14 @@ export const customersRouter = router({
             .limit(1);
           const companyName = custRows[0]?.companyName || "Your Company";
 
+          // Check if this customer belongs to a CP (for white-label branding)
+          const custFullRows = await db
+            .select({ channelPartnerId: custTable.channelPartnerId })
+            .from(custTable)
+            .where(eqOp(custTable.id, contact.customerId))
+            .limit(1);
+          const channelPartnerId = custFullRows[0]?.channelPartnerId;
+
           const portalOrigin = process.env.PORTAL_APP_URL || `${ctx.req.protocol}://${ctx.req.get("host")}`;
           const inviteUrl = `${portalOrigin}/register?token=${inviteToken}`;
 
@@ -519,6 +527,7 @@ export const customersRouter = router({
             companyName,
             portalRole: input.portalRole,
             inviteUrl,
+            channelPartnerId: channelPartnerId ?? undefined,
           });
         } catch (err) {
           console.error("[Customers] Failed to send portal invite email:", err);
@@ -609,12 +618,22 @@ export const customersRouter = router({
 
         // Send email notification to the portal user
         try {
+          // Check if this customer belongs to a CP (for white-label branding)
+          const { customers: custTable2 } = await import("../../drizzle/schema");
+          const custFullRows2 = await db
+            .select({ channelPartnerId: custTable2.channelPartnerId })
+            .from(custTable2)
+            .where(eqOp(custTable2.id, contact.customerId))
+            .limit(1);
+          const channelPartnerId2 = custFullRows2[0]?.channelPartnerId;
+
           const loginUrl = process.env.PORTAL_APP_URL ? `${process.env.PORTAL_APP_URL}/login` : "https://app.extendglobal.ai/login";
           await sendPortalPasswordChangedEmail({
             to: contact.email,
             contactName: contact.contactName || "User",
             newPassword: input.newPassword,
             loginUrl,
+            channelPartnerId: channelPartnerId2 ?? undefined,
           });
         } catch (err) {
           console.error("[Customers] Failed to send portal password reset email:", err);

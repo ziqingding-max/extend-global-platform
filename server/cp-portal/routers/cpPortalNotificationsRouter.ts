@@ -1,24 +1,26 @@
 /**
- * Worker Notifications Router
+ * CP Portal Notifications Router
  *
- * Handles fetching notifications for workers.
+ * Handles in-app notifications for CP portal users.
+ * Notifications are scoped to the CP's channelPartnerId.
  */
 
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
-  workerRouter,
-  protectedWorkerProcedure,
-} from "../workerTrpc";
-import { getDb } from "../../services/db/connection";
+  cpPortalRouter,
+  protectedCpProcedure,
+} from "../cpPortalTrpc";
+import { getDb } from "../../db";
 import { notifications } from "../../../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 
-export const workerNotificationsRouter = workerRouter({
+export const cpPortalNotificationsRouter = cpPortalRouter({
   /**
-   * Get unread notifications
+   * Get unread notifications for the current CP user.
+   * Scoped to: targetPortal = "cp" AND targetChannelPartnerId = ctx.cpUser.channelPartnerId
    */
-  getUnread: protectedWorkerProcedure
+  getUnread: protectedCpProcedure
     .input(z.object({ limit: z.number().default(20) }))
     .query(async ({ ctx, input }) => {
       const db = getDb();
@@ -28,8 +30,8 @@ export const workerNotificationsRouter = workerRouter({
         .from(notifications)
         .where(
           and(
-            eq(notifications.targetPortal, "worker"),
-            eq(notifications.targetUserId, ctx.workerUser.id),
+            eq(notifications.targetPortal, "cp"),
+            eq(notifications.targetChannelPartnerId, ctx.cpUser.channelPartnerId),
             eq(notifications.isRead, false)
           )
         )
@@ -40,7 +42,7 @@ export const workerNotificationsRouter = workerRouter({
   /**
    * Get all notifications (read + unread) with pagination.
    */
-  getAll: protectedWorkerProcedure
+  getAll: protectedCpProcedure
     .input(z.object({
       limit: z.number().default(50),
       offset: z.number().default(0),
@@ -49,12 +51,13 @@ export const workerNotificationsRouter = workerRouter({
       const db = getDb();
       if (!db) return [];
 
+
       return await db.select()
         .from(notifications)
         .where(
           and(
-            eq(notifications.targetPortal, "worker"),
-            eq(notifications.targetUserId, ctx.workerUser.id)
+            eq(notifications.targetPortal, "cp"),
+            eq(notifications.targetChannelPartnerId, ctx.cpUser.channelPartnerId)
           )
         )
         .orderBy(desc(notifications.createdAt))
@@ -63,9 +66,9 @@ export const workerNotificationsRouter = workerRouter({
     }),
 
   /**
-   * Mark as read
+   * Mark a single notification as read.
    */
-  markAsRead: protectedWorkerProcedure
+  markAsRead: protectedCpProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const db = getDb();
@@ -77,8 +80,8 @@ export const workerNotificationsRouter = workerRouter({
         .where(
           and(
             eq(notifications.id, input.id),
-            eq(notifications.targetPortal, "worker"),
-            eq(notifications.targetUserId, ctx.workerUser.id)
+            eq(notifications.targetPortal, "cp"),
+            eq(notifications.targetChannelPartnerId, ctx.cpUser.channelPartnerId)
           )
         );
 
@@ -86,9 +89,9 @@ export const workerNotificationsRouter = workerRouter({
     }),
 
   /**
-   * Mark all as read
+   * Mark all notifications as read.
    */
-  markAllAsRead: protectedWorkerProcedure
+  markAllAsRead: protectedCpProcedure
     .mutation(async ({ ctx }) => {
       const db = getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -98,8 +101,8 @@ export const workerNotificationsRouter = workerRouter({
         .set({ isRead: true, readAt: new Date() })
         .where(
           and(
-            eq(notifications.targetPortal, "worker"),
-            eq(notifications.targetUserId, ctx.workerUser.id),
+            eq(notifications.targetPortal, "cp"),
+            eq(notifications.targetChannelPartnerId, ctx.cpUser.channelPartnerId),
             eq(notifications.isRead, false)
           )
         );

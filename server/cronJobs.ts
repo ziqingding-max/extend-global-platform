@@ -853,7 +853,14 @@ export async function runOverdueInvoiceDetection(): Promise<{ overdueCount: numb
   const todayStr = beijingDate.toISOString().split("T")[0]; // YYYY-MM-DD in Beijing time
   // Find all sent invoices with dueDate < today
   const overdueInvoices = await db
-    .select({ id: invoices.id, invoiceNumber: invoices.invoiceNumber, dueDate: invoices.dueDate, customerId: invoices.customerId })
+    .select({
+      id: invoices.id,
+      invoiceNumber: invoices.invoiceNumber,
+      dueDate: invoices.dueDate,
+      customerId: invoices.customerId,
+      channelPartnerId: invoices.channelPartnerId,
+      invoiceLayer: invoices.invoiceLayer,
+    })
     .from(invoices)
     .where(
       and(
@@ -868,10 +875,21 @@ export async function runOverdueInvoiceDetection(): Promise<{ overdueCount: numb
     await db.update(invoices).set({ status: "overdue" }).where(eq(invoices.id, inv.id));
     overdueCount++;
     console.log(`[CronJob] Invoice ${inv.invoiceNumber || inv.id} marked as overdue (due: ${inv.dueDate})`);
-    
+
+    // Route overdue notification based on invoiceLayer
+    const layer = inv.invoiceLayer || "legacy";
+    let overdueType = "invoice_overdue";
+    if (layer === "eg_to_cp") {
+      overdueType = "invoice_overdue_to_cp";
+    } else if (layer === "eg_to_client" || layer === "legacy") {
+      overdueType = "invoice_overdue_to_direct_client";
+    }
+    // Note: cp_to_client overdue reminders are handled via cpEmailService.sendCpInvoiceOverdueReminder
+
     notificationService.send({
-      type: "invoice_overdue",
+      type: overdueType,
       customerId: inv.customerId,
+      channelPartnerId: inv.channelPartnerId ?? undefined,
       data: {
         invoiceId: inv.id,
         invoiceNumber: inv.invoiceNumber,

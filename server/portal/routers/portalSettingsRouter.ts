@@ -334,17 +334,25 @@ export const portalSettingsRouter = portalRouter({
           .from(customers)
           .where(eq(customers.id, cid))
           .limit(1);
-        const companyName = custRows[0]?.companyName || "Your Company";
+          const companyName = custRows[0]?.companyName || "Your Company";
+
+        // Check if this customer belongs to a CP (for white-label branding)
+        const custFullRows = await db
+          .select({ channelPartnerId: customers.channelPartnerId })
+          .from(customers)
+          .where(eq(customers.id, cid))
+          .limit(1);
+        const channelPartnerId = custFullRows[0]?.channelPartnerId ?? undefined;
 
         const portalOrigin = process.env.PORTAL_APP_URL || "https://app.extendglobal.ai";
         const inviteUrl = `${portalOrigin}/register?token=${inviteToken}`;
-
         await sendPortalInviteEmail({
           to: input.email.toLowerCase().trim(),
           contactName: input.contactName,
           companyName,
           portalRole: input.portalRole,
           inviteUrl,
+          channelPartnerId,
         });
       } catch (err) {
         console.error("[PortalSettings] Failed to send invite email:", err);
@@ -476,15 +484,23 @@ export const portalSettingsRouter = portalRouter({
           .limit(1);
         const companyName = custRows[0]?.companyName || "Your Company";
 
+        // Check if this customer belongs to a CP (for white-label branding)
+        const custFullRows2 = await db
+          .select({ channelPartnerId: customers.channelPartnerId })
+          .from(customers)
+          .where(eq(customers.id, cid))
+          .limit(1);
+        const channelPartnerId2 = custFullRows2[0]?.channelPartnerId ?? undefined;
+
         const portalOrigin = process.env.PORTAL_APP_URL || "https://app.extendglobal.ai";
         const inviteUrl = `${portalOrigin}/register?token=${inviteToken}`;
-
         await sendPortalInviteEmail({
           to: contactEmail,
           contactName,
           companyName,
           portalRole: "viewer",
           inviteUrl,
+          channelPartnerId: channelPartnerId2,
         });
       } catch (err) {
         console.error("[PortalSettings] Failed to resend invite email:", err);

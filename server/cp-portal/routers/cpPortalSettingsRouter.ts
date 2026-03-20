@@ -38,6 +38,7 @@ import {
   generateCpInviteToken,
   getCpInviteExpiryDate,
 } from "../cpPortalAuth";
+import { sendCpPortalInvite } from "../../services/cpEmailService";
 
 export const cpPortalSettingsRouter = cpPortalRouter({
   // =========================================================================
@@ -282,8 +283,23 @@ export const cpPortalSettingsRouter = cpPortalRouter({
 
       const newContact = Array.isArray(resultRows) ? resultRows[0] : resultRows;
 
-      // TODO: Send white-labeled invite email using CP branding config
-      console.log(`[CP Portal] Invite token for ${input.email}: ${inviteToken}`);
+      // Send white-labeled invite email using CP branding
+      try {
+        const cp = await getChannelPartnerById(cpId);
+        if (cp?.subdomain) {
+          await sendCpPortalInvite({
+            channelPartnerId: cpId,
+            contactName: input.contactName,
+            email: input.email.toLowerCase().trim(),
+            inviteToken,
+            subdomain: cp.subdomain,
+          });
+        } else {
+          console.warn(`[CP Portal] CP #${cpId} has no subdomain, cannot send invite email`);
+        }
+      } catch (err) {
+        console.error(`[CP Portal] Failed to send invite email to ${input.email}:`, err);
+      }
 
       await logAuditAction({
         action: "cp_portal_user_invite",
@@ -395,8 +411,23 @@ export const cpPortalSettingsRouter = cpPortalRouter({
         inviteExpiresAt,
       });
 
-      // TODO: Send white-labeled invite email
-      console.log(`[CP Portal] Resend invite token for ${contact.email}: ${inviteToken}`);
+      // Send white-labeled invite email
+      try {
+        const cp = await getChannelPartnerById(cpId);
+        if (cp?.subdomain) {
+          await sendCpPortalInvite({
+            channelPartnerId: cpId,
+            contactName: contact.contactName,
+            email: contact.email,
+            inviteToken,
+            subdomain: cp.subdomain,
+          });
+        } else {
+          console.warn(`[CP Portal] CP #${cpId} has no subdomain, cannot resend invite email`);
+        }
+      } catch (err) {
+        console.error(`[CP Portal] Failed to resend invite email to ${contact.email}:`, err);
+      }
 
       await logAuditAction({
         action: "cp_portal_user_resend_invite",

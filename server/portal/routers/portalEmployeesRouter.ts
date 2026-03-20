@@ -30,6 +30,7 @@ import {
   countriesConfig,
   onboardingInvites,
   customers,
+  channelPartners,
 } from "../../../drizzle/schema";
 import { contractors } from "../../../drizzle/aor-schema";
 
@@ -571,11 +572,22 @@ export const portalEmployeesRouter = portalRouter({
       // Send onboarding invite email
       try {
         const custRows = await db
-          .select({ companyName: customers.companyName })
+          .select({
+            companyName: customers.companyName,
+            channelPartnerId: customers.channelPartnerId,
+          })
           .from(customers)
           .where(eq(customers.id, cid))
           .limit(1);
         const companyName = custRows[0]?.companyName || "Your Company";
+
+        // Look up CP name for delegation statement in Worker email
+        let cpName: string | undefined;
+        if (custRows[0]?.channelPartnerId) {
+          const [cp] = await db.select({ companyName: channelPartners.companyName })
+            .from(channelPartners).where(eq(channelPartners.id, custRows[0].channelPartnerId)).limit(1);
+          cpName = cp?.companyName || undefined;
+        }
 
         const portalOrigin = process.env.PORTAL_APP_URL || "https://app.extendglobal.ai";
         const inviteUrl = `${portalOrigin}/self-onboarding?token=${token}`;
@@ -585,6 +597,8 @@ export const portalEmployeesRouter = portalRouter({
           employeeName: input.employeeName,
           companyName,
           inviteUrl,
+          clientName: companyName,
+          channelPartnerName: cpName,
         });
       } catch (err) {
         console.error("[PortalEmployees] Failed to send onboarding invite email:", err);
@@ -660,11 +674,22 @@ export const portalEmployeesRouter = portalRouter({
       // Resend onboarding invite email
       try {
         const custRows = await db
-          .select({ companyName: customers.companyName })
+          .select({
+            companyName: customers.companyName,
+            channelPartnerId: customers.channelPartnerId,
+          })
           .from(customers)
           .where(eq(customers.id, cid))
           .limit(1);
         const companyName = custRows[0]?.companyName || "Your Company";
+
+        // Look up CP name for delegation statement in Worker email
+        let cpName2: string | undefined;
+        if (custRows[0]?.channelPartnerId) {
+          const [cp] = await db.select({ companyName: channelPartners.companyName })
+            .from(channelPartners).where(eq(channelPartners.id, custRows[0].channelPartnerId)).limit(1);
+          cpName2 = cp?.companyName || undefined;
+        }
 
         const portalOrigin = process.env.PORTAL_APP_URL || "https://app.extendglobal.ai";
         const inviteUrl = `${portalOrigin}/self-onboarding?token=${newToken}`;
@@ -674,6 +699,8 @@ export const portalEmployeesRouter = portalRouter({
           employeeName: invite.employeeName,
           companyName,
           inviteUrl,
+          clientName: companyName,
+          channelPartnerName: cpName2,
         });
       } catch (err) {
         console.error("[PortalEmployees] Failed to resend onboarding invite email:", err);
