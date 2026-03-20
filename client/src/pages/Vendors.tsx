@@ -1,9 +1,15 @@
 /**
  * EG Admin — Vendor Management
  * List + Detail view for managing external service providers
+ *
+ * Refactored: Progressive disclosure based on Vendor Type.
+ * - Vendor Type is now the first field in Create/Edit forms.
+ * - Country uses standardized CountrySelect (ISO 2-letter code).
+ * - Government vendors show a simplified form (no contact/tax/address fields).
  */
 import Layout from "@/components/Layout";
 import CurrencySelect from "@/components/CurrencySelect";
+import CountrySelect from "@/components/CountrySelect";
 import { BankDetailsForm, BankDetails } from "@/components/forms/BankDetailsForm";
 import { formatDate, formatAmount, countryName } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
@@ -75,6 +81,162 @@ function formatServiceType(raw: string | null | undefined): string {
   return raw.split("_").map(w => acronyms.has(w.toLowerCase()) ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 }
 
+/** Helper: check if vendor type is government (simplified form) */
+function isGovType(vendorType: string): boolean {
+  return vendorType === "government";
+}
+
+/* ========== Reusable Vendor Form Fields (used by both Create and Edit) ========== */
+function VendorFormFields({ data, onChange, errors }: {
+  data: any;
+  onChange: (d: any) => void;
+  errors?: Record<string, boolean>;
+}) {
+  const set = (key: string, val: any) => onChange({ ...data, [key]: val });
+  const isGov = isGovType(data.vendorType || "operational");
+  const err = errors || {};
+
+  return (
+    <div className="grid grid-cols-2 gap-4 py-4">
+      {/* ── Row 1: Vendor Type (FIRST) + Name ── */}
+      <div>
+        <Label>Vendor Type *</Label>
+        <Select value={data.vendorType || "operational"} onValueChange={(v: any) => set("vendorType", v)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="government">Government</SelectItem>
+            <SelectItem value="financial">Financial Institution</SelectItem>
+            <SelectItem value="professional_service">Professional Service</SelectItem>
+            <SelectItem value="equipment_provider">Equipment Provider</SelectItem>
+            <SelectItem value="hr_recruitment">HR / Recruitment</SelectItem>
+            <SelectItem value="operational">Operational</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label className={err.name ? "text-destructive" : ""}>
+          {isGov ? "Institution Name *" : "Company Name *"}
+        </Label>
+        <Input
+          value={data.name || ""}
+          onChange={(e) => set("name", e.target.value)}
+          placeholder={isGov ? "e.g. Germany Pension Insurance" : "e.g. Global Payroll Partner Inc."}
+          className={err.name ? "border-destructive" : ""}
+        />
+      </div>
+
+      {/* ── Row 2: Country (standardized) + Currency ── */}
+      <div>
+        <Label className={err.country ? "text-destructive" : ""}>Country *</Label>
+        <CountrySelect
+          value={data.country || ""}
+          onValueChange={(v) => set("country", v)}
+          scope="all"
+          className={err.country ? "border-destructive" : ""}
+        />
+      </div>
+      <div>
+        <Label>Default Currency</Label>
+        <CurrencySelect value={data.currency || "USD"} onValueChange={(v) => set("currency", v)} />
+      </div>
+
+      {/* ── Government hint banner ── */}
+      {isGov && (
+        <div className="col-span-2 rounded-lg border border-dashed border-red-300 bg-red-50 dark:bg-red-950/20 p-3">
+          <p className="text-xs text-red-600 dark:text-red-400">
+            Government vendor — only essential fields are shown. Contact details, tax ID, and address fields are hidden as they are not applicable for government institutions.
+          </p>
+        </div>
+      )}
+
+      {/* ── Non-government fields: Legal Name, Tax ID, Contact, Address ── */}
+      {!isGov && (
+        <>
+          <div>
+            <Label>Legal Name</Label>
+            <Input value={data.legalName || ""} onChange={(e) => set("legalName", e.target.value)} placeholder="Legal entity name" />
+          </div>
+          <div>
+            <Label>Tax ID</Label>
+            <Input value={data.taxId || ""} onChange={(e) => set("taxId", e.target.value)} placeholder="Tax registration number" />
+          </div>
+          <div>
+            <Label>Contact Name</Label>
+            <Input value={data.contactName || ""} onChange={(e) => set("contactName", e.target.value)} placeholder="Primary contact person" />
+          </div>
+          <div>
+            <Label>Contact Email</Label>
+            <Input type="email" value={data.contactEmail || ""} onChange={(e) => set("contactEmail", e.target.value)} placeholder="email@example.com" />
+          </div>
+          <div>
+            <Label>Contact Phone</Label>
+            <Input value={data.contactPhone || ""} onChange={(e) => set("contactPhone", e.target.value)} placeholder="+1-202-555-0178" />
+          </div>
+          <div className="col-span-2">
+            <Label>Address</Label>
+            <Input value={data.address || ""} onChange={(e) => set("address", e.target.value)} placeholder="Street address" />
+          </div>
+          <div>
+            <Label>City</Label>
+            <Input value={data.city || ""} onChange={(e) => set("city", e.target.value)} />
+          </div>
+          <div>
+            <Label>State/Province</Label>
+            <Input value={data.state || ""} onChange={(e) => set("state", e.target.value)} />
+          </div>
+          <div>
+            <Label>Postal Code</Label>
+            <Input value={data.postalCode || ""} onChange={(e) => set("postalCode", e.target.value)} />
+          </div>
+          <div>
+            <Label>Service Type</Label>
+            <Select value={data.serviceType || ""} onValueChange={(v) => set("serviceType", v)}>
+              <SelectTrigger><SelectValue placeholder="Service Type" /></SelectTrigger>
+              <SelectContent>
+                {serviceTypeOptions.map((sType) => <SelectItem key={sType} value={sType}>{sType}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Payment Terms (Days)</Label>
+            <Input type="number" value={data.paymentTermDays || 30} onChange={(e) => set("paymentTermDays", parseInt(e.target.value) || 30)} />
+          </div>
+        </>
+      )}
+
+      {/* ── Status (Edit only — shown for all types) ── */}
+      {data.status !== undefined && (
+        <div>
+          <Label>Status</Label>
+          <Select value={data.status || "active"} onValueChange={(v) => set("status", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* ── Bank Details (all types) ── */}
+      <div className="col-span-2">
+        <BankDetailsForm
+          value={data.bankDetails || {}}
+          onChange={(val) => onChange({ ...data, bankDetails: { ...data.bankDetails, ...val } })}
+          countryCode={data.country}
+          currency={data.currency}
+        />
+      </div>
+
+      {/* ── Notes (all types) ── */}
+      <div className="col-span-2">
+        <Label>Notes</Label>
+        <Textarea value={data.notes || ""} onChange={(e) => set("notes", e.target.value)} placeholder="Internal notes about this vendor" rows={2} />
+      </div>
+    </div>
+  );
+}
+
 /* ========== Vendor List ========== */
 function VendorList() {
   const [search, setSearch] = useState("");
@@ -104,7 +266,7 @@ function VendorList() {
     name: "", legalName: "", contactName: "", contactEmail: "", contactPhone: "",
     country: "", address: "", city: "", state: "", postalCode: "",
     serviceType: "", currency: "USD", bankDetails: {} as BankDetails, taxId: "",
-    paymentTermDays: 30, vendorType: "operational" as "government" | "financial" | "professional_service" | "equipment_provider" | "hr_recruitment" | "operational", status: "active" as "active" | "inactive", notes: "",
+    paymentTermDays: 30, vendorType: "operational" as "government" | "financial" | "professional_service" | "equipment_provider" | "hr_recruitment" | "operational", notes: "",
   };
   const [formData, setFormData] = useState(defaultForm);
   const [formErrors, setFormErrors] = useState<Record<string, boolean>>({});
@@ -133,7 +295,7 @@ function VendorList() {
             <h1 className="text-2xl font-bold tracking-tight">Vendors</h1>
             <p className="text-sm text-muted-foreground mt-1">Manage your external service providers.</p>
           </div>
-          <Dialog open={createOpen} onOpenChange={(open) => { setCreateOpen(open); if (!open) setFormErrors({}); }}>
+          <Dialog open={createOpen} onOpenChange={(open) => { setCreateOpen(open); if (!open) { setFormErrors({}); setFormData(defaultForm); } }}>
             <DialogTrigger asChild>
               <Button><Plus className="w-4 h-4 mr-2" />Add Vendor</Button>
             </DialogTrigger>
@@ -141,98 +303,7 @@ function VendorList() {
               <DialogHeader>
                 <DialogTitle>Create Vendor</DialogTitle>
               </DialogHeader>
-              <div className="grid grid-cols-2 gap-4 py-4">
-                <div className="col-span-2">
-                  <Label className={formErrors.name ? "text-destructive" : ""}>Company Name</Label>
-                  <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Global Payroll Partner Inc." className={formErrors.name ? "border-destructive" : ""} />
-                </div>
-                <div>
-                  <Label>Legal Name</Label>
-                  <Input value={formData.legalName} onChange={(e) => setFormData({ ...formData, legalName: e.target.value })} placeholder="Legal entity name" />
-                </div>
-                <div>
-                  <Label>Tax ID</Label>
-                  <Input value={formData.taxId} onChange={(e) => setFormData({ ...formData, taxId: e.target.value })} placeholder="Tax registration number" />
-                </div>
-                <div>
-                  <Label>Contact Name</Label>
-                  <Input value={formData.contactName} onChange={(e) => setFormData({ ...formData, contactName: e.target.value })} placeholder="Primary contact person" />
-                </div>
-                <div>
-                  <Label>Contact Email</Label>
-                  <Input type="email" value={formData.contactEmail} onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })} placeholder="email@example.com" />
-                </div>
-                <div>
-                  <Label>Contact Phone</Label>
-                  <Input value={formData.contactPhone} onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })} placeholder="+1-202-555-0178" />
-                </div>
-                <div>
-                  <Label className={formErrors.country ? "text-destructive" : ""}>Country</Label>
-                  <Input value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })} placeholder="e.g. USA, UK, Singapore" className={formErrors.country ? "border-destructive" : ""} />
-                </div>
-                <div className="col-span-2">
-                  <Label>Address</Label>
-                  <Input value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} placeholder="Street address" />
-                </div>
-                <div>
-                  <Label>City</Label>
-                  <Input value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
-                </div>
-                <div>
-                  <Label>State/Province</Label>
-                  <Input value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Postal Code</Label>
-                  <Input value={formData.postalCode} onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Vendor Type</Label>
-                  <Select value={formData.vendorType} onValueChange={(v: any) => setFormData({ ...formData, vendorType: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="government">Government</SelectItem>
-                      <SelectItem value="financial">Financial Institution</SelectItem>
-                      <SelectItem value="professional_service">Professional Service</SelectItem>
-                      <SelectItem value="equipment_provider">Equipment Provider</SelectItem>
-                      <SelectItem value="hr_recruitment">HR / Recruitment</SelectItem>
-                      <SelectItem value="operational">Operational</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Service Type</Label>
-                  <Select value={formData.serviceType} onValueChange={(v) => setFormData({ ...formData, serviceType: v })}>
-                    <SelectTrigger><SelectValue placeholder="Service Type" /></SelectTrigger>
-                    <SelectContent>
-                      {(formData.vendorType === "government"
-                        ? serviceTypeOptions.filter(s => ["Tax Filing", "Social Contributions"].includes(s))
-                        : serviceTypeOptions
-                      ).map((sType) => <SelectItem key={sType} value={sType}>{sType}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Default Currency</Label>
-                  <CurrencySelect value={formData.currency} onValueChange={(v) => setFormData({ ...formData, currency: v })} />
-                </div>
-                <div>
-                  <Label>Payment Terms (Days)</Label>
-                  <Input type="number" value={formData.paymentTermDays} onChange={(e) => setFormData({ ...formData, paymentTermDays: parseInt(e.target.value) || 30 })} />
-                </div>
-                <div className="col-span-2">
-                  <BankDetailsForm
-                    value={formData.bankDetails}
-                    onChange={(val) => setFormData({ ...formData, bankDetails: { ...formData.bankDetails, ...val } })}
-                    countryCode={formData.country}
-                    currency={formData.currency}
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label>Notes</Label>
-                  <Textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Internal notes about this vendor" rows={2} />
-                </div>
-              </div>
+              <VendorFormFields data={formData} onChange={setFormData} errors={formErrors} />
               <DialogFooter>
                 <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
                 <Button onClick={validateAndCreate} disabled={createMutation.isPending}>
@@ -596,8 +667,6 @@ function VendorDetail({ id }: { id: number }) {
 
         {/* Vendor Bills */}
         <VendorBillsSection vendorId={id} vendorName={vendor.name} t={(key: string) => {
-          // This is a placeholder for the t function, as it's removed from the component.
-          // In a real scenario, you might pass a simple identity function or remove the prop if not strictly needed.
           const parts = key.split('.');
           const lastPart = parts[parts.length - 1];
           switch (lastPart) {
@@ -629,108 +698,7 @@ function VendorDetail({ id }: { id: number }) {
             <DialogHeader>
               <DialogTitle>Edit Vendor</DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-2 gap-4 py-4">
-              <div className="col-span-2">
-                <Label>Company Name</Label>
-                <Input value={editData.name || ""} onChange={(e) => setEditData({ ...editData, name: e.target.value })} />
-              </div>
-              <div>
-                <Label>Legal Name</Label>
-                <Input value={editData.legalName || ""} onChange={(e) => setEditData({ ...editData, legalName: e.target.value })} />
-              </div>
-              <div>
-                <Label>Tax ID</Label>
-                <Input value={editData.taxId || ""} onChange={(e) => setEditData({ ...editData, taxId: e.target.value })} />
-              </div>
-              <div>
-                <Label>Contact Name</Label>
-                <Input value={editData.contactName || ""} onChange={(e) => setEditData({ ...editData, contactName: e.target.value })} />
-              </div>
-              <div>
-                <Label>Contact Email</Label>
-                <Input value={editData.contactEmail || ""} onChange={(e) => setEditData({ ...editData, contactEmail: e.target.value })} />
-              </div>
-              <div>
-                <Label>Contact Phone</Label>
-                <Input value={editData.contactPhone || ""} onChange={(e) => setEditData({ ...editData, contactPhone: e.target.value })} />
-              </div>
-              <div>
-                <Label>Country</Label>
-                <Input value={editData.country || ""} onChange={(e) => setEditData({ ...editData, country: e.target.value })} />
-              </div>
-              <div className="col-span-2">
-                <Label>Address</Label>
-                <Input value={editData.address || ""} onChange={(e) => setEditData({ ...editData, address: e.target.value })} />
-              </div>
-              <div>
-                <Label>City</Label>
-                <Input value={editData.city || ""} onChange={(e) => setEditData({ ...editData, city: e.target.value })} />
-              </div>
-              <div>
-                <Label>State/Province</Label>
-                <Input value={editData.state || ""} onChange={(e) => setEditData({ ...editData, state: e.target.value })} />
-              </div>
-              <div>
-                <Label>Postal Code</Label>
-                <Input value={editData.postalCode || ""} onChange={(e) => setEditData({ ...editData, postalCode: e.target.value })} />
-              </div>
-              <div>
-                <Label>Vendor Type</Label>
-                <Select value={editData.vendorType || "operational"} onValueChange={(v) => setEditData({ ...editData, vendorType: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="government">Government</SelectItem>
-                    <SelectItem value="financial">Financial Institution</SelectItem>
-                    <SelectItem value="professional_service">Professional Service</SelectItem>
-                    <SelectItem value="equipment_provider">Equipment Provider</SelectItem>
-                    <SelectItem value="hr_recruitment">HR / Recruitment</SelectItem>
-                    <SelectItem value="operational">Operational</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Service Type</Label>
-                <Select value={editData.serviceType || ""} onValueChange={(v) => setEditData({ ...editData, serviceType: v })}>
-                  <SelectTrigger><SelectValue placeholder="Service Type" /></SelectTrigger>
-                  <SelectContent>
-                    {(editData.vendorType === "government"
-                      ? serviceTypeOptions.filter(s => ["Tax Filing", "Social Contributions"].includes(s))
-                      : serviceTypeOptions
-                    ).map((sType) => <SelectItem key={sType} value={sType}>{sType}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Default Currency</Label>
-                <CurrencySelect value={editData.currency || "USD"} onValueChange={(v) => setEditData({ ...editData, currency: v })} />
-              </div>
-              <div>
-                <Label>Payment Terms (Days)</Label>
-                <Input type="number" value={editData.paymentTermDays || 30} onChange={(e) => setEditData({ ...editData, paymentTermDays: parseInt(e.target.value) || 30 })} />
-              </div>
-              <div>
-                <Label>Status</Label>
-                <Select value={editData.status || "active"} onValueChange={(v) => setEditData({ ...editData, status: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-2">
-                <BankDetailsForm
-                  value={editData.bankDetails || {}}
-                  onChange={(val) => setEditData({ ...editData, bankDetails: { ...editData.bankDetails, ...val } })}
-                  countryCode={editData.country}
-                  currency={editData.currency}
-                />
-              </div>
-              <div className="col-span-2">
-                <Label>Notes</Label>
-                <Textarea value={editData.notes || ""} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} rows={2} />
-              </div>
-            </div>
+            <VendorFormFields data={editData} onChange={setEditData} />
             <DialogFooter>
               <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
               <Button onClick={() => updateMutation.mutate({ id, ...editData, bankDetails: JSON.stringify(editData.bankDetails) })} disabled={updateMutation.isPending}>
